@@ -1,0 +1,5 @@
+<div class="flex">
+    <span class="fill-remaining-space"></span>
+    <button mat-button class="mr-3" type="button" (click)="this.cancel()">CANCELAR</button>
+    <button mat-raised-button [disabled]="this.formGroup.invalid" color="primary" type="submit">GUARDAR</button>
+</div>

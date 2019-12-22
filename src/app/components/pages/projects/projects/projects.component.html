@@ -1,0 +1,43 @@
+<app-sub-toolbar
+    title="Proyectos"
+    [addButton]="true"
+    [backButton]="false">
+</app-sub-toolbar>
+
+<div class="page-content">
+
+    <div class="row row-cols-1 row-cols-md-3">
+        <div class="col mb-4">
+            <mat-card>
+                <mat-card-title class="font-weight-lighter">Proyecto 1</mat-card-title>
+                <mat-divider></mat-divider>
+                <mat-card-content>
+                    <mat-list>
+                        <li class="pt-2">
+                            <span>
+                                Presupuesto: <span class="font-weight-lighter">$25000</span>
+                            </span>
+                        </li>
+                        <li class="mt-2">
+                            <span>
+                                Ubicación: <span class="font-weight-lighter">Muisne</span>
+                            </span>
+                        </li>
+                        <li class="mt-2">
+                            <span>
+                                Duración: <span class="font-weight-lighter">24 meses</span>
+                            </span>
+                        </li>
+                    </mat-list>
+                </mat-card-content>
+                <mat-card-actions>
+                    <div class="flex">
+                        <span class="fill-remaining-space"></span>
+                        <button mat-button>DETALLES</button>
+                    </div>
+                </mat-card-actions>
+            </mat-card>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,244 @@
+<app-sub-toolbar
+    title="Nuevo Proyecto"
+    [addButton]="false"
+    [backButton]="true">
+</app-sub-toolbar>
+
+<div class="page-content">
+    <div class="container">
+        <mat-vertical-stepper class="mb-4" [linear]="false" #stepper>
+            <mat-step [stepControl]="firstFormGroup">
+                <form [formGroup]="firstFormGroup">
+                    <ng-template matStepLabel>Datos Generales</ng-template>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <mat-form-field class="full-width">
+                                <input matInput type="text" placeholder="Nombre del Proyecto">
+                                <mat-error>Este campo es obligatorio.</mat-error>
+                            </mat-form-field>
+                        </div>
+                        <div class="col-sm-4">
+                            <mat-form-field class="full-width">
+                                <input matInput type="text" placeholder="Fecha de Inicio">
+                                <mat-error>Este campo es obligatorio.</mat-error>
+                            </mat-form-field>
+                        </div>
+                        <div class="col-sm-4">
+                            <mat-form-field class="full-width">
+                                <input matInput type="text" placeholder="Duración">
+                                <mat-error>Este campo es obligatorio.</mat-error>
+                            </mat-form-field>
+                        </div>
+                    </div>
+                    <div class="flex">
+                        <span class="fill-remaining-space"></span>
+                        <button mat-button matStepperNext>Siguiente</button>
+                    </div>
+                </form>
+            </mat-step>
+            <mat-step [stepControl]="secondFormGroup">
+                <form [formGroup]="secondFormGroup">
+                    <ng-template matStepLabel>Presupuesto, Localidad y Beneficiarios</ng-template>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <mat-form-field class="full-width">
+                                <input matInput type="text" placeholder="Presupuesto Total Inicial">
+                                <mat-error>Este campo es obligatorio.</mat-error>
+                            </mat-form-field>
+                        </div>
+                        <div class="col-sm-4">
+                            <mat-form-field class="full-width">
+                                <input matInput type="text" placeholder="Ubicación (Cantón)">
+                                <mat-error>Este campo es obligatorio.</mat-error>
+                            </mat-form-field>
+                        </div>
+                        <div class="col-sm-4">
+                            <mat-form-field class="full-width">
+                                <input matInput type="text" placeholder="Número de Beneficiarios">
+                                <mat-error>Este campo es obligatorio.</mat-error>
+                            </mat-form-field>
+                        </div>
+                    </div>
+                    <div class="flex">
+                        <span class="fill-remaining-space"></span>
+                        <button mat-button matStepperPrevious>Anterior</button>
+                        <button mat-button matStepperNext>Siguiente</button>
+                    </div>
+                </form>
+            </mat-step>
+            <mat-step>
+                <ng-template matStepLabel>Objetivos y Resultados</ng-template>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <mat-form-field class="full-width">
+                            <textarea matInput type="text" placeholder="Objetivo General"></textarea>
+                            <mat-error>El Objetivo General es obligatorio.</mat-error>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-sm-6">
+                        <mat-form-field class="full-width">
+                            <textarea matInput type="text" placeholder="Objetivo Específico"></textarea>
+                            <mat-error>Este campo es obligatorio.</mat-error>
+                        </mat-form-field>
+                        <div class="flex">
+                            <span class="fill-remaining-space"></span>
+                            <button mat-raised-button color="primary">Añadir Objetivo</button>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <mat-form-field class="full-width">
+                            <textarea matInput type="text" placeholder="Resultado"></textarea>
+                            <mat-error>Este campo es obligatorio.</mat-error>
+                        </mat-form-field>
+                        <div class="flex">
+                            <span class="fill-remaining-space"></span>
+                            <button mat-raised-button color="primary">Añadir Resultado</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex mt-3">
+                    <span class="fill-remaining-space"></span>
+                    <button mat-button matStepperPrevious>Anterior</button>
+                    <button mat-button matStepperNext>Siguiente</button>
+                </div>
+            </mat-step>
+            <mat-step>
+                <ng-template matStepLabel>Financiadores, Indicadores y Organizaciones</ng-template>
+                <div class="row mt-3">
+                    <div class="col-sm-4">
+                        <div>
+                            <div class="project-list-title">
+                                Financiadores
+                            </div>
+                            <mat-selection-list class="projects-selection-list">
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                            </mat-selection-list>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div>
+                            <div class="project-list-title">
+                                Indicadores
+                            </div>
+                            <mat-selection-list class="projects-selection-list">
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                                <mat-list-option>Item 1</mat-list-option>
+                                <mat-list-option>Item 2</mat-list-option>
+                            </mat-selection-list>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div>
+                            <div class="project-list-title">
+                                Organizaciones
+                            </div>
+                            <mat-selection-list class="projects-selection-list">
+                                    <mat-list-option>Item 1</mat-list-option>
+                                    <mat-list-option>Item 2</mat-list-option>
+                                    <mat-list-option>Item 1</mat-list-option>
+                                    <mat-list-option>Item 2</mat-list-option>
+                                    <mat-list-option>Item 1</mat-list-option>
+                                    <mat-list-option>Item 2</mat-list-option>
+                                    <mat-list-option>Item 1</mat-list-option>
+                                    <mat-list-option>Item 2</mat-list-option>
+                                    <mat-list-option>Item 1</mat-list-option>
+                                    <mat-list-option>Item 2</mat-list-option>
+                                    <mat-list-option>Item 1</mat-list-option>
+                                    <mat-list-option>Item 2</mat-list-option>
+                                    <mat-list-option>Item 1</mat-list-option>
+                                    <mat-list-option>Item 2</mat-list-option>
+                                    <mat-list-option>Item 1</mat-list-option>
+                                    <mat-list-option>Item 2</mat-list-option>
+                                    <mat-list-option>Item 1</mat-list-option>
+                                    <mat-list-option>Item 2</mat-list-option>
+                                    <mat-list-option>Item 1</mat-list-option>
+                                    <mat-list-option>Item 2</mat-list-option>
+                                    <mat-list-option>Item 1</mat-list-option>
+                                    <mat-list-option>Item 2</mat-list-option>
+                                    <mat-list-option>Item 1</mat-list-option>
+                                    <mat-list-option>Item 2</mat-list-option>
+
+                            </mat-selection-list>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex mt-3">
+                    <span class="fill-remaining-space"></span>
+                    <button mat-button matStepperPrevious>Anterior</button>
+                    <button mat-button matStepperNext>Siguiente</button>
+                </div>
+            </mat-step>
+            <mat-step>
+                <ng-template matStepLabel>Línea Base y Metas</ng-template>
+                <div class="row">
+                    <div *ngIf="true; else LineaBaseSchema" class="col-sm-12 mt-3 mb-3 font-weight-lighter text-center">No ha seleccionado ningún Indicador ni Organización</div>
+                    <ng-template #LineaBaseSchema>
+
+                    </ng-template>
+                </div>
+                <div class="flex mt-3">
+                    <span class="fill-remaining-space"></span>
+                    <button mat-button matStepperPrevious>Anterior</button>
+                    <button mat-button matStepperNext>Siguiente</button>
+                </div>
+            </mat-step>
+            <mat-step>
+                <ng-template matStepLabel>Lista de Beneficiarios</ng-template>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <input type="file" placeholder="Elegir Archivo" class="form-control-file">
+                    </div>
+                </div>
+                <div class="flex mt-3">
+                    <span class="fill-remaining-space"></span>
+                    <button mat-button matStepperPrevious>Anterior</button>
+                </div>
+            </mat-step>
+        </mat-vertical-stepper>    
+        <app-form-buttons [formGroup]="this.firstFormGroup"></app-form-buttons>      
+    </div>
+</div>

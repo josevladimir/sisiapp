@@ -1,0 +1,199 @@
+<app-sub-toolbar
+    title="Nuevo Indicador"
+    [backButton]="true"
+    [addButton]="false">
+</app-sub-toolbar>
+
+<div class="page-content">
+    <form [formGroup]="this.indicatorForm" (ngSubmit)="saveIndicator()">
+        <mat-card class="pb-3">
+            <mat-card-title class="font-weight-lighter">Información General</mat-card-title>
+            <div class="row">
+                <div class="col-sm-6">
+                    <mat-form-field class="full-width">
+                        <input matInput type="text" formControlName="name" placeholder="Nombre del Indicador">
+                    </mat-form-field>
+                </div>
+                <div class="col-sm-6">
+                    <mat-form-field class="full-width">
+                        <mat-label>Tipo de Indicador</mat-label>
+                        <mat-select formControlName="type" (valueChange)="changeType($event)">
+                            <mat-option value="Simple">Simple</mat-option>
+                            <mat-option value="Compuesto">Compuesto</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+            </div>
+            <div class="flex mt-3 justify-content-center">
+                <mat-checkbox *ngIf="this.typeCtrl.value == 'Compuesto'" formControlName="antiquity_diff">Diferenciar entre organizaciones nuevas y antiguas</mat-checkbox>
+            </div>
+        </mat-card>
+
+        <!--Parámetros Indicador Simple-->
+        <mat-card class="mt-4 mb-4" formArrayName="parameters_schema" *ngIf="this.typeCtrl.value == 'Simple'; else EsquemaCompuesto">
+            <mat-card-title class="font-weight-lighter">Parámetros del Indicador</mat-card-title>
+            <div class="row mb-3">
+                <div class="col-sm-3">
+                    <div class="full-width text-sm-center">Nombre</div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="full-width text-sm-center">Frecuencia</div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="full-width text-sm-center">Acumulativo</div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="full-width text-sm-center">Unidad</div>
+                </div>
+            </div>
+            <div class="row" *ngFor="let field of this.fields.controls; let i = index">
+                <div class="row" [formGroupName]="i">
+                    <div class="col-sm-3">
+                        <input type="text" formControlName="name" class="schema-input full-width">
+                    </div>
+                    <div class="col-sm-3">
+                        <mat-select class="schema-input full-width" formControlName="frequency">
+                            <mat-option value="Mensual">Mensual</mat-option>
+                            <mat-option value="Trimestral">Trimestral</mat-option>
+                            <mat-option value="Semestral">Semestral</mat-option>
+                        </mat-select>
+                    </div>
+                    <div class="col-sm-3">
+                        <mat-select class="schema-input full-width" formControlName="isAcum">
+                            <mat-option value="Si">Si</mat-option>
+                            <mat-option value="No">No</mat-option>
+                        </mat-select>
+                    </div>
+                    <div class="col-sm-3" (click)="showData()">
+                        <mat-select class="schema-input full-width" formControlName="unit">
+                            <mat-option value="Número">Número</mat-option>
+                            <mat-option value="Moneda">Moneda</mat-option>
+                            <mat-option value="Porcentaje">Porcentaje</mat-option>
+                        </mat-select>
+                    </div>
+                </div>
+            </div>
+        </mat-card>
+
+        <!--Esquema Indicador Compuesto-->
+        <ng-template #EsquemaCompuesto>
+            <mat-card class="mt-4">
+                <mat-card-title class="font-weight-lighter">Esquema de la Ficha</mat-card-title>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="full-width text-sm-center">Nombre</div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="full-width text-sm-center">Frecuencia</div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="full-width text-sm-center">Unidad</div>
+                    </div>
+                    <div class="col-sm-4">
+                        <input type="text" class="schema-input full-width">
+                    </div>
+                    <div class="col-sm-4">
+                        <mat-select class="schema-input full-width">
+                            <mat-option value="Mensual">Mensual</mat-option>
+                            <mat-option value="Trimestral">Trimestral</mat-option>
+                            <mat-option value="Semestral">Semestral</mat-option>
+                        </mat-select>
+                    </div>
+                    <div class="col-sm-4">
+                        <mat-select class="schema-input full-width">
+                            <mat-option value="Número">Número</mat-option>
+                            <mat-option value="Moneda">Moneda</mat-option>
+                            <mat-option value="Porcentaje">Porcentaje</mat-option>
+                        </mat-select>
+                    </div>
+                </div>
+                <mat-card-actions>
+                    <div class="flex mb-4 mt-4">
+                        <span class="fill-remaining-space"></span>
+                        <button mat-raised-button color="primary" type="button"><mat-icon>add</mat-icon> AGREGAR</button>
+                    </div>
+                </mat-card-actions>
+            </mat-card>
+
+            <!--Parámetros Indicador Compuesto-->
+            <mat-card class="mt-4">
+                <mat-card-title class="font-weight-lighter">Parámetros del Indicador</mat-card-title>
+                <div class="row">
+                    <div class="col-sm-3">
+                        <div class="full-width text-sm-center">Nombre</div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="full-width text-sm-center">Ponderación (%)</div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="full-width text-sm-center">Acumulativo</div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="full-width text-sm-center">Unidad</div>
+                    </div>
+                </div>
+                <div class="row mb-1" *ngFor="let parameter of this.parameterCompuesto.controls; let i = index">
+                    <div class="row" [formGroupName]="i">
+                        <div class="col-sm-3">
+                            <input type="text" formControlName="name" class="schema-input full-width">
+                        </div>
+                        <div class="col-sm-3" formGroupName="weighing">
+                            <input type="text" formControlName="weight" class="schema-input full-width">
+                        </div>
+                        <div class="col-sm-3">
+                            <mat-select class="schema-input full-width" formControlName="isAcum">
+                                <mat-option value="Sí">Sí</mat-option>
+                                <mat-option value="No">No</mat-option>
+                            </mat-select>
+                        </div>
+                        <div class="col-sm-3">
+                            <mat-select class="schema-input full-width" formControlName="unit">
+                                <mat-option value="Número">Número</mat-option>
+                                <mat-option value="Moneda">Moneda</mat-option>
+                                <mat-option value="Porcentaje">Porcentaje</mat-option>
+                            </mat-select>
+                        </div>
+                    </div>
+                </div>
+                <mat-card-actions>
+                    <div class="flex mb-4 mt-4">
+                        <span class="fill-remaining-space"></span>
+                        <button mat-raised-button color="primary" type="button" (click)="this.addParameter()"><mat-icon>add</mat-icon> AGREGAR</button>
+                    </div>
+                </mat-card-actions>
+            </mat-card>
+
+            <!--Definición de los Parámetros-->
+            <mat-card class="mt-4 mb-4">
+                <mat-card-title class="font-weight-lighter">Definición de los Parámetros</mat-card-title>
+                <div class="definition-box mt-2 mb-4">
+                    <div> 
+                        <span>Parámetro</span>
+                    </div>
+                    <div>
+                        <span>Campos de la Ficha:</span>
+                    </div>
+                    <div class="definition-column">
+                        <span>Definición del Parámetro</span>
+                        <div class="definition-space">
+
+                        </div>
+                        <div class="botonera flex justify-content-center">
+                            <button class="botonera-btn mr-1">+</button>
+                            <button class="botonera-btn mr-1">-</button>
+                            <button class="botonera-btn mr-1">*</button>
+                            <button class="botonera-btn mr-1">/</button>
+                            <button class="botonera-btn mr-1">(</button>
+                            <button class="botonera-btn mr-1">)</button>
+                            <button class="botonera-btn">*100%</button>
+                        </div>
+                    </div>
+                </div>
+            </mat-card>
+
+        </ng-template>
+
+        <app-form-buttons class="mt-4" [formGroup]="this.indicatorForm"></app-form-buttons>
+
+    </form>
+</div>

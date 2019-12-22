@@ -1,0 +1,87 @@
+<app-sub-toolbar
+    [title]="this.Funder.name"
+    [backButton]="true"
+    [addButton]="false">
+</app-sub-toolbar>
+
+<div class="page-content">
+    <mat-card>
+        <form [formGroup]="this.FunderFormGroup">
+            <div class="flex">
+                <mat-card-title class="font-weight-lighter">Datos Generales</mat-card-title>
+                <span class="fill-remaining-space"></span>
+                <button mat-button *ngIf="this.userRole == 'Administrador' && !this.editMode" (click)="this.edit()"><mat-icon>edit</mat-icon> EDITAR</button>
+            </div>
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <mat-form-field class="full-width">
+                        <input matInput type="text" formControlName="name" placeholder="Nombre del Financiador">
+                        <mat-error>Este campo es obligatorio</mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="col-md-3">
+                    <mat-form-field class="full-width">
+                        <input matInput type="text" formControlName="place" placeholder="Ubicación">
+                        <mat-error>Este campo es obligatorio</mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="col-md-3">
+                    <mat-form-field class="full-width">
+                        <input matInput type="text" formControlName="website" placeholder="Sitio Web">
+                        <mat-error>Este campo es obligatorio</mat-error>
+                    </mat-form-field>    
+                </div>
+                <div class="col-md-3">
+                    <mat-form-field disabled class="full-width">
+                        <input matInput type="text" formControlName="coop_date" placeholder="Fecha de Constitución">
+                        <mat-error>Este campo es obligatorio</mat-error>
+                    </mat-form-field>    
+                </div>
+            </div>
+            <app-button-group *ngIf="this.editMode" [formStatus]="this.FunderFormGroup.pristine" (save)="this.save()" (cancel)="this.cancel()"></app-button-group>
+        </form>
+    </mat-card>
+
+    <div>
+        <h2 class="mt-5 font-weight-lighter">Proyectos asociados:</h2>
+        <div *ngIf="this.Funder.projects.length; else NoProjects" class="row row-cols-1 row-cols-md-3">
+            <div class="col mb-4" *ngFor="let project of this.Funder.projects">
+                <mat-card>
+                    <mat-card-title class="font-weight-lighter">Proyecto 1</mat-card-title>
+                    <mat-divider></mat-divider>
+                    <mat-card-content>
+                        <mat-list>
+                            <li class="pt-2">
+                                <span>
+                                    Presupuesto: <span class="font-weight-lighter">$25000</span>
+                                </span>
+                            </li>
+                            <li class="mt-2">
+                                <span>
+                                    Ubicación: <span class="font-weight-lighter">Muisne</span>
+                                </span>
+                            </li>
+                            <li class="mt-2">
+                                <span>
+                                    Duración: <span class="font-weight-lighter">24 meses</span>
+                                </span>
+                            </li>
+                        </mat-list>
+                    </mat-card-content>
+                    <mat-card-actions>
+                        <div class="flex">
+                            <span class="fill-remaining-space"></span>
+                            <button mat-button>DETALLES</button>
+                        </div>
+                    </mat-card-actions>
+                </mat-card>
+            </div>
+        </div>
+        <ng-template #NoProjects>
+            <div class="font-weight-lighter text-center mt-5">
+                Este Financiador no tiene ningún proyecto asociado
+            </div>
+        </ng-template>
+    </div>
+
+</div>

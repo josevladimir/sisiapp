@@ -1,1 +1,217 @@
-/* You can add global styles to this file, and also import other style files */
+@import './custom-theme.scss'
+
+html,
+body,
+app-root,
+mat-drawer,
+mat-drawer-content
+    height: 100%
+
+mat-list
+    padding-top: 0px !important
+
+li
+    list-style: none
+
+mat-drawer
+    background: #333333
+    width: 200px
+
+mat-drawer-container
+    height: calc(100% - 64px)
+
+mat-drawer-content
+    background: #ccc
+
+#login-box
+    width: 400px
+
+    img
+        margin: auto
+        width: 200px
+
+#loading-view
+    background: rgba(0,0,0,.85)
+    position: absolute
+    top: 0px
+    z-index: 1000
+
+    img
+        animation: rotar 1s infinite
+        width: 250px
+
+    h2
+        color: #fff
+
+//Classes
+.border-radius
+    border-radius: 5px
+
+.bordered-list
+    border: 1px solid #ccc
+    border-radius: 0px 0px 5px 5px
+
+.definition-box
+    border: 1px solid #999
+    border-radius: 5px 5px 0px 0px
+    display: grid
+    grid-template-columns: repeat(3,1fr)
+    
+    div
+        height: 300px
+
+    div:first-child
+        border-right: 1px solid #999
+
+        span
+            border-radius: 5px 0px 0px 0px
+
+    div:last-child
+        border-left: 1px solid #999
+
+        span
+            border-radius: 0px 5px 0px 0px
+
+    span
+        background: #ccc
+        border-bottom: 1px solid #999
+        display: block
+        padding: 7px 10px
+        width: 100%
+
+.definition-column
+    .definition-space
+        border: 0px
+        height: calc(100% - 79px)
+
+    .botonera
+        background: #ccc
+        border: none !important
+        height: 40px
+        padding: 5px 0px
+
+        .botonera-btn
+            background: #aaa
+            border-radius: 5px
+            box-shadow: 0px 0px transparent
+            height: 30px
+            padding: 0px 10px
+
+.fadeIn
+  -webkit-animation-name: fadeIn
+  animation: fadeIn .25s
+
+.fadeOut
+  -webkit-animation-name: fadeOut
+  animation: fadeOut .25s
+
+.fill-remaining-space
+    flex: 1 auto 
+
+.flex
+    display: flex
+
+.full-height
+    height: 100%
+
+.full-width
+    width: 100%
+
+.hover-underline:hover
+    text-decoration: underline
+
+.linkActive
+    background: rgb(55,138,0) !important
+    color: #fff
+    font-weight: normal !important
+
+.linkActive:hover
+    color: #fff !important
+
+.link-side
+    border-radius: 0px !important
+
+.link-side:hover
+    color: #000
+    text-decoration: none 
+
+.list-title
+    background: #aaa
+    border-radius: 5px 5px 0px 0px
+    font-size: 18px
+    font-weight: normal
+    margin: 0 !important
+    padding: 10px
+
+.poject-list-title
+    background: #ccc
+    border-radius: 5px 5px 0px 0px
+    font-size: 18px
+    font-weight: normal
+    margin: 0 !important
+    padding: 10px
+
+.page-content
+    height: calc(100% - 64px)
+    overflow-y: scroll
+    padding: 40px
+
+.projects-selection-list
+    border: 1px solid #ccc
+    height: 250px
+    overflow-y: scroll
+
+.schema-input
+    background: #f2f2f2
+    border: 1px solid #cccccc
+    font-size: 13px
+    outline-color: none !important
+    outline-style: none !important
+    padding: 5px
+
+.scroll-list-view
+    background: #fff
+    border: 1px solid #aaa
+    height: calc(100% - 41px)
+    overflow-y: scroll
+
+.validate-msg
+    color: red
+
+.invalidate-input
+    border: 1px solid red
+
+/*Animations*/
+@keyframes rotar
+    0%
+        transform: rotate(0deg)
+    100%
+        transform: rotate(360deg)
+        
+@-webkit-keyframes fadeIn 
+  from 
+    opacity: 0
+
+  to 
+    opacity: 1
+
+@keyframes fadeIn
+  from
+    opacity: 0
+  
+  to
+    opacity: 1
+  
+@-webkit-keyframes fadeOut
+  from
+    opacity: 1
+  
+  to
+    opacity: 0
+  
+@keyframes fadeOut
+  from
+    opacity: 1
+  
+  to
+    opacity: 0

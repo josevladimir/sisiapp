@@ -1,0 +1,146 @@
+<app-sub-toolbar
+    title="Nueva Organización"
+    [backButton]="true"
+    [addButton]="false">
+</app-sub-toolbar>
+
+<div class="page-content">
+    <form [formGroup]="this.organizationForm" (ngSubmit)="this.saveOrganization()">
+        <mat-card>
+            <mat-card-title class="font-weight-lighter">Datos Generales</mat-card-title>
+            <div class="row">
+                <div class="col-sm-4">
+                    <mat-form-field class="full-width">
+                        <input matInput type="text" formControlName="name" placeholder="Nombre de la Organización">
+                        <mat-error *ngIf="this.nameCtrl.errors?.required">Este campo es obligatorio</mat-error>
+                        <mat-error *ngIf="this.nameCtrl.errors?.exist">Ya existe una organización con ese nombre</mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="col-sm-4">
+                    <mat-form-field class="full-width">
+                        <input matInput type="text" (blur)="setOlder($event)" formControlName="foundation_date" placeholder="Fecha de Constitución">
+                        <mat-hint>Ingrese la fecha en formato: <b>01/01/2019</b></mat-hint>
+                        <mat-error *ngIf="this.foundation_dateCtrl.errors?.required">Este campo es obligatorio</mat-error>
+                        <mat-error *ngIf="this.foundation_dateCtrl.errors?.pattern">Ingrese una fecha válida</mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="col-sm-4">
+                    <mat-form-field class="full-width">
+                        <mat-label>Sector:</mat-label>
+                        <mat-select formControlName="sector">
+                          <mat-option value="Cacao">
+                              Cacao
+                          </mat-option>
+                          <mat-option value="Agricultura">
+                              Agricultura
+                          </mat-option>
+                          <mat-option value="Turismo">
+                              Turismo
+                          </mat-option>
+                          <button mat-button><mat-icon>add</mat-icon> Añadir nuevo...</button>
+                        </mat-select>
+                    </mat-form-field>    
+                </div>
+                <div class="col-sm-4">
+                    <mat-form-field class="full-width">
+                        <mat-label>Tipo de Organización:</mat-label>
+                        <mat-select formControlName="type">
+                            <mat-option value="SFL">
+                                SFL
+                            </mat-option>
+                            <mat-option value="Empresa">
+                                Empresa
+                            </mat-option>
+                            <mat-option value="Asociación">
+                                Asociación
+                            </mat-option>
+                            <button mat-button><mat-icon>add</mat-icon> Añadir nuevo...</button>
+                        </mat-select>
+                        <mat-error>Este campo es obligatorio</mat-error>
+                    </mat-form-field>    
+                </div>
+                <div class="col-sm-4">
+                    <mat-form-field class="full-width">
+                        <mat-label>Legalizada:</mat-label>
+                        <mat-select formControlName="legalized">
+                            <mat-option value="Si">
+                                Sí
+                            </mat-option>
+                            <mat-option value="No">
+                                No
+                            </mat-option>
+                        </mat-select>
+                        <mat-error>Este campo es obligatorio</mat-error>
+                    </mat-form-field>    
+                </div>
+            </div>
+        </mat-card>
+        <!--Parte de Localización-->
+        <mat-card class="mt-4">
+            <mat-card-title class="font-weight-lighter">Localidad</mat-card-title>
+            <div class="row" formGroupName="ubication">
+                <div class="col-sm-4">
+                    <mat-form-field class="full-width">
+                        <input matInput type="text" formControlName="canton" placeholder="Cantón">
+                        <mat-error>Este campo es obligatorio</mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="col-sm-4">
+                    <mat-form-field class="full-width">
+                        <input matInput type="text" formControlName="parroquia" placeholder="Parroquia">
+                        <mat-error>Este campo es obligatorio</mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="col-sm-4">
+                    <mat-form-field class="full-width">
+                        <input matInput type="text" formControlName="recinto" placeholder="Recinto">
+                        <mat-error>Este campo es obligatorio</mat-error>
+                    </mat-form-field>
+                </div>
+            </div>
+        </mat-card>
+        <!--Parte de Beneficiarios-->
+        <mat-card class="mt-4">
+            <mat-card-title class="font-weight-lighter">Socios y Baneficiarios</mat-card-title>
+            <div class="row">
+                <div class="col-sm-8">
+                    <div class="row" formGroupName="partners">
+                        <div class="col-sm-6">
+                            <mat-form-field class="full-width">
+                                <input matInput type="text" formControlName="mens" placeholder="Socios Hombres">
+                                <mat-hint>Ingrese un número, por favor.</mat-hint>
+                                <mat-error *ngIf="this.mensCtrl.errors?.required">Este campo es obligatorio</mat-error>
+                                <mat-error *ngIf=" this.mensCtrl.errors?.pattern">Debe ingresar una cantidad numérica</mat-error>
+                            </mat-form-field>
+                        </div>
+                        <div class="col-sm-6">
+                            <mat-form-field class="full-width">
+                                <input matInput type="text" formControlName="womens" placeholder="Socios Mujeres">
+                                <mat-hint>Ingrese un número, por favor.</mat-hint>
+                                <mat-error *ngIf="this.womensCtrl.errors?.required">Este campo es obligatorio</mat-error>
+                                <mat-error *ngIf="this.womensCtrl.errors?.pattern">Debe ingresar una cantidad numérica</mat-error>
+                            </mat-form-field>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <mat-form-field class="full-width">
+                        <input matInput type="text" formControlName="beneficiaries" placeholder="Beneficiarios">
+                        <mat-hint>Ingrese un número, por favor.</mat-hint>
+                        <mat-error *ngIf="this.organizationForm.controls['beneficiaries'].errors?.required">Este campo es obligatorio</mat-error>
+                        <mat-error *ngIf="this.organizationForm.controls['beneficiaries'].errors?.pattern">Debe ingresar una cantidad numérica</mat-error>
+                    </mat-form-field>
+                </div>
+            </div>
+        </mat-card>
+        <!--Clasificación de la Organización en Nueva o Antigua-->
+        <div class="text-center p-4 m-4">
+            La organización clasifica como <b *ngIf="!this.isOlder; else AntiguaTemplate">Nueva</b><ng-template #AntiguaTemplate><b>Antigua</b></ng-template>
+        </div>
+
+        <app-upload-box></app-upload-box>
+
+        <app-form-buttons [formGroup]="this.organizationForm"></app-form-buttons>
+
+    </form>
+</div>

@@ -1,0 +1,9 @@
+<mat-toolbar>
+    <button *ngIf="this.backButton" mat-icon-button (click)="this.back()"><mat-icon>arrow_back</mat-icon></button>
+    <div>
+        {{this.title}}
+    </div>
+    <span class="fill-remaining-space"></span>
+    <button *ngIf="this.editButton" (click)="this.edit()" mat-raised-button><mat-icon>edit</mat-icon> EDITAR</button>
+    <a [routerLink]="['add']" *ngIf="this.addButton" mat-raised-button color="primary"><mat-icon>add</mat-icon> AGREGAR</a>
+</mat-toolbar>
