@@ -135,19 +135,19 @@
                 <div class="row mb-1" *ngFor="let parameter of this.parameterCompuesto.controls; let i = index">
                     <div class="row" [formGroupName]="i">
                         <div class="col-sm-3">
-                            <input type="text" formControlName="name" class="schema-input full-width">
-                        </div>
-                        <div class="col-sm-3" formGroupName="weighing">
-                            <input type="text" formControlName="weight" class="schema-input full-width">
+                            <input type="text" class="schema-input full-width">
                         </div>
                         <div class="col-sm-3">
-                            <mat-select class="schema-input full-width" formControlName="isAcum">
+                            <input type="text" class="schema-input full-width">
+                        </div>
+                        <div class="col-sm-3">
+                            <mat-select class="schema-input full-width">
                                 <mat-option value="Sí">Sí</mat-option>
                                 <mat-option value="No">No</mat-option>
                             </mat-select>
                         </div>
                         <div class="col-sm-3">
-                            <mat-select class="schema-input full-width" formControlName="unit">
+                            <mat-select class="schema-input full-width">
                                 <mat-option value="Número">Número</mat-option>
                                 <mat-option value="Moneda">Moneda</mat-option>
                                 <mat-option value="Porcentaje">Porcentaje</mat-option>

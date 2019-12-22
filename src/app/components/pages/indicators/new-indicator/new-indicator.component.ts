@@ -23,6 +23,7 @@ export class NewIndicatorComponent{
       unit: new FormControl('',Validators.required)
     })
   ]);
+  
   parameterCompuesto : FormArray = new FormArray([
     new FormGroup({
       name: new FormControl('',Validators.required),
