@@ -45,14 +45,11 @@ export class FunderViewComponent{
     this._service.updateFunder(this.FunderFormGroup.value,this.funderID).subscribe(
       result => {
         let funders : any[] = JSON.parse(localStorage.getItem('funders'));
-        console.log(funders);
         let posicion : number;
         for(let i = 0; i < funders.length; i++){
           if(funders[i]._id == this.funderID) posicion = i;
         }
-        console.log(posicion);
         funders.splice(posicion,1);
-        console.log(funders);
         funders.push(result.funder);
         localStorage.setItem('funders',JSON.stringify(funders));
         this.Funder = result.funder;

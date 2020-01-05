@@ -1,0 +1,97 @@
+<app-sub-toolbar
+    title="{{this.Organization.name}}: Histórico de Socios"
+    [backButton]="true"
+    [addButton]="false">
+</app-sub-toolbar>
+
+<div id="partners-historic">
+    <mat-tab-group mat-align-tabs="center" class="full-width" color="accent" backgroundColor="primary">
+        <mat-tab label="Gráfico">
+            <div id="partners-historic-filters" class="row p-1 pl-4 white-background mb-4">
+                <div class="col-sm-4">
+                    <mat-form-field class="full-width">
+                        <mat-label>Seleccione un período:</mat-label>
+                        <mat-select [(value)]="this.period">
+                            <mat-option value="always">Todo el tiempo</mat-option>
+                            <mat-option *ngFor="let period of this.availablesPeriods" [value]="period.value">{{period.text}}</mat-option>
+                            <!--mat-option value="3-months">Últimos 3 meses</!--mat-option>
+                            <mat-option value="6-months">Últimos 6 meses</mat-option>
+                            <mat-option value="9-months">Últimos 9 meses</mat-option>
+                            <mat-option value="1-year">Último año</mat-option>
+                            <mat-option value="2-year">Últimos 2 años</mat-option>
+                            <mat-option value="3-year">Últimos 3 años</mat-option-->
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <div class="col-sm-4 flex align-items-center">
+                    <div>
+                        <button mat-raised-button color="primary" (click)="this.generateChartData()" [disabled]="this.period == ''">Generar Gráfico</button>
+                    </div>
+                </div>
+            </div>
+            <!--Graphic of Partner's Evolution-->
+            <div id="graphic">
+                <div class="flex justify-content-center">
+                    <ngx-charts-line-chart *ngIf="this.multi"
+                        [view]="view"
+                        [scheme]="colorScheme"
+                        [legend]="legend"
+                        [showXAxisLabel]="showXAxisLabel"
+                        [showYAxisLabel]="showYAxisLabel"
+                        [xAxis]="xAxis"
+                        [yAxis]="yAxis"
+                        [xAxisLabel]="xAxisLabel"
+                        [yAxisLabel]="yAxisLabel"
+                        [timeline]="timeline"
+                        [results]="multi"
+                        (select)="onSelect($event)"
+                        (activate)="onActivate($event)"
+                        (deactivate)="onDeactivate($event)">
+                    </ngx-charts-line-chart>
+                </div>
+            </div>
+        </mat-tab>
+        <mat-tab label="Tabla" class="full-width">
+            <!--Table-->
+            <div class="mat-elevation-z8 full-width">
+                <table mat-table [dataSource]="dataSource" class="full-width">
+              
+                  <!-- Position Column -->
+                  <ng-container matColumnDef="number">
+                    <th mat-header-cell *matHeaderCellDef> No. </th>
+                    <td mat-cell *matCellDef="let registry"> {{registry.number}} </td>
+                  </ng-container>
+              
+                  <!-- Name Column -->
+                  <ng-container matColumnDef="period">
+                    <th mat-header-cell *matHeaderCellDef> Periodo </th>
+                    <td mat-cell *matCellDef="let registry"> {{registry.period}} </td>
+                  </ng-container>
+              
+                  <!-- Weight Column -->
+                  <ng-container matColumnDef="mens">
+                    <th mat-header-cell *matHeaderCellDef> Socios Hombres </th>
+                    <td mat-cell *matCellDef="let registry"> {{registry.mens}} </td>
+                  </ng-container>
+              
+                  <!-- Symbol Column -->
+                  <ng-container matColumnDef="womens">
+                    <th mat-header-cell *matHeaderCellDef> Socios Mujeres </th>
+                    <td mat-cell *matCellDef="let registry"> {{registry.womens}} </td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="total">
+                    <th mat-header-cell *matHeaderCellDef> Total Socios </th>
+                    <td mat-cell *matCellDef="let registry"> {{registry.total}} </td>
+                  </ng-container>
+              
+                  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                </table>
+              
+                <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+              </div>
+              
+        </mat-tab>
+    </mat-tab-group>
+</div>

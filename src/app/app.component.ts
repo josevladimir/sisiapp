@@ -28,7 +28,7 @@ export class AppComponent {
   }
 
   Authenticate(){
-    this.userData = JSON.parse(localStorage.getItem('user'));
+    this.userData = JSON.parse(localStorage.getItem('user')); 
     localStorage.setItem('authenticated','true');
     localStorage.setItem('userID',this.userData._id);
     localStorage.setItem('userRole',this.userData.role);

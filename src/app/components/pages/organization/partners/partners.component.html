@@ -1,0 +1,79 @@
+<app-sub-toolbar
+    title="{{this.Organization.name}}: Socios"
+    [backButton]="true"
+    [addButton]="false"
+    [buttons]="this.buttons">
+</app-sub-toolbar>
+
+<div class="page-content">
+
+    <div>
+        <mat-card>
+            <mat-card-title class="font-weight-lighter">Socios Iniciales</mat-card-title>
+            <div class="row">
+                <div class="col-md-4">
+                    <mat-form-field class="full-width">
+                        <input matInput disabled [ngModel]="this.Organization.partners.mens" type="text" placeholder="Socios Hombres">
+                    </mat-form-field>
+                </div>
+                <div class="col-md-4">
+                    <mat-form-field class="full-width">
+                        <input matInput disabled [ngModel]="this.Organization.partners.womens" type="text" placeholder="Socios Mujeres">
+                    </mat-form-field>
+                </div>
+                <div class="col-md-4">
+                    <mat-form-field class="full-width">
+                        <input matInput disabled [ngModel]="this.Organization.partners.mens + this.Organization.partners.womens" type="text" placeholder="Total Socios">
+                    </mat-form-field>
+                </div>
+            </div>
+            <mat-divider></mat-divider>
+            <mat-card-title class="font-weight-lighter mt-2">Socios Actuales</mat-card-title>
+            <div class="row">
+                <div class="col-md-4">
+                    <mat-form-field class="full-width">
+                        <input matInput disabled [ngModel]="this.ActualPartners.mens" type="text" placeholder="Socios Hombres">
+                    </mat-form-field>
+                </div>
+                <div class="col-md-4">
+                    <mat-form-field class="full-width">
+                        <input matInput disabled [ngModel]="this.ActualPartners.womens" type="text" placeholder="Socios Mujeres">
+                    </mat-form-field>
+                </div>
+                <div class="col-md-4">
+                    <mat-form-field class="full-width">
+                        <input matInput disabled [ngModel]="this.ActualPartners.total" type="text" placeholder="Total Socios">
+                    </mat-form-field>
+                </div>
+            </div>
+        </mat-card>
+        <mat-card class="mt-4">
+            <mat-card-title class="font-weight-lighter mt-2">Nuevo Registro</mat-card-title>
+            <form [formGroup]="this.PartnerForm" (ngSubmit)="this.save()" novalidate>
+                <div class="row">
+                    <div class="col-md-4">
+                        <mat-form-field class="full-width">
+                            <input matInput type="text" formControlName="mens" placeholder="Socios Hombres">
+                            <mat-error *ngIf="this.mensCtrl.errors?.required">Este campo es obligatorio</mat-error>
+                            <mat-error *ngIf="this.mensCtrl.errors?.pattern">Ingrese una cantidad válida, por favor.</mat-error>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-md-4">
+                        <mat-form-field class="full-width">
+                            <input matInput type="text" formControlName="womens" placeholder="Socios Mujeres">
+                            <mat-error *ngIf="this.womensCtrl.errors?.required">Este campo es obligatorio</mat-error>
+                            <mat-error *ngIf="this.womensCtrl.errors?.pattern">Ingrese una cantidad válida, por favor.</mat-error>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-md-4">
+                        <mat-form-field class="full-width">
+                            <input disabled matInput type="text" value="{{this.toNumber(this.mensCtrl.value) + this.toNumber(this.womensCtrl.value)}}" placeholder="Total Socios">
+                        </mat-form-field>
+                    </div>
+                </div>
+                <app-form-buttons (cancel)="this.cancel()" [formGroup]="this.PartnerForm"></app-form-buttons>
+            </form>
+        </mat-card>
+    </div>
+
+</div>

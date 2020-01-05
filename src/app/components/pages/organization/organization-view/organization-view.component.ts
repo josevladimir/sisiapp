@@ -1,14 +1,17 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Params } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 import { SisiCoreService } from '../../../../services/sisi-core.service';
 import { FormGroup,FormControl,Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { ToolbarButton } from '../../../shared/sub-toolbar/sub-toolbar.component';
 
 @Component({
   selector: 'app-organization-view',
   templateUrl: './organization-view.component.html'
 })
 export class OrganizationViewComponent implements OnInit{
+
+  buttons : ToolbarButton[];
 
   Organization : any;
 
@@ -33,11 +36,23 @@ export class OrganizationViewComponent implements OnInit{
 
   constructor(private _ActivatedRoute : ActivatedRoute,
               private _service : SisiCoreService,
-              private _snackBar : MatSnackBar) {
+              private _snackBar : MatSnackBar,
+              private _Router : Router) {
     
     this._ActivatedRoute.params.subscribe(
       (params : Params) => this.Organization = this._service.getOrganization(params.id)
-    )
+    );
+
+    this.buttons  = [
+      {
+        message: 'SOCIOS',
+        hasIcon: true,
+        icon: 'people',
+        handler: () => {
+          this._Router.navigate(['organizations',this.Organization._id,'partners']);
+        }
+      }
+    ];
     
   }
 
@@ -82,6 +97,7 @@ export class OrganizationViewComponent implements OnInit{
   updateOrganization(){
     let body : any = this.organizationForm.value;
     body.isOlder = this.isOlder;
+    body.last_updated_by = localStorage.getItem('userID');
     this._service.updateOrganization(body,this.Organization._id).subscribe(
       result => {
         this.Organization = result.organization;

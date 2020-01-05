@@ -30,7 +30,7 @@ export class FundersComponent{
   }
 
   reset(){
-    this.fundersForm.reset();
+    this.fundersForm.reset({name: ''});
   }
 
   saveFunder(){

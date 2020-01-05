@@ -33,7 +33,7 @@
                 </mat-card-content>
                 <div class="flex">
                     <span class="fill-remaining-space"></span>
-                    <button mat-button>SOCIOS</button>
+                    <button mat-button [routerLink]="[organization._id,'partners']">SOCIOS</button>
                     <button mat-button [routerLink]="[organization._id]">DETALLES</button>
                 </div>
             </mat-card>

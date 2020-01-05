@@ -39,7 +39,7 @@
                             <input matInput formControlName="coop_date" placeholder="Inicio de Trabajo en Conjunto">
                             <mat-hint>Utilice el siguiente formato: <b>07/2019</b></mat-hint>
                             <mat-error *ngIf="this.fundersForm.controls['coop_date'].errors?.required && this.coop_dateCtrl.touched">Este campo es obligatorio</mat-error>
-                            <mat-error *ngIf="this.fundersForm.controls['coop_date'].errors?.pattern && this.coop_dateCtrl.touched">Ingrese una fecha ccon el formato válido</mat-error>
+                            <mat-error *ngIf="this.fundersForm.controls['coop_date'].errors?.pattern && this.coop_dateCtrl.touched">Ingrese una fecha con el formato válido</mat-error>
                         </mat-form-field>
                         <div class="flex">
                             <span class="fill-remaining-space"></span>

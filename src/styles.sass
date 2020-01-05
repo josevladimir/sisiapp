@@ -23,6 +23,16 @@ mat-drawer-container
 mat-drawer-content
     background: #ccc
 
+table
+    tbody
+        tr
+            td
+                text-align: center
+    thead
+        tr
+            th
+                text-align: center !important
+
 #login-box
     width: 400px
 
@@ -42,6 +52,25 @@ mat-drawer-content
 
     h2
         color: #fff
+
+//Caja de Subida de Documentos
+#upload-box
+    border: 1px solid #ccc
+    border-radius: 0px 0px 5px 5px
+    display: block
+    height: 250px
+    padding-bottom: 10px
+    width: 100%
+
+//Histórico de Socios
+#partners-historic
+    background: white
+    height: calc(100% - 64px)
+    overflow-y: scroll
+
+    #partners-historic-filters
+        background: #f2f2f2
+        height: 60px
 
 //Classes
 .border-radius
@@ -180,6 +209,9 @@ mat-drawer-content
 
 .invalidate-input
     border: 1px solid red
+
+.white-background
+    background: white
 
 /*Animations*/
 @keyframes rotar

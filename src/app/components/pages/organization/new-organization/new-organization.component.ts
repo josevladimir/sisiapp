@@ -49,33 +49,6 @@ export class NewOrganizationComponent implements OnInit {
       })
     });
   }
-  /*
-  {
-            "partners": {
-                "mens": 45,
-                "womens": 25
-            },
-            "files": [],
-            "projects": [],
-            "_id": "5de8701bdf72f50dc8f63b04",
-            "created_at": "2019-12-05T02:47:22.231Z",
-            "name": "Organización 1",
-            "type": "Empresa",
-            "isOlder": false,
-            "foundation_date": "04/06/2019",
-            "sector": "Cacao",
-            "ubication": {
-                "_id": "5de8701bdf72f50dc8f63b05",
-                "canton": "Esmeraldas",
-                "parroquia": "Muisne",
-                "recinto": "Muisne"
-            },
-            "beneficiaries": 100,
-            "legalized": "Si",
-            "historyPartners": [], Este no
-            "__v": 0
-        },
-  */
 
   setOlder(event){
     let anio = this.foundation_dateCtrl.value.split('/')[2];
@@ -91,8 +64,8 @@ export class NewOrganizationComponent implements OnInit {
     this._service.createOrganization(organization).subscribe(
       result => {
         let organizations;
-        if(JSON.parse(localStorage.getItem('organizations'))) organization = localStorage.getItem('organizations');
-        organizations = [];
+        if(JSON.parse(localStorage.getItem('organizations'))) organizations = JSON.parse(localStorage.getItem('organizations'));
+        else organizations = [];
         organizations.push(result.organization);
         localStorage.setItem('organizations',JSON.stringify(organizations));
         this._router.navigate(['organizations']);
