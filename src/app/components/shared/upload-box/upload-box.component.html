@@ -1,11 +1,35 @@
 <mat-card>
-    <div class="flex">
+    <div class="flex" id="upload-box-header">
         <mat-card-title class="font-weight-lighter">Documentos subidos</mat-card-title>
         <span class="fill-remaining-space"></span>
-        <button mat-icon-button type="button"><mat-icon>create_new_folder</mat-icon></button>
-        <button mat-icon-button type="button"><mat-icon>create_new_folder</mat-icon></button>
+        
+        <input type="file" (change)="onAddNewFile($event)" multiple name="add-file" id="add-file" class="invisible">
+        <label for="add-file"><i class="fas fa-file-upload"></i> Seleccionar Archivo</label>
+
     </div>
     <div id="upload-box">
+    
+      <div id="upload-route-box" class="p-1 flex align-items-center">
+        <button type="button" mat-icon-button><mat-icon>keyboard_backspace</mat-icon></button>
+        <div><span *ngFor="let path of this.fileDir; let i = index"> {{path}} <i *ngIf="i != this.fileDir.length - 1" class="fas fa-caret-right"></i> </span> </div>
+      </div>
 
+      <div id="file-grid" class="p-2">
+        <div class="full-width" *ngFor="let file of this.files; let i = index">
+          <i class="close-btn fas fa-times" (click)="deleteFile(i)"></i>
+          <i *ngIf="file.type == 'Imagen'" class="fas fa-file-image color-cyan"></i>
+          <i *ngIf="file.type == 'Word'" class="fas fa-file-word color-blue"></i>
+          <i *ngIf="file.type == 'Excel'" class="fas fa-file-excel color-green"></i>
+          <i *ngIf="file.type == 'Power Point'" class="fas fa-file-powerpoint color-orange"></i>
+          <i *ngIf="file.type == 'PDF'" class="fas fa-file-pdf color-red"></i>
+          <p class="file-name pt-2">{{file.name}}</p>
+          <p class="file-status">{{file.status}}</p>
+        </div>
+      </div>
+    
+    </div>
+    <div id="upload-buttons" class="flex mt-3">
+      <span class="fill-remaining-space"></span>
+      <button mat-raised-button color="primary" type="button" (click)="uploadFiles()" [disabled]="this.isFilesPristine">Subir Archivos</button>
     </div>
 </mat-card>

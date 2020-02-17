@@ -2,30 +2,30 @@
     title="Proyectos"
     [addButton]="true"
     [backButton]="false">
-</app-sub-toolbar>
+</app-sub-toolbar> 
 
 <div class="page-content">
 
-    <div class="row row-cols-1 row-cols-md-3">
-        <div class="col mb-4">
+    <div class="row" *ngIf="this.projects.length; else NoProjects">
+        <div class="col-sm-4 mb-4" *ngFor="let project of this.projects">
             <mat-card>
-                <mat-card-title class="font-weight-lighter">Proyecto 1</mat-card-title>
+                <mat-card-title class="font-weight-lighter">{{project.name}}</mat-card-title>
                 <mat-divider></mat-divider>
                 <mat-card-content>
                     <mat-list>
                         <li class="pt-2">
                             <span>
-                                Presupuesto: <span class="font-weight-lighter">$25000</span>
+                                Fecha de Inicio: <span class="font-weight-lighter">{{project.start_date}}</span>
                             </span>
                         </li>
                         <li class="mt-2">
                             <span>
-                                Ubicación: <span class="font-weight-lighter">Muisne</span>
+                                Ubicación: <span class="font-weight-lighter">{{project.ubication}}</span>
                             </span>
                         </li>
                         <li class="mt-2">
                             <span>
-                                Duración: <span class="font-weight-lighter">24 meses</span>
+                                Duración: <span class="font-weight-lighter">{{project.duration}} meses</span>
                             </span>
                         </li>
                     </mat-list>
@@ -33,11 +33,22 @@
                 <mat-card-actions>
                     <div class="flex">
                         <span class="fill-remaining-space"></span>
-                        <button mat-button>DETALLES</button>
+                        <a mat-button [routerLink]="[project._id]">DETALLES</a>
                     </div>
                 </mat-card-actions>
             </mat-card>
         </div>
     </div>
+
+    <ng-template #NoProjects>
+        <div class="full-height full-width flex justify-content-center align-items-center">
+            <div>
+                <h2 class="text-center font-weight-lighter">No hay Proyectos registrados</h2>
+                <div class="font-weight-lighter">
+                    Para agregar un nuevo proyecto dale click al boton "Agregar" de la esquina superior derecha.
+                </div>
+            </div>
+        </div>
+    </ng-template>
 
 </div>

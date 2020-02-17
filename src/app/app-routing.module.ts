@@ -13,6 +13,7 @@ import { OrganizationsComponent } from './components/pages/organization/organiza
 import { NewOrganizationComponent } from './components/pages/organization/new-organization/new-organization.component';
 import { OrganizationViewComponent } from './components/pages/organization/organization-view/organization-view.component';
 import { PartnersHistoricComponent } from './components/pages/organization/partners-historic/partners-historic.component';
+import { ProjectViewComponent } from './components/pages/projects/project-view/project-view.component';
 
 const routes: Routes = [
   {path: '', pathMatch: 'full', redirectTo: 'dashboard'},
@@ -28,6 +29,7 @@ const routes: Routes = [
   {path: 'indicators/add', component: NewIndicatorComponent},
   {path: 'projects', component: ProjectsComponent},
   {path: 'projects/add', component: NewProjectComponent},
+  {path: 'projects/:id', component: ProjectViewComponent},
   {path: 'fichas', component: DashboardComponent},
   {path: 'reports', component: DashboardComponent},
   {path: 'documents', component: DashboardComponent},

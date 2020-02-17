@@ -1,9 +1,12 @@
-import { Component, ViewChild, OnInit } from '@angular/core';
+import { Component, ViewChild, OnInit, ɵConsole } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
 import { SisiCoreService } from '../../../../services/sisi-core.service';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import {MatPaginator} from '@angular/material/paginator';
 import {MatTableDataSource} from '@angular/material/table';
+
+import { SisiDatewarehouseService } from '../../../../services/sisi-datewarehouseç.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-partners-historic',
@@ -14,6 +17,8 @@ export class PartnersHistoricComponent implements OnInit {
   Organization : any;
   period : string  = '';
 
+  chartData;
+
   ELEMENT_DATA : Registry[];
   /*Table Widget*/
   displayedColumns : string[];
@@ -23,33 +28,28 @@ export class PartnersHistoricComponent implements OnInit {
   availablesPeriods : any[] = [];
 
   constructor(private _ActivatedRoute : ActivatedRoute,
-              private _Service : SisiCoreService) { 
+              private _Service : SisiCoreService,
+              private _Datawarehouse : SisiDatewarehouseService,
+              private _snackbar : MatSnackBar) { 
 
     this._ActivatedRoute.params.subscribe(
       (params : Params) => this.Organization = this._Service.getOrganization(params.id)
     );
 
+    this._Datawarehouse.getPartnersHistoryData(this.Organization._id)
+        .subscribe(
+          result => {
+            if(result.message == 'OK'){
+              result.data.periods.forEach(period => this.availablesPeriods.push(period));
+              result.data.series[0].series.forEach(serie => serie.name = new Date(serie.name));
+              result.data.series[1].series.forEach(serie => serie.name = new Date(serie.name));
+              this.chartData = result.data.series;
+            }
+          },
+          error => this._snackbar.open('Error al recuperar los datos para la gráfica.','ENTENDIDO',{duration: 3000})
+        );
+
     this.generateTable();
-    
-    let fechaCreacion : Date = new Date(this.Organization.created_at);
-    let año : number = fechaCreacion.getFullYear();
-    if(new Date().getFullYear() > año){
-      let diferenciaAños = new Date().getFullYear() - fechaCreacion.getFullYear();
-      this.availablesPeriods.push({value: '3-months', text: 'Últimos 3 meses'});
-      this.availablesPeriods.push({value: '6-months', text: 'Últimos 6 meses'});
-      this.availablesPeriods.push({value: '9-months', text: 'Últimos 9 meses'});
-      for(let i = 1; i <= diferenciaAños; i++){
-        if(diferenciaAños == 1) this.availablesPeriods.push({value: '1-year', text:'Último año'});
-        else this.availablesPeriods.push({value: `${i}-year`, text: `Últimos ${i} años`});
-      }
-    } else {
-      let diferenciaMeses = new Date().getMonth() + 1 - fechaCreacion.getMonth() + 1; 
-      //El Mismo año
-      if(!diferenciaMeses || diferenciaMeses < 3) this.availablesPeriods.push({value: 'actual', text: 'Actualidad'});
-      if(diferenciaMeses >= 3) this.availablesPeriods.push({value: '3-months', text: 'Últimos 3 meses'});
-      if(diferenciaMeses >= 6) this.availablesPeriods.push({value: '6-months', text: 'Últimos 6 meses'});
-      if(diferenciaMeses >= 9) this.availablesPeriods.push({value: '9-months', text: 'Últimos 9 meses'});
-    }
 
   }
 
@@ -63,83 +63,23 @@ export class PartnersHistoricComponent implements OnInit {
 
   generateChartData(){
     this.multi = null;
-    let data : any[] = this.Organization.partners_history;
     this.multi = [
       {
-        "name": "Hombres",
-        "series": [
-          /*{
-            "name": "1990",
-            "value": 62000000
-          },
-          {
-            "name": "2010",
-            "value": 73000000
-          },
-          {
-            "name": "2011",
-            "value": 89400000
-          }*/
-        ]
+        name: 'Mujeres',
+        series: []
       },
-    
       {
-        "name": "Mujeres",
-        "series": []
+        name: 'Hombres',
+        series: []
       }
     ];
     switch(this.period){
-      case 'always':
-        this.multi[0].series.push({
-          name: this.getRegistryDate(new Date(this.Organization.created_at)),
-          value: this.Organization.partners.mens
-        });
-        this.multi[1].series.push({
-          name: this.getRegistryDate(new Date(this.Organization.created_at)),
-          value: this.Organization.partners.womens
-        });
-        data.forEach(registry => {
-          this.multi[0].series.push({
-            name: this.getRegistryDate(new Date(registry.period)),
-            value: registry.mens
-          });
-          this.multi[1].series.push({
-            name: this.getRegistryDate(new Date(registry.period)),
-            value: registry.womens
-          });
-        });
-        break;
       case 'actual':
-      this.multi[0].series.push({
-        name: this.getRegistryDate(new Date(this.Organization.created_at)),
-        value: this.Organization.partners.mens
-      });
-      this.multi[1].series.push({
-        name: this.getRegistryDate(new Date(this.Organization.created_at)),
-        value: this.Organization.partners.womens
-      });
-      /*data.forEach(registry => {
-        this.multi[0].series.push({
-          name: this.getRegistryDate(new Date(registry.period)),
-          value: registry.mens
-        });
-        this.multi[1].series.push({
-          name: this.getRegistryDate(new Date(registry.period)),
-          value: registry.womens
-        });
-      });*/
-        break;
-      case '3-months':
-        break;
-      case '6-months':
-        break;
-      case '9-months':
-        break;
-      case '1-year':
-        break;
-      default: 
+        this.multi[0].series = this.chartData[0].series;
+        this.multi[1].series = this.chartData[1].series;  
         break;
     }
+    
   }
 
   multi: any[];
@@ -192,7 +132,7 @@ export class PartnersHistoricComponent implements OnInit {
       womens: this.Organization.partners.womens,
       total: this.Organization.partners.mens + this.Organization.partners.womens
     });
-    this.Organization.partners_history.forEach((registry, index) => {
+    this.Organization.historyPartners.forEach((registry, index) => {
       let fechaPeriodo : Date = new Date(registry.period);
       this.ELEMENT_DATA.push({
         number: index + 2,
@@ -249,6 +189,10 @@ export class PartnersHistoricComponent implements OnInit {
         break;
     }
     return mes;
+  }
+
+  formatDate (fecha : Date) : string {
+    return fecha.toString().split('T')[0];
   }
 
 }

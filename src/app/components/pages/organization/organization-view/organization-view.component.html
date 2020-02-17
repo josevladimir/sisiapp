@@ -139,7 +139,7 @@
             La organización clasifica como <b *ngIf="!this.isOlder; else AntiguaTemplate">Nueva</b><ng-template #AntiguaTemplate><b>Antigua</b></ng-template>
         </div>
 
-        <app-upload-box></app-upload-box>
+        <app-upload-box [organization_files]="this.Organization.files" [organization_id]="this.Organization._id" [organization_name]="this.Organization.name"></app-upload-box>
 
         <app-button-group *ngIf="this.editMode" [formStatus]="this.organizationForm.pristine" (cancel)="onCancel()" [formGroup]="this.organizationForm"></app-button-group>
 

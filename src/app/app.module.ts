@@ -35,11 +35,14 @@ import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatCardModule } from '@angular/material/card';
+import { MatTreeModule } from '@angular/material/tree';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatChipsModule } from '@angular/material/chips'
 import { MatTableModule } from '@angular/material/table';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDialogModule } from '@angular/material/dialog';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -49,6 +52,10 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ModalsComponent } from './components/shared/modals/modals.component';
+import { ProjectViewComponent } from './components/pages/projects/project-view/project-view.component';
+import { UpdateExecutedComponent } from './components/dialogs/update-executed/update-executed.component';
+
 
 @NgModule({
   declarations: [
@@ -70,7 +77,10 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     OrganizationsComponent,
     NewOrganizationComponent,
     OrganizationViewComponent,
-    PartnersHistoricComponent
+    PartnersHistoricComponent,
+    ModalsComponent,
+    ProjectViewComponent,
+    UpdateExecutedComponent
   ],
   imports: [
     FormsModule,
@@ -80,10 +90,13 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     MatMenuModule,
     MatIconModule,
     MatTabsModule,
+    MatTreeModule,
+    MatChipsModule,
     MatTableModule,
     MatInputModule,
     NgxChartsModule,
     MatButtonModule,
+    MatDialogModule,
     MatSelectModule,
     AppRoutingModule,
     HttpClientModule,

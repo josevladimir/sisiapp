@@ -1,14 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+import { SisiCoreService } from '../../../../services/sisi-core.service';
 
 @Component({
   selector: 'app-projects',
   templateUrl: './projects.component.html'
 })
-export class ProjectsComponent implements OnInit {
+export class ProjectsComponent{
 
-  constructor() { }
+  projects : any[] = this._service.getProjectsOff();
 
-  ngOnInit() {
+  constructor (private _service : SisiCoreService) { 
+    
   }
 
 }

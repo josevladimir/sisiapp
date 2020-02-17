@@ -23,6 +23,11 @@ mat-drawer-container
 mat-drawer-content
     background: #ccc
 
+p
+    margin-bottom: 0px !important
+    padding-bottom: 0px !important
+    padding-top: 0px !important
+
 table
     tbody
         tr
@@ -58,9 +63,67 @@ table
     border: 1px solid #ccc
     border-radius: 0px 0px 5px 5px
     display: block
-    height: 250px
+    height: 350px
     padding-bottom: 10px
     width: 100%
+
+#upload-box-header
+    label
+        border: none !important
+        cursor: pointer
+        margin: 0px 10px
+
+#upload-route-box
+    background: #cccc
+    height: 50px
+    
+    span, i
+        color: #666
+
+#file-grid
+    display: grid
+    gap: 10
+    grid-template-columns: repeat(auto-fit,minmax(150px,150px))
+    height: 300px
+    overflow-y: scroll
+
+    div
+        text-align: center
+
+    i
+        display: block
+        font-size: 75px
+
+    .file-name
+        font-size: 12px
+        line-height: 15px
+        text-overflow: ellipsis
+        overflow-x: hidden
+        width: 150px
+
+    .close-btn
+        display: block
+        cursor: pointer
+        font-size: 14px
+        position: relative
+        right: -100px
+        top: 10px
+        width: 14px
+    
+    .file-status
+        color: #999
+        font-size: 12px
+        line-height: 15px
+        text-overflow: ellipsis
+        overflow-x: hidden
+        width: 150px
+
+/*#new-folder-modal
+    background: white
+    position: absolute
+    top: calc((100% / 2) - (100px))
+    width: 500px*/
+    
 
 //Histórico de Socios
 #partners-historic
@@ -72,7 +135,21 @@ table
         background: #f2f2f2
         height: 60px
 
+//Baseline Table
+    #baseline-table
+        display: block
+        width: 100%
+        thead,
+        tbody,
+        tr,
+        td,
+        th
+            width: 100%
+
 //Classes
+.border-box
+    box-sizing: border-box
+
 .border-radius
     border-radius: 5px
 
@@ -80,28 +157,44 @@ table
     border: 1px solid #ccc
     border-radius: 0px 0px 5px 5px
 
+.color-cyan
+    color: #28a4c4
+
+.color-blue
+    color: #054083
+
+.color-green
+    color: #0e741b
+
+.color-orange
+    color: #e74529
+
+.color-red
+    color: #940d0d
+
 .definition-box
     border: 1px solid #999
     border-radius: 5px 5px 0px 0px
     display: grid
     grid-template-columns: repeat(3,1fr)
     
-    div
+    mat-list
         height: 300px
+        overflow-y: scroll
 
-    div:first-child
+    mat-list:first-child
         border-right: 1px solid #999
 
         span
             border-radius: 5px 0px 0px 0px
 
-    div:last-child
+    mat-list:last-child
         border-left: 1px solid #999
 
         span
             border-radius: 0px 5px 0px 0px
 
-    span
+    .definition-column-label
         background: #ccc
         border-bottom: 1px solid #999
         display: block
@@ -139,6 +232,13 @@ table
 
 .flex
     display: flex
+
+.form-control-equis
+    display: flex
+    justify-content: flex-end
+    
+    mat-icon
+        cursor: pointer
 
 .full-height
     height: 100%
@@ -197,6 +297,9 @@ table
     outline-color: none !important
     outline-style: none !important
     padding: 5px
+
+.selected-parameter
+    background: rgba(0,0,0,.15)
 
 .scroll-list-view
     background: #fff

@@ -1,5 +1,5 @@
 <div class="flex">
     <span class="fill-remaining-space"></span>
     <button mat-button (click)="onCancel($event)" type="reset" class="mr-2">CANCELAR</button>
-    <button mat-raised-button [disabled]="this.formStatus" color="primary" type="submit" (click)="onSave()">GUARDAR</button>
+    <button mat-raised-button [disabled]="this.formStatus" color="primary" type="button" (click)="onSave()">GUARDAR</button>
 </div>

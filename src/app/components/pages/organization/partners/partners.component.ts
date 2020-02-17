@@ -36,12 +36,12 @@ export class PartnersComponent {
       womens: this.womensCtrl
     });
     console.log(this.Organization);
-    if(this.Organization.partners_history.length) {
+    if(this.Organization.historyPartners.length) {
       console.log('si hay');
       this.ActualPartners = {
-        mens: this.Organization.partners_history[this.Organization.partners_history.length - 1].mens,
-        womens: this.Organization.partners_history[this.Organization.partners_history.length - 1].womens,
-        total: this.Organization.partners_history[this.Organization.partners_history.length - 1].mens + this.Organization.partners_history[this.Organization.partners_history.length - 1].womens
+        mens: this.Organization.historyPartners[this.Organization.historyPartners.length - 1].mens,
+        womens: this.Organization.historyPartners[this.Organization.historyPartners.length - 1].womens,
+        total: this.Organization.historyPartners[this.Organization.historyPartners.length - 1].mens + this.Organization.historyPartners[this.Organization.historyPartners.length - 1].womens
       }
     }else {
       console.log('no hay');
@@ -75,9 +75,9 @@ export class PartnersComponent {
     let history : any[];
     let registry : any = this.PartnerForm.value;
     registry.period = new Date(); 
-    history = this.Organization.partners_history;
+    history = this.Organization.historyPartners;
     history.push(registry);
-    this._service.updateOrganization({partners_history: history},this.Organization._id).subscribe(
+    this._service.updateOrganization({historyPartners: history},this.Organization._id).subscribe(
       result => {
 
         this.Organization = result.organization;

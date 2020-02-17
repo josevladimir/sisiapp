@@ -32,6 +32,7 @@ export class LoginComponent{
         this._snackBar.open(result.message,'ENTENDIDO',{duration: 3000});
         if(result.message == 'Ingreso exitoso.'){
           localStorage.setItem('user',JSON.stringify(result.user));
+          localStorage.setItem('token',result.token);
           this.authentication.emit();
         }
         this.isWorking.emit({isWorking: false});

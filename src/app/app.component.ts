@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { SisiCoreService } from './services/sisi-core.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -20,7 +21,8 @@ export class AppComponent {
   isWorking : boolean = false;
 
   constructor(private _service : SisiCoreService,
-              private _snackBar : MatSnackBar){
+              private _snackBar : MatSnackBar,
+              private _Router : Router){
     if(localStorage.getItem('authenticated') == 'true'){
       this.userData = JSON.parse(localStorage.getItem('user'));
       this.auth = true;
@@ -28,6 +30,7 @@ export class AppComponent {
   }
 
   Authenticate(){
+    this._Router.navigate(['dashboard']);
     this.userData = JSON.parse(localStorage.getItem('user')); 
     localStorage.setItem('authenticated','true');
     localStorage.setItem('userID',this.userData._id);

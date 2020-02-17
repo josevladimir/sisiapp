@@ -35,7 +35,6 @@ export class FundersComponent{
 
   saveFunder(){
     let body = this.fundersForm.value;
-    body.created_by = this.userID;
     this._service.createFunder(body).subscribe(
       result => {
         this.funders.push(result.funder);
