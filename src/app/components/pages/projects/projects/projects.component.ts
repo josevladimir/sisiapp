@@ -7,10 +7,20 @@ import { SisiCoreService } from '../../../../services/sisi-core.service';
 })
 export class ProjectsComponent{
 
-  projects : any[] = this._service.getProjectsOff();
+  userRole : string = localStorage.getItem('userRole');
+  
+  projects : any[] = [];
 
   constructor (private _service : SisiCoreService) { 
-    
+    if(this.userRole == 'Financiador'){
+      let normalProjects : any[] = this._service.getProjectsOff();
+      let userProjects = JSON.parse(localStorage.getItem('user')).funder.projects;
+      userProjects.forEach(project => {
+        normalProjects.forEach(projectito => {
+          if(projectito._id == project) this.projects.push(projectito);
+        });
+      });
+    }else this.projects  = this._service.getProjectsOff();
   }
 
 }

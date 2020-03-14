@@ -1,12 +1,18 @@
-<app-sub-toolbar
+<app-sub-toolbar *ngIf="this.userRole == 'Administrador'"
     [title]="this.Project.name"
     [backButton]="true"
-    [addButton]="false"
->
+    [buttons]="[this.DeleteBtn]"
+    [addButton]="false">
 </app-sub-toolbar>
 
-<div>
-    <mat-tab-group mat-stretch-tabs class="full-height">
+<app-sub-toolbar *ngIf="this.userRole != 'Administrador'"
+    [title]="this.Project.name"
+    [backButton]="true"
+    [addButton]="false">
+</app-sub-toolbar>
+
+<div class="full-height">
+    <mat-tab-group mat-stretch-tabs class="full-height"> 
         <mat-tab label="Infomación General">
             <div class="container pb-3 pt-3 border-box">
                 <mat-card>
@@ -56,7 +62,13 @@
                         </div>
                         <div class="col-sm-6">
                             <small class="d-block full-width">Listado de Beneficiarios:</small>
-                            <a [href]="'http://localhost:3000/'+ this.File.file" [download]="this.File.name+this.File.ext" mat-raised-button color="primary" class="font-weight-lighter">DESCARGAR</a>
+                            <div *ngIf="this.File == undefined; else IfThereFile">
+                                <img src="../../../../../assets/images/logo-sisi-only.svg" width="50px">
+                                Cargando...
+                            </div>
+                            <ng-template #IfThereFile>
+                                <a [href]="'http://64.227.8.162:3000/'+ this.File.file" target="blank" [download]="this.File.name+this.File.ext" mat-raised-button color="primary" class="font-weight-lighter">DESCARGAR</a>
+                            </ng-template>
                         </div>
                     </div>
                 </mat-card>
@@ -78,12 +90,12 @@
                         </div>
                         <div class="col-sm-4">
                             <small class="d-block full-width">Presupuesto Ejecutado:</small>
-                            <span class="font-weight-lighter">{{this.executed_budget | currency}}</span>
+                            <span class="font-weight-lighter">{{this.executed_budget.value | currency}}</span>
                         </div>
                     </div>
-                    <div class="mt-3 flex">
+                    <div class="mt-3 flex" *ngIf="this.userRole == 'Administrador'">
                         <div class="fill-remaining-space"></div>
-                        <button mat-raised-button color="primary" class="font-weight-lighter mr-2">Registrar cambio en presupuesto</button>
+                        <button mat-raised-button color="primary" class="font-weight-lighter mr-2" (click)="this.updateBudget()">Registrar cambio en presupuesto</button>
                         <button mat-raised-button color="primary" class="font-weight-lighter" (click)="this.updateExecuted()">Actualizar presupuesto ejecutado</button>
                     </div>
                 </mat-card>
@@ -115,10 +127,84 @@
             </div>
         </mat-tab>
         <mat-tab label="Organizaciones">
-            fsdfsf
+            <div class="container pb-3 pt-3 border-box">
+                <div class="row" *ngIf="this.Project.organizations.length; else NoOrganizations">
+                    <div class="mb-4 col-sm-4" *ngFor="let organization of this.Project.organizations">
+                        <mat-card>
+                            <mat-card-title class="font-weight-lighter">{{organization.name}}</mat-card-title>
+                            <mat-card-subtitle>{{organization.type}}</mat-card-subtitle>
+                            <mat-divider></mat-divider>
+                            <mat-card-content>
+                                <mat-list>
+                                    <li class="pt-2">
+                                        <span>
+                                            Sector: <span class="font-weight-lighter">{{organization.sector}}</span>
+                                        </span>
+                                    </li>
+                                    <li class="mt-2">
+                                        <span>
+                                            Ubicación: <span class="font-weight-lighter">{{organization.ubication.parroquia}}, {{organization.ubication.canton}}</span>
+                                        </span>
+                                    </li>
+                                    <li class="mt-2">
+                                        <span>
+                                            Fecha de constitución: <span class="font-weight-lighter">{{organization.foundation_date}}</span>
+                                        </span>
+                                    </li>
+                                </mat-list>
+                            </mat-card-content>
+                            <div class="flex">
+                                <span class="fill-remaining-space"></span>
+                                <button mat-button [routerLink]="['/organizations',organization._id,'partners']">SOCIOS</button>
+                                <button mat-button [routerLink]="['/organizations',organization._id]">DETALLES</button>
+                            </div>
+                        </mat-card>
+                    </div>
+                </div>
+
+                <ng-template #NoOrganizations>
+                    <div class="full-height full-width flex justify-content-center align-items-center">
+                        <div>
+                            <h2 class="text-center font-weight-lighter">No hay Organizaciones vinculadas con este proyecto.</h2>
+                        </div>
+                    </div>
+                </ng-template>
+            </div>
         </mat-tab>
-        <mat-tab label="Financiadores">
-            fsdfsf
+        <mat-tab label="Financiadores" id="financiadores-box" class="full-height">
+            <div class="container pb-3 pt-3 border-box full-height">
+                <div class="row full-height" *ngIf="this.Project.funders.length; else NoFunders">
+                    <div class="col-sm-12 full-height">
+                        <mat-card class="full-height">
+                            <div class="flex flex-align-vertical">
+                                <mat-card-title class="font-weight-lighter">Financiadores Vinculados</mat-card-title>
+                                <span class="fill-remaining-space"></span>
+                                <button *ngIf="this.userRole == 'Administrador'" mat-raised-button color="primary" type="button" (click)="this.linkFunders()">Vincular Financiador</button>
+                            </div>
+                            <mat-divider></mat-divider>
+                            <mat-card-content class="full-height">
+                                <div class="pt-3 full-height">
+                                    <mat-list class="scroll-list-view full-height bordered-list">
+                                        <a mat-button *ngFor="let funder of this.Project.funders" [routerLink]="['/funders',funder._id]" class="full-width text-left font-weight-lighter">{{funder.name}} - {{funder.place}}</a>
+                                        <mat-divider></mat-divider>
+                                    </mat-list>
+                                </div>
+                            </mat-card-content>
+                        </mat-card>
+                    </div>
+                </div>
+                <ng-template #NoFunders>
+                    <div class="row full-height">
+                        <div class="col-sm-12">
+                            <h3 class="full-width font-weight-lighter mt-5 text-center">No hay Financiadores Vinculados con este proyecto.</h3>
+                            <div class="flex flex-center">
+                                <button *ngIf="this.userRole == 'Administrador'" mat-raised-button color="primary" type="button" (click)="this.linkFunders()">Vincular Financiador</button>
+                            </div>
+                        </div>
+                    </div>
+                </ng-template>
+            </div>
         </mat-tab>
     </mat-tab-group>
 </div>
+<app-loading-view *ngIf="this.isWorking" [message]="this.loadingMessage"></app-loading-view>

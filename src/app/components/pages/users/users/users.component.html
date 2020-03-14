@@ -1,0 +1,61 @@
+<app-sub-toolbar
+    title="Usuarios"
+    [addButton]="true">
+</app-sub-toolbar>
+
+<div class="page-content">
+    <mat-card class="mb-4">
+        <mat-card-title class="font-weight-lighter">Buscar</mat-card-title>
+        <mat-divider></mat-divider>
+        <mat-card-content>
+            <div class="pt-3 row">
+                <div class="col-sm-4">
+                    <mat-form-field class="full-width">
+                        <mat-label>Buscar Por:</mat-label>
+                        <mat-select [(ngModel)]="this.filter">
+                            <mat-option value="name">Nombre</mat-option>
+                            <mat-option value="last_names">Apellido</mat-option>
+                            <mat-option value="role">Rol</mat-option>
+                            <mat-option value="position">Cargo</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <div class="col-sm-8">
+                    <mat-form-field class="full-width" *ngIf="this.filter == 'name' || this.filter == 'last_names' || this.filter == 'position'">
+                        <input matInput type="text" [(ngModel)]="this.search_term" (keyup)="filterByTerm()" placeholder="Ingrese el término a buscar...">
+                    </mat-form-field>
+                    <mat-form-field class="full-width" *ngIf="this.filter == 'role'">
+                        <mat-label>Seleccione el Rol de Usuario</mat-label>
+                        <mat-select (valueChange)="filterByRole($event)">
+                            <mat-option value="Técnico">Técnico</mat-option>
+                            <mat-option value="Coordinador">Coordinador</mat-option>
+                            <mat-option value="Financiador">Financiador</mat-option>
+                            <mat-option value="Administrador">Administrador</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+    <mat-card>
+        <mat-card-title class="font-weight-lighter">Lista de Usuarios</mat-card-title>
+        <mat-divider></mat-divider>
+        <mat-card-content>
+            <div class="pt-3">
+                <mat-list>
+                    <li class="full-width text-left font-weight-lighter" *ngFor="let user of this.filteredList">
+                        <div class="flex flex-align-vertical">
+                            <div>
+                                {{user.name}} {{user.last_names}} - {{user.position}}
+                            </div>
+                            <span class="fill-remaining-space"></span>
+                            <a [routerLink]="user._id" mat-button class="font-weight-lighter"><mat-icon>remove_red_eye</mat-icon> DETALLES</a>
+                            <button mat-button class="font-weight-lighter"><mat-icon>delete</mat-icon>ELIMINAR</button>
+                        </div>
+                        <mat-divider></mat-divider>
+                    </li>
+                </mat-list>
+            </div>
+        </mat-card-content>
+    </mat-card>
+</div>

@@ -1,6 +1,6 @@
 <app-sub-toolbar
     title="Proyectos"
-    [addButton]="true"
+    [addButton]="this.userRole == 'Administrador' || this.userRole == 'Coordinador'"
     [backButton]="false">
 </app-sub-toolbar> 
 

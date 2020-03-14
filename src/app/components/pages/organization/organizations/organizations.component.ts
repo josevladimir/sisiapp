@@ -9,6 +9,8 @@ export class OrganizationsComponent {
 
   Organizations : any[] = this._service.getOrganizationsOff();
 
+  userRole : string = localStorage.getItem('userRole');
+
   constructor(private _service : SisiCoreService) {
     
   }

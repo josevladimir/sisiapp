@@ -1,0 +1,32 @@
+
+  <div *ngIf="this.data.preference == 'sectors'; else Type">
+    <div mat-dialog-content>
+      <h4 class="font-weight-lighter">Añadir nuevo sector de organizaciones</h4>
+      <mat-divider></mat-divider>
+      <mat-form-field class="full-width mt-2">
+        <mat-label>Ingrese el nuevo sector</mat-label>
+        <input matInput type="text" [(ngModel)]="data.sector">
+      </mat-form-field>
+    </div>
+    <div mat-dialog-actions class="flex">
+      <div class="fill-remaining-space"></div>
+      <button mat-button (click)="onNoClick('')">CANCELAR</button>
+      <button mat-raised-button color="primary" [disabled]="this.data.sector == null" [mat-dialog-close]="data.sector" cdkFocusInitial>GUARDAR</button>
+    </div>
+  </div>
+
+  <ng-template #Type>
+    <div mat-dialog-content>
+      <h4 class="font-weight-lighter">Añadir nuevo tipo de organizaciones</h4>
+      <mat-divider></mat-divider>
+      <mat-form-field class="full-width mt-2">
+        <mat-label>Ingrese el nuevo valor tipo</mat-label>
+        <input matInput type="text" [(ngModel)]="data.type">
+      </mat-form-field>
+    </div>
+    <div mat-dialog-actions class="flex">
+      <div class="fill-remaining-space"></div>
+      <button mat-button  (click)="onNoClick('')">CANCELAR</button>
+      <button mat-raised-button color="primary" [disabled]="this.data.type == null" [mat-dialog-close]="data.type" cdkFocusInitial>GUARDAR</button>
+    </div>
+  </ng-template>

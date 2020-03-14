@@ -15,17 +15,11 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 export class PartnersHistoricComponent implements OnInit {
 
   Organization : any;
-  period : string  = '';
-
-  chartData;
 
   ELEMENT_DATA : Registry[];
   /*Table Widget*/
   displayedColumns : string[];
   dataSource : MatTableDataSource<Registry>;
-
-
-  availablesPeriods : any[] = [];
 
   constructor(private _ActivatedRoute : ActivatedRoute,
               private _Service : SisiCoreService,
@@ -40,16 +34,16 @@ export class PartnersHistoricComponent implements OnInit {
         .subscribe(
           result => {
             if(result.message == 'OK'){
-              result.data.periods.forEach(period => this.availablesPeriods.push(period));
-              result.data.series[0].series.forEach(serie => serie.name = new Date(serie.name));
-              result.data.series[1].series.forEach(serie => serie.name = new Date(serie.name));
-              this.chartData = result.data.series;
+              result.data[0].series.forEach(serie => serie.name = new Date(serie.name));
+              result.data[1].series.forEach(serie => serie.name = new Date(serie.name));
+              this.multi = null;
+              this.multi = result.data;
+              this.generateTable();
             }
           },
           error => this._snackbar.open('Error al recuperar los datos para la gráfica.','ENTENDIDO',{duration: 3000})
         );
 
-    this.generateTable();
 
   }
 
@@ -60,27 +54,6 @@ export class PartnersHistoricComponent implements OnInit {
   /**
    * Graphic's Logic
    */
-
-  generateChartData(){
-    this.multi = null;
-    this.multi = [
-      {
-        name: 'Mujeres',
-        series: []
-      },
-      {
-        name: 'Hombres',
-        series: []
-      }
-    ];
-    switch(this.period){
-      case 'actual':
-        this.multi[0].series = this.chartData[0].series;
-        this.multi[1].series = this.chartData[1].series;  
-        break;
-    }
-    
-  }
 
   multi: any[];
   view: any[] = [900, 400];

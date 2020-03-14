@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormGroup, Validators, FormControl } from '@angular/forms';
 import { SisiCoreService } from '../../../../services/sisi-core.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -12,6 +12,11 @@ export class FundersComponent{
   funders : any[] = this._service.getFundersOff();
 
   userID : string = localStorage.getItem('userID');
+  userRole : string = localStorage.getItem('userRole');
+
+  isWorking : boolean = false;
+
+  loadingMessage : string = 'Registrando Financiador';
 
   fundersForm : FormGroup;
   nameCtrl : FormControl = new FormControl('',[Validators.required,this._service.existFunder]);
@@ -30,20 +35,23 @@ export class FundersComponent{
   }
 
   reset(){
-    this.fundersForm.reset({name: ''});
+    this.fundersForm.reset();
   }
 
   saveFunder(){
+    this.isWorking = true;
     let body = this.fundersForm.value;
     this._service.createFunder(body).subscribe(
       result => {
         this.funders.push(result.funder);
-        localStorage.setItem('funders',JSON.stringify(this.funders));
-        this.fundersForm.reset({
-          name: ''
-        });
+        this._service.updateFundersList(null);
+        this.fundersForm.reset();
+        this.isWorking = false;
         this._snackBar.open('Se ha registrado el financiador correctamente.','ENTENDIDO',{duration: 3000});
-      },error => this._snackBar.open('Ha ocurrido un error al registrar el financiador.','ENTENDIDO',{duration: 3000})
+      },error => {
+        this.isWorking = false;
+        this._snackBar.open('Ha ocurrido un error al registrar el financiador.','ENTENDIDO',{duration: 3000})
+      }
     );
   }
 

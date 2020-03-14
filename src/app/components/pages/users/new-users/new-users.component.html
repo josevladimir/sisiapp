@@ -1,0 +1,103 @@
+<app-sub-toolbar
+    title="Nuevo Usuario"
+    [backButton]="true"
+    [importantBack]="true">
+</app-sub-toolbar>
+
+<div class="page-content">
+    <form [formGroup]="this.UserForm" (ngSubmit)="createUser()">
+        <mat-card>
+            <mat-card-title class="font-weight-lighter">Información General</mat-card-title>
+            <mat-divider></mat-divider>
+            <mat-card-content>
+                <div class="pt-3 row">
+                    <div class="col-sm-4">
+                        <mat-form-field class="full-width">
+                            <input matInput formControlName="name" placeholder="Nombres" type="text">
+                            <mat-error *ngIf="this.UserForm.controls.name.errors?.required">Este campo es obligatorio</mat-error>
+                            <mat-error *ngIf="!this.UserForm.controls.name.errors?.required && this.UserForm.controls.name.errors?.isBlank">Este campo no puede quedar en blanco.</mat-error>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-sm-4">
+                        <mat-form-field class="full-width">
+                            <input matInput formControlName="last_names" placeholder="Apellidos" type="text">
+                            <mat-error *ngIf="this.UserForm.controls.last_names.errors?.required">Este campo es obligatorio</mat-error>
+                            <mat-error *ngIf="!this.UserForm.controls.last_names.errors?.required && this.UserForm.controls.last_names.errors?.isBlank">Este campo no puede quedar en blanco.</mat-error>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-sm-4">
+                        <mat-form-field class="full-width">
+                            <input matInput formControlName="username" placeholder="Nombre de Usuario" type="text">
+                            <mat-error *ngIf="this.UserForm.controls.username.errors?.required">Este campo es obligatorio</mat-error>
+                            <mat-error *ngIf="!this.UserForm.controls.username.errors?.required && this.UserForm.controls.username.errors?.isBlank">Este campo no puede quedar en blanco.</mat-error>
+                            <mat-error *ngIf="!this.UserForm.controls.username.errors?.required && this.UserForm.controls.username.errors?.exists">El nombre de usuario ingresado no está disponible.</mat-error>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-sm-4">
+                        <mat-form-field class="full-width">
+                            <input matInput formControlName="email" placeholder="Correo Electrónico" type="email">
+                            <mat-error *ngIf="this.UserForm.controls.email.errors?.required">Este campo es obligatorio</mat-error>
+                            <mat-error *ngIf="!this.UserForm.controls.email.errors?.required && this.UserForm.controls.email.errors?.isBlank">Este campo no puede quedar en blanco.</mat-error>
+                            <mat-error *ngIf="!this.UserForm.controls.email.errors?.required && !this.UserForm.controls.email.errors?.isBlank && this.UserForm.controls.email.errors?.pattern">Ingrese una dirección de correo válida.</mat-error>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-sm-4">
+                        <mat-form-field class="full-width">
+                            <input matInput formControlName="position" placeholder="Puesto de Trabajo" type="text">
+                            <mat-error *ngIf="this.UserForm.controls.position.errors?.required">Este campo es obligatorio</mat-error>
+                            <mat-error *ngIf="!this.UserForm.controls.position.errors?.required && this.UserForm.controls.position.errors?.isBlank">Este campo no puede quedar en blanco.</mat-error>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-sm-4" *ngIf="this.UserForm.controls.role.value == 'Financiador' ">
+                        <mat-form-field class="full-width">
+                            <mat-label>Representa a</mat-label>
+                            <mat-select formControlName="funder">
+                                <mat-option *ngFor="let funder of this.Funders" [value]="funder._id">{{funder.name}} - {{funder.place}}</mat-option>
+                            </mat-select>
+                            <mat-error *ngIf="this.UserForm.controls.position.errors?.required">Este campo es obligatorio</mat-error>
+                            <mat-error *ngIf="!this.UserForm.controls.position.errors?.required && this.UserForm.controls.position.errors?.isBlank">Este campo no puede quedar en blanco.</mat-error>
+                        </mat-form-field>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+        <mat-card class="mt-4 mb-4">
+            <mat-card-title class="font-weight-lighter">Permisos y Seguridad</mat-card-title>
+            <mat-divider></mat-divider>
+            <mat-card-content>
+                <div class="pt-3 row">
+                    <div class="col-sm-4">
+                        <mat-form-field class="full-width">
+                            <input matInput formControlName="password" type="password" placeholder="Ingresa una contraseña">
+                            <mat-error *ngIf="this.UserForm.controls.password.errors?.required">Este campo es obligatorio</mat-error>
+                            <mat-error *ngIf="!this.UserForm.controls.password.errors?.required && this.UserForm.controls.password.errors?.isBlank">Este campo no puede quedar en blanco.</mat-error>
+                            <mat-error *ngIf="this.UserForm.controls.password.errors?.minLength">La contraseña debe tener al menos 10 caracteres.</mat-error>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-sm-4">
+                        <mat-form-field class="full-width">
+                            <input matInput type="password" formControlName="repassword" placeholder="Repite la Contraseña">
+                            <mat-error *ngIf="this.UserForm.controls.repassword.errors?.required">Este campo es obligatorio</mat-error>
+                            <mat-error *ngIf="!this.UserForm.controls.repassword.errors?.required && this.UserForm.controls.repassword.errors?.isBlank">Este campo no puede quedar en blanco.</mat-error>
+                            <mat-error *ngIf="this.UserForm.controls.repassword.errors?.noMatch">Las contraseñas no coinciden.</mat-error>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-sm-4">
+                        <mat-form-field class="full-width">
+                            <mat-label>Rol del Usuario</mat-label>
+                            <mat-select formControlName="role">
+                                <mat-option value="Técnico">Técnico</mat-option>
+                                <mat-option value="Coordinador">Coordinador</mat-option>
+                                <mat-option value="Financiador">Financiador</mat-option>
+                                <mat-option value="Administrador">Administrador</mat-option>
+                            </mat-select>
+                            <mat-error *ngIf="this.UserForm.controls.role.errors?.required">Debe seleccionar un rol de usuario</mat-error>
+                        </mat-form-field>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+        <app-form-buttons [formGroup]="this.UserForm"></app-form-buttons>
+    </form>
+</div>
+<app-loading-view *ngIf="this.isWorking" [message]="this.loadingMessage"></app-loading-view>

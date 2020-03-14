@@ -25,6 +25,10 @@ export class NewProjectComponent{
   isValid : boolean = true;
 
   organizationsSelected : any = [];
+  indicatorsSelected : any = [];
+
+  isWorking : boolean = false;
+  loadingMessage : string;
 
   File : any; //Variable para la subida de la lista de usuarios
 
@@ -98,20 +102,30 @@ export class NewProjectComponent{
       else list.options.filter(option => option.value == id)[0].selected = true;
     }else{//Agregar
       let indicator : any = this.Indicators.filter(indicator => indicator._id == id)[0];
+      this.indicatorsSelected.push({id: indicator._id,parameters: indicator.parameters_schema});
       let organizationsCtrl : FormArray = new FormArray([]);
       this.organizationsSelected.forEach(organization => {
         (<FormArray> organizationsCtrl).push(new FormGroup({
           organization: new FormControl(organization.name,[Validators.required]),
           id: new FormControl(organization.id,[Validators.required]),
-          baseline: new FormControl('',[Validators.required,this._service.isBlank,Validators.pattern(new RegExp(/^\d{1,10}$/))]),
-          goal: new FormControl('',[Validators.required,this._service.isBlank,Validators.pattern(new RegExp(/^\d{1,10}$/))])
+          parameters: new FormArray([])
         }));
       });
-      (<FormArray> this.goalsCtrl).push(new FormGroup({
+      let indicatorCtrl = new FormGroup({
         indicator: new FormControl(indicator.name),
         id: new FormControl(indicator._id),
         organizations: organizationsCtrl
-      }));
+      });
+      for(let i = 0; i < (<FormArray>indicatorCtrl.controls.organizations).length; i++){
+          indicator.parameters_schema.forEach(parametro => {
+            (<FormArray>indicatorCtrl.controls.organizations['controls'][i].get('parameters')).push(new FormGroup({
+              name: new FormControl(parametro.name),
+              baseline: new FormControl('',[Validators.required,this._service.isBlank,Validators.pattern(new RegExp(/^\d{1,10}$/))]),
+              goal: new FormControl('',[Validators.required,this._service.isBlank,Validators.pattern(new RegExp(/^\d{1,10}$/))])
+            }));
+          })
+      }
+      (<FormArray> this.goalsCtrl).push(indicatorCtrl);
     }
   } 
   
@@ -135,11 +149,21 @@ export class NewProjectComponent{
         id: organization._id
       });
       for(let i = 0; i < this.goalsCtrl.length; i++){
+
+        let parameters : FormArray = new FormArray([]);
+
+        this.indicatorsSelected[i].parameters.forEach(parameter => {
+          (<FormArray> parameters).push(new FormGroup({
+            name: new FormControl(parameter.name),
+            baseline: new FormControl('',[Validators.required,this._service.isBlank]),
+            goal: new FormControl('',[Validators.required,this._service.isBlank])
+          }))
+        });
+
         (<FormArray> this.goalsCtrl.controls[i].get('organizations')).push(new FormGroup({
           organization: new FormControl(organization.name,[Validators.required]),
           id: new FormControl(organization._id,[Validators.required]),
-          baseline: new FormControl('',[Validators.required,this._service.isBlank,Validators.pattern(new RegExp(/^\d{1,10}$/))]),
-          goal: new FormControl('',[Validators.required,this._service.isBlank,Validators.pattern(new RegExp(/^\d{1,10}$/))])
+          parameters
         }));
       }
     }
@@ -156,7 +180,12 @@ export class NewProjectComponent{
   }
 
   createProject(){
-    if(this.ProjectFormGroup.invalid || !this.File || !this.goalsCtrl.length || !this.fundersCtrl.length) return alert('Debe completar todo el formulario de registro de Proyectos!\n\nNo olvide asignar los financiadores, indicadores y organizaciones. Tampoco olvide seleccionar el archivo de lista de beneficiarios.')
+    this.loadingMessage = 'Guardando el proyecto...'
+    this.isWorking = true;
+    if(this.ProjectFormGroup.invalid || !this.File || !this.goalsCtrl.length || !this.fundersCtrl.length){
+      this.isWorking = false;
+      return alert('Debe completar todo el formulario de registro de Proyectos!\n\nNo olvide asignar los financiadores, indicadores y organizaciones. Tampoco olvide seleccionar el archivo de lista de beneficiarios.')
+    }
     let project : any = this.ProjectFormGroup.value;
     project.indicators = [];
     project.organizations = [];
@@ -169,24 +198,25 @@ export class NewProjectComponent{
     this._service.createProject(project).subscribe(
       result => {
         if(result.message == 'CREATED') {
-          let projects : any[];
-          if(localStorage.getItem('projects')) projects = JSON.parse(localStorage.getItem('projects'));
-          else projects = [];
-          projects.push(result.project);
-          localStorage.setItem('projects',JSON.stringify(projects));
           this.uploadBeneficiariesList(result.project._id).subscribe(
             result => {
               if(result.message =="CREATED"){
-                this._service.updateProjectsList();
-                this._service.updateOrganizationsList();
-                this._service.updateFundersList();
-                this._snackbar.open('Proyecto Resgistrado correctamente.','ENTENDIDO',{duration: 3000});
-                this._Router.navigate([document.location.pathname.split('/')[1]])
+                this._service.updateOrganizationsList(null);
+                this._service.updateFundersList(null);
+                this._service.updateProjectsList(true);
+                this.isWorking = false;
+                this._snackbar.open('Proyecto Registrado correctamente.','ENTENDIDO',{duration: 3000});
               }
-            },error => this._snackbar.open('Ha ocurrido un error al subir el archivo de Beneficiarios.','ENTENDIDO',{duration: 3000})
+            },error => {
+              this.isWorking = false;
+              this._snackbar.open('Ha ocurrido un error al subir el archivo de Beneficiarios.','ENTENDIDO',{duration: 3000})
+            }
           );
         }
-      },error => this._snackbar.open('Ocurrió un error al guardar el nuevo proyecto.','ENTENDIDO',{duration: 3000})
+      },error => {
+        this.isWorking = false;
+        this._snackbar.open('Ocurrió un error al guardar el nuevo proyecto.','ENTENDIDO',{duration: 3000})
+      }
     )
   }
 

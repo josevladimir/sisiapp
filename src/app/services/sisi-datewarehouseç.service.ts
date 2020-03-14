@@ -8,14 +8,14 @@ import { FormControl } from '@angular/forms';
 })
 export class SisiDatewarehouseService {
 
-  URL : string = 'http://localhost:3000/Datawarehouse';
+  URL : string = 'http://64.227.8.162:3000/Datawarehouse';
 
-  headers : HttpHeaders = new HttpHeaders({'Content-Type':'application/json'})
+  headers : HttpHeaders = new HttpHeaders({'Authorization':`Bearer ${localStorage.token}`})
 
   constructor(private _httpClient : HttpClient) {  }
 
   getPartnersHistoryData (id : string) : Observable<any> {
-    return this._httpClient.get(`${this.URL}/partners/${id}`);
+    return this._httpClient.get(`${this.URL}/partners/${id}`,{headers: this.headers});
   }
 
 }

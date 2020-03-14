@@ -17,9 +17,14 @@ export class OrganizationViewComponent implements OnInit{
 
   organizationForm : FormGroup;
 
+  userRole : string = localStorage.getItem('userRole');
+
   editMode : boolean = false;
 
   isOlder : boolean = false;
+
+  isWorking : boolean = false;
+  loadingMessage : string;
 
   nameCtrl : FormControl;
   foundation_dateCtrl : FormControl;
@@ -50,6 +55,29 @@ export class OrganizationViewComponent implements OnInit{
         icon: 'people',
         handler: () => {
           this._Router.navigate(['organizations',this.Organization._id,'partners']);
+        }
+      },
+      {
+        message: 'ELIMINAR',
+        hasIcon: true,
+        icon: 'delete',
+        handler: () => {
+          if(confirm('¿Está seguro que desea eliminar esta Organización?\n\nEsta acción no se puede deshacer.')) {
+            this.loadingMessage = 'Eliminando la Organización ...';
+            this.isWorking = true;
+            this._service.deleteOrganization(this.Organization._id).subscribe(
+            result => {
+              if(result.message == 'DELETED'){
+                this._service.updateOrganizationsList(true);
+                this.isWorking = false;
+                this._snackBar.open('Se eliminó la Organización correctamente.','ENTENDIDO',{duration: 3000});
+              }
+            },error => {
+              this.isWorking = false;
+              this._snackBar.open('Ocurrió un error al eliminar la Organización.','ENTENDIDO',{duration: 3000})
+            }
+          )
+          }
         }
       }
     ];
@@ -95,24 +123,23 @@ export class OrganizationViewComponent implements OnInit{
   }
 
   updateOrganization(){
+    this.loadingMessage = 'Guardando los cambios...'
+    this.isWorking = true;
     let body : any = this.organizationForm.value;
     body.isOlder = this.isOlder;
     body.last_updated_by = localStorage.getItem('userID');
     this._service.updateOrganization(body,this.Organization._id).subscribe(
       result => {
         this.Organization = result.organization;
-        let organizations : any[] = JSON.parse(localStorage.getItem('organizations'));
-        let position : number;
-        for(let i = 0; i < organizations.length; i++){
-          if(organizations[i]._id == this.Organization._id) position = i; 
-        }
-        organizations.splice(position,1);
-        organizations.push(result.organization);
-        localStorage.setItem('organizations',JSON.stringify(organizations));
+        this._service.updateOrganizationsList(null);
         this.editMode = false;
         this.organizationForm.disable();
+        this.isWorking = false;
         this._snackBar.open('Se han guardado los cambios correctamente.','ENTENDIDO',{duration: 3000});
-      },error => this._snackBar.open('Ocurrió un problema al guardar los cambios.','ENTENDIDO',{duration: 3000})
+      },error => {
+        this.isWorking = false;
+        this._snackBar.open('Ocurrió un problema al guardar los cambios.','ENTENDIDO',{duration: 3000});
+      }
     );
   }
 

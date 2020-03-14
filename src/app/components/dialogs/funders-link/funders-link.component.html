@@ -1,0 +1,14 @@
+    <div mat-dialog-content>
+      <h4 class="font-weight-lighter">Vincular Financiadores al Proyecto</h4>
+      <mat-divider></mat-divider>
+      <div>
+        <mat-selection-list class="projects-selection-list">      
+            <mat-list-option class="font-weight-lighter" *ngFor="let funder of this.data.Funders" [value]="funder._id" (click)="OnFundersListChange(funder._id)">{{funder.name}}</mat-list-option>
+        </mat-selection-list>
+    </div>
+    </div>
+    <div mat-dialog-actions class="flex">
+      <div class="fill-remaining-space"></div>
+      <button mat-button (click)="onNoClick('')">CANCELAR</button>
+      <button mat-raised-button color="primary" [disabled]="!this.data.seleccion.length" [mat-dialog-close]="data.seleccion" cdkFocusInitial>GUARDAR</button>
+    </div>

@@ -7,6 +7,9 @@ mat-drawer,
 mat-drawer-content
     height: 100%
 
+h6
+    margin: 0px !important
+
 mat-list
     padding-top: 0px !important
 
@@ -22,6 +25,14 @@ mat-drawer-container
 
 mat-drawer-content
     background: #ccc
+
+ngx-charts-bar-vertical-2d,
+ngx-charts-bar-vertical
+    display: block !important
+    position: relative !important
+    width: 100% !important
+    overflow-y: auto !important
+    margin: auto !important
 
 p
     margin-bottom: 0px !important
@@ -49,10 +60,12 @@ table
     background: rgba(0,0,0,.85)
     position: absolute
     top: 0px
-    z-index: 1000
+    z-index: 100000
 
-    img
+    div div img
         animation: rotar 1s infinite
+        display: block
+        margin: auto
         width: 250px
 
     h2
@@ -135,16 +148,84 @@ table
         background: #f2f2f2
         height: 60px
 
+//Funders on Project View
+#financiadores-box
+    height: 500px
+
 //Baseline Table
-    #baseline-table
+.table-container
+    display: block
+    max-width: 100%
+    overflow-x: hidden
+
+    .baseline-table
         display: block
-        width: 100%
-        thead,
-        tbody,
-        tr,
-        td,
-        th
-            width: 100%
+        overflow-x: scroll
+
+    tr td,
+    tr th
+        min-width: 200px
+
+    tr th
+        font-weight: normal
+        text-align: center
+
+    tr .sticky
+        background: #ffffff
+        left: 0
+        position: sticky
+
+//Fichas Loading
+.loading-box
+    align-items: center
+    display: flex
+    height: 300px
+    justify-content: center
+
+    div img
+        animation: rotar .5s infinite
+        height: 100px
+
+//Report Box
+.table-box
+    background: #f2f2f2
+
+.report-mat-card
+    transition: none !important
+    border-radius: 0px !important
+    border: none !important
+    box-shadow: none !important
+
+//Calification Box
+.columns-2
+    display: grid
+    gap: 20px
+    grid-template-columns: repeat(2,1fr)
+
+.calification-detail
+    display: grid
+    grid-template-columns: 4fr 8fr
+
+.circulo
+    border-radius: 50%
+    height: 100px
+    width: 100px
+
+.calification-letter
+    font-size: 25px
+    font-weight: bold
+
+.green
+    background: green
+    color: white
+
+.yellow
+    background: yellow
+    color: white
+
+.red
+    background: red
+    color: white
 
 //Classes
 .border-box
@@ -233,6 +314,15 @@ table
 .flex
     display: flex
 
+.flex-align-vertical
+    align-items: center
+
+.flex-center
+    justify-content: center
+
+.flex-right
+    justify-content: end
+
 .form-control-equis
     display: flex
     justify-content: flex-end
@@ -248,6 +338,9 @@ table
 
 .hover-underline:hover
     text-decoration: underline
+
+.label
+    color: rgba(0,0,0,.60)
 
 .linkActive
     background: rgb(55,138,0) !important

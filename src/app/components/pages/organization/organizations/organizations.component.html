@@ -1,6 +1,6 @@
 <app-sub-toolbar
     title="Organizaciones"
-    [addButton]="true"
+    [addButton]="(this.userRole == 'Técnico' || this.userRole == 'Coordinador' || this.userRole == 'Administrador')"
     [backButton]="false">
 </app-sub-toolbar>
 

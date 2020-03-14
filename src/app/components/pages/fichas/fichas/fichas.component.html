@@ -1,0 +1,113 @@
+<app-sub-toolbar
+    title="Fichas">
+</app-sub-toolbar>
+
+<div class="page-content">
+    <mat-card>
+        <mat-card-title class="font-weight-lighter">Generar Ficha:</mat-card-title>
+        <mat-divider></mat-divider>
+        <mat-card-content>
+            <div class="row pt-3">
+                <div class="col-sm-4">
+                    <mat-form-field class="full-width">
+                        <mat-label>Seleccione un proyecto</mat-label>
+                        <mat-select (valueChange)="onProjectSelect($event)" [(ngModel)]="this.selectedProject">
+                          <mat-option *ngFor="let project of this.Projects" [value]="project._id">
+                            {{project.name}}
+                          </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <div class="col-sm-4">
+                    <mat-form-field class="full-width">
+                        <mat-label>Seleccione un indicador</mat-label>
+                        <mat-select (valueChange)="onIndicatorSelect($event)" [(ngModel)]="this.selectedIndicator"[disabled]="!this.Indicators" >
+                          <mat-option *ngFor="let indicator of this.Indicators" [value]="indicator._id">
+                            {{indicator.name}}
+                          </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <div class="col-sm-4">
+                    <button mat-raised-button color="primary" type="button" [disabled]="!this.selectedIndicator" (click)="generateSchema()">GENERAR</button>
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <div class="mt-4">
+        <mat-card *ngIf="this.Status == 'loading'">
+            <div class="loading-box">
+                <div>
+                    <img src="../../../../../assets/images/logo-sisi-only.svg" alt="">
+                    <h4 class="font-weight-lighter text-center">Cargando...</h4>
+                </div>
+            </div>
+        </mat-card>
+        <mat-card *ngIf="this.Status == 'ready'">
+            <mat-card-title class="font-weight-lighter">Ficha</mat-card-title>
+            <mat-divider></mat-divider>
+            <mat-card-content>
+                <div>
+                    <div class="pt-3 mb-3">
+                        <p>Proyecto: <span class="font-weight-lighter">{{this.ProjectName}}</span></p>
+                        <p>Indicador: <span class="font-weight-lighter">{{this.Indicator.name}}</span></p>
+                        <p>Periodo: <span class="font-weight-lighter">{{this._service.getMonth(this.Period.getMonth())}} {{this.Period.getFullYear()}}</span></p>
+                    </div>
+                    <div class="table-container">
+                        <table class="baseline-table">
+                            <tr>
+                                <th class="sticky">ORGANIZACIÓN</th>
+                                <th *ngFor="let field of this.fieldsSchema">{{field.name}}</th>
+                            </tr>
+                            <tr *ngFor="let organization of this.Organizations; let i = index">
+                                <td class="sticky">{{organization.name}}</td>
+                                <td *ngFor="let field of this.fieldsSchema; let j = index">
+                                    <input type="number" [(ngModel)]="this.SchemaForm.records.rows[i].fields[j].value" class="full-width font-weight-lighter" placeholder="Ingrese un valor">
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </mat-card-content>
+            <mat-divider></mat-divider>
+            <mat-card-actions>
+                <div class="flex">
+                    <span class="fill-remaining-space"></span>
+                    <button mat-button type="button" (click)="this.cancel()">CANCELAR</button>
+                    <button mat-raised-button color="primary" type="button" (click)="this.save()" >GUARDAR</button>
+                </div>
+            </mat-card-actions>
+        </mat-card>
+        <mat-card *ngIf="this.Status == 'already-filled'">
+            <mat-card-title class="font-weight-lighter">Esta Ficha ya ha sido llenada</mat-card-title>
+            <mat-divider></mat-divider>
+            <mat-card-content>
+                <div>
+                    <div class="pt-3 mb-3">
+                        <p>Proyecto: <span class="font-weight-lighter">{{this.ProjectName}}</span></p>
+                        <p>Indicador: <span class="font-weight-lighter">{{this.Indicator.name}}</span></p>
+                        <p>Periodo: <span class="font-weight-lighter">{{this._service.getMonth(this.Period.getMonth())}} {{this.Period.getFullYear()}}</span></p>
+                        <p>Técnico Responsable: <span class="font-weight-lighter">{{this.UserResponsable}}</span></p>
+                    </div>
+                    <div class="table-container">
+                        <table class="baseline-table">
+                            <tr>
+                                <th class="sticky">ORGANIZACIÓN</th>
+                                <th *ngFor="let field of this.SchemaForm.records.rows[0].fields">{{field.name}}</th>
+                            </tr>
+                            <tr *ngFor="let organization of this.Organizations; let i = index">
+                                <td class="sticky">{{organization.name}}</td>
+                                <td *ngFor="let field of this.SchemaForm.records.rows[i].fields; let j = index">
+                                    <div class="full-width font-weight-lighter text-center">{{field.value}}</div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+
+</div>
+<app-loading-view *ngIf="this.isWorking" [message]="this.loadingMessage"></app-loading-view>

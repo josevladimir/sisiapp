@@ -1,7 +1,8 @@
 <app-sub-toolbar
     title="Nueva Organización"
     [backButton]="true"
-    [addButton]="false">
+    [addButton]="false"
+    [importantBack]="true">
 </app-sub-toolbar>
 
 <div class="page-content">
@@ -28,16 +29,10 @@
                     <mat-form-field class="full-width">
                         <mat-label>Sector:</mat-label>
                         <mat-select formControlName="sector">
-                          <mat-option value="Cacao">
-                              Cacao
+                          <mat-option *ngFor="let sector of this.Sectors" [value]="sector">
+                              {{sector}}
                           </mat-option>
-                          <mat-option value="Agricultura">
-                              Agricultura
-                          </mat-option>
-                          <mat-option value="Turismo">
-                              Turismo
-                          </mat-option>
-                          <button mat-button><mat-icon>add</mat-icon> Añadir nuevo...</button>
+                          <button *ngIf="!this.newSector" mat-button class="full-width" (click)="this.addNewSector()"><mat-icon>add</mat-icon> Añadir nuevo...</button>
                         </mat-select>
                     </mat-form-field>    
                 </div>
@@ -45,16 +40,10 @@
                     <mat-form-field class="full-width">
                         <mat-label>Tipo de Organización:</mat-label>
                         <mat-select formControlName="type">
-                            <mat-option value="SFL">
-                                SFL
+                            <mat-option *ngFor="let type of this.Types" [value]="type">
+                                {{type}}
                             </mat-option>
-                            <mat-option value="Empresa">
-                                Empresa
-                            </mat-option>
-                            <mat-option value="Asociación">
-                                Asociación
-                            </mat-option>
-                            <button mat-button><mat-icon>add</mat-icon> Añadir nuevo...</button>
+                            <button mat-button class="full-width" (click)="this.addNewType()"><mat-icon>add</mat-icon> Añadir nuevo...</button>
                         </mat-select>
                         <mat-error>Este campo es obligatorio</mat-error>
                     </mat-form-field>    
@@ -138,9 +127,8 @@
             La organización clasifica como <b *ngIf="!this.isOlder; else AntiguaTemplate">Nueva</b><ng-template #AntiguaTemplate><b>Antigua</b></ng-template>
         </div>
 
-        <app-upload-box></app-upload-box>
-
         <app-form-buttons [formGroup]="this.organizationForm"></app-form-buttons>
 
     </form>
 </div>
+<app-loading-view *ngIf="this.isWorking" [message]="this.loadingMessage"></app-loading-view>

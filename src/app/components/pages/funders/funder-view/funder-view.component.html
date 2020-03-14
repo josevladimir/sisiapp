@@ -1,4 +1,12 @@
-<app-sub-toolbar
+<app-sub-toolbar *ngIf="this.userRole == 'Administrador'"
+    [title]="this.Funder.name"
+    [backButton]="true"
+    [addButton]="false"
+    [buttons]="[this.DeleteBtn]"
+    [importantBack]="this.editMode">
+</app-sub-toolbar>
+
+<app-sub-toolbar *ngIf="this.userRole != 'Administrador'"
     [title]="this.Funder.name"
     [backButton]="true"
     [addButton]="false">
@@ -85,3 +93,5 @@
     </div>
 
 </div>
+
+<app-loading-view *ngIf="this.isWorking" [message]="this.loadingMessage"></app-loading-view>

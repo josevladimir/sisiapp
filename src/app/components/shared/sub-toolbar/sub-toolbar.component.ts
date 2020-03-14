@@ -11,8 +11,9 @@ export class SubToolbarComponent implements OnInit{
   @Input() title : string;
   @Input() backButton : boolean;
   @Input() addButton : boolean;
-  @Input() editButton : boolean;
+  @Input() editButton;
   @Input() buttons : ToolbarButton[];
+  @Input() importantBack : boolean;
 
   @Output() editClick : EventEmitter<any> = new EventEmitter();
 
@@ -22,7 +23,9 @@ export class SubToolbarComponent implements OnInit{
   }
   
   back(){
-    if(confirm('Todos los cambios no guardados se perderán.\n\n¿Desea continuar?')) this._Router.navigate([document.location.pathname.split('/')[1]])
+    if(this.importantBack){
+      if(confirm('Todos los cambios no guardados se perderán.\n\n¿Desea continuar?')) this._Router.navigate([document.location.pathname.split('/')[1]]);
+    }else this._Router.navigate([document.location.pathname.split('/')[1]]);
   }
   
   edit(){

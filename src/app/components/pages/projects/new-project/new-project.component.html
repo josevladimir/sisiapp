@@ -1,7 +1,8 @@
 <app-sub-toolbar
     title="Nuevo Proyecto"
     [addButton]="false"
-    [backButton]="true">
+    [backButton]="true"
+    [importantBack]="true">
 </app-sub-toolbar>
 
 <div class="page-content">
@@ -117,7 +118,7 @@
                             Financiadores
                         </div>
                         <mat-selection-list class="projects-selection-list">      
-                            <mat-list-option *ngFor="let funder of this.Funders" [value]="funder._id" (click)="OnFundersListChange(funder._id)">{{funder.name}}</mat-list-option>
+                            <mat-list-option class="font-weight-lighter" *ngFor="let funder of this.Funders" [value]="funder._id" (click)="OnFundersListChange(funder._id)">{{funder.name}}</mat-list-option>
                         </mat-selection-list>
                     </div>
                 </div>
@@ -127,7 +128,7 @@
                             Indicadores
                         </div>
                         <mat-selection-list class="projects-selection-list" #IndicatorsList>
-                            <mat-list-option *ngFor="let indicator of this.Indicators" [value]="indicator._id" (click)="OnIndicatorsListChange(indicator._id,IndicatorsList)">{{indicator.name}}</mat-list-option>  
+                            <mat-list-option class="font-weight-lighter" *ngFor="let indicator of this.Indicators" [value]="indicator._id" (click)="OnIndicatorsListChange(indicator._id,IndicatorsList)">{{indicator.name}}</mat-list-option>  
                         </mat-selection-list>
                     </div>
                 </div>
@@ -137,7 +138,7 @@
                             Organizaciones
                         </div>
                         <mat-selection-list class="projects-selection-list" #OrganizationsList>
-                            <mat-list-option *ngFor="let organization of this.Organizations" [value]="organization._id" (click)="OnOrganizationsListChange(organization._id,OrganizationsList)">{{organization.name}}</mat-list-option>
+                            <mat-list-option class="font-weight-lighter" *ngFor="let organization of this.Organizations" [value]="organization._id" (click)="OnOrganizationsListChange(organization._id,OrganizationsList)">{{organization.name}}</mat-list-option>
                         </mat-selection-list>
                     </div>
                 </div>
@@ -152,22 +153,31 @@
                     <div class="mt-3 mb-3 full-width font-weight-lighter">
                         <div formArrayName="goals" *ngFor="let indicator of this.goalsCtrl.controls; let i = index">
                             <h5 [ngClass]="{'pt-3': i}" class="font-weight-lighter">{{indicator.get('indicator').value}}</h5>
-                            <table [formGroupName]="i" class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Organización</th>
-                                        <th>Línea Base</th>
-                                        <th>Meta 1er año</th>
-                                    </tr>
-                                </thead>
-                                <tbody formArrayName="organizations" *ngFor="let organization of this.organizationsSelected; let j = index">
-                                    <tr [formGroupName]="j">
-                                        <td>{{this.goalsCtrl.controls[i].get('organizations')['controls'][j].get('organization').value}}</td>
-                                        <td class="pl-0"><input type="text" formControlName="baseline" class="full-width full-height" placeholder="Línea Base"></td>
-                                        <td class="pr-0"><input type="text" formControlName="goal" class="full-width full-height" placeholder="Meta Anual"></td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                            <div [formGroupName]="i">
+                                <div formArrayName="organizations" class="mb-2" *ngFor="let organization of indicator.get('organizations')['controls']; let j = index">
+                                    <h6 class="mt-3">{{organization.get('organization').value}}</h6>
+                                    <div class="table-container" [formGroupName]="j">
+                                        <table class="baseline-table">
+                                            <tr>
+                                                <th class="sticky"></th>
+                                                <th *ngFor="let parameter of this.indicatorsSelected[i].parameters">{{parameter.name}}</th>
+                                            </tr>
+                                            <tr>
+                                                <td class="sticky">
+                                                    <div>Línea Base</div>
+                                                    <div>Meta (1er año)</div>
+                                                </td>
+                                                <td formArrayName="parameters" *ngFor="let parameter of organization.get('parameters')['controls']; let k = index">
+                                                    <div [formGroupName]="k">
+                                                        <input type="text" class="full-width font-weight-lighter" formControlName="baseline" placeholder="Línea Base">
+                                                        <input type="text" class="full-width font-weight-lighter" formControlName="goal" placeholder="Meta Anual">
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                             <mat-divider *ngIf="i != this.goalsCtrl.length - 1"></mat-divider>
                         </div>
                     </div>
@@ -188,3 +198,4 @@
                    
     </form>
 </div>
+<app-loading-view *ngIf="this.isWorking" [message]="this.loadingMessage"></app-loading-view>

@@ -10,9 +10,8 @@
     <div id="upload-box">
     
       <div id="upload-route-box" class="p-1 flex align-items-center">
-        <button type="button" mat-icon-button><mat-icon>keyboard_backspace</mat-icon></button>
         <div><span *ngFor="let path of this.fileDir; let i = index"> {{path}} <i *ngIf="i != this.fileDir.length - 1" class="fas fa-caret-right"></i> </span> </div>
-      </div>
+      </div> 
 
       <div id="file-grid" class="p-2">
         <div class="full-width" *ngFor="let file of this.files; let i = index">

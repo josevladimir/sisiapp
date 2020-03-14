@@ -5,32 +5,10 @@
 </app-sub-toolbar>
 
 <div id="partners-historic">
-    <mat-tab-group mat-align-tabs="center" class="full-width" color="accent" backgroundColor="primary">
+    <mat-tab-group mat-align-tabs="center" class="full-width">
         <mat-tab label="Gráfico">
-            <div id="partners-historic-filters" class="row p-1 pl-4 white-background mb-4">
-                <div class="col-sm-4">
-                    <mat-form-field class="full-width">
-                        <mat-label>Seleccione un período:</mat-label>
-                        <mat-select [(value)]="this.period">
-                            <mat-option value="always">Todo el tiempo</mat-option>
-                            <mat-option *ngFor="let period of this.availablesPeriods" [value]="period.value">{{period.text}}</mat-option>
-                            <!--mat-option value="3-months">Últimos 3 meses</!--mat-option>
-                            <mat-option value="6-months">Últimos 6 meses</mat-option>
-                            <mat-option value="9-months">Últimos 9 meses</mat-option>
-                            <mat-option value="1-year">Último año</mat-option>
-                            <mat-option value="2-year">Últimos 2 años</mat-option>
-                            <mat-option value="3-year">Últimos 3 años</mat-option-->
-                        </mat-select>
-                    </mat-form-field>
-                </div>
-                <div class="col-sm-4 flex align-items-center">
-                    <div>
-                        <button mat-raised-button color="primary" (click)="this.generateChartData()" [disabled]="this.period == ''">Generar Gráfico</button>
-                    </div>
-                </div>
-            </div>
             <!--Graphic of Partner's Evolution-->
-            <div id="graphic">
+            <div id="graphic" class="mt-307032017">
                 <div class="flex justify-content-center">
                     <ngx-charts-line-chart *ngIf="this.multi"
                         [view]="view"

@@ -45,9 +45,6 @@ export class UploadBoxComponent implements OnInit{
     this.fileDir.push(this.organization_name);
   }
 
-  
-
-
   /*FILES*/
   onAddNewFile(event){
     if(event.target.files && event.target.files.length > 0){
@@ -120,14 +117,7 @@ export class UploadBoxComponent implements OnInit{
     this._service.uploadFile(this.filesForm).subscribe(
       result => {
         if(result.message =="OK"){
-          let organizations = JSON.parse(localStorage.organizations);
-          organizations.forEach((organization,i) => {
-            if(organization._id == result.organization_id){
-              organizations.splice(i,1);
-              organizations.push(result.organization)
-            }
-          });
-          localStorage.setItem('organizations',JSON.stringify(organizations));
+          this._service.updateOrganizationsList(null);
           this.isFilesPristine = true;
           let counter = 0;
           this.files.forEach(file => {

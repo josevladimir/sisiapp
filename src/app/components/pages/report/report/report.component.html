@@ -1,0 +1,51 @@
+<app-sub-toolbar
+    title="Reporte">
+</app-sub-toolbar>
+
+<div class="page-content">
+    <mat-card class="margin-bottom-50">
+        <mat-card-title class="font-weight-lighter">Generar Reporte:</mat-card-title>
+        <mat-divider></mat-divider>
+        <mat-card-content>
+            <div class="row pt-3">
+                <div class="col-sm-4">
+                    <mat-form-field class="full-width">
+                        <mat-label>Proyectos</mat-label>
+                        <mat-select [(ngModel)]="this.selectedProject" matNativeControl (valueChange)="onProjectSelected($event)">
+                            <mat-option *ngFor="let project of this.Projects" [value]="project._id">{{project.name}}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <div class="col-sm-4">
+                    <mat-form-field class="full-width">
+                        <mat-label>Indicadores</mat-label>
+                        <mat-select [disabled]="!this.selectedProject" [(ngModel)]="this.selectedIndicator" (valueChange)="onIndicatorSelected($event)" matNativeControl>
+                            <mat-option *ngFor="let indicator of this.Indicators" [value]="indicator._id">{{indicator.name}}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <div class="col-sm-4">
+                    <mat-form-field class="full-width">
+                        <mat-label>Período</mat-label>
+                        <mat-select [disabled]="!this.PeriodSelectAvailable" [(ngModel)]="this.selectedPeriod" (valueChange)="onPeriodSelected($event)" matNativeControl>
+                            <mat-option *ngIf="this.AvailablePeriods && !this.AvailablePeriods.length" value="none">No existen registros</mat-option>
+                            <mat-option *ngFor="let periodo of this.AvailablePeriods" [value]="periodo">{{periodo}}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <mat-card class="mt-4" *ngIf="this.Status == 'loading'">
+        <div class="loading-box">
+            <div>
+                <img src="../../../../../assets/images/logo-sisi-only.svg" alt="">
+                <h4 class="font-weight-lighter text-center">Cargando...</h4>
+            </div>
+        </div>
+    </mat-card>
+    
+    <app-table-and-graphic *ngIf="this.SchemaTable" [IndicatorTable]="this.IndicatorTable" [ChartData]="this.ChartData" [Project]="this.Project" [Period]="this.selectedPeriod" [ParametersTable]="this.ParametersTable" [SchemaTable]="this.SchemaTable" [Indicator]="this.Indicator"></app-table-and-graphic>
+
+</div>

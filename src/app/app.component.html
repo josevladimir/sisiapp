@@ -13,17 +13,17 @@
   <mat-drawer-container>
     <mat-drawer mode="side" opened>
         <mat-list>
-          <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['dashboard']">Dashboard</a></li>
-          <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['funders']">Financiadores</a></li>
+          <!--li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['dashboard']">Dashboard</a></li-->
+          <li *ngIf="this.userRole != 'Financiador'"><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['funders']">Financiadores</a></li>
           <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['organizations']">Organizaciones</a></li>
-          <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['indicators']">Indicadores</a></li>
+          <li *ngIf="this.userRole != 'Financiador'"><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['indicators']">Indicadores</a></li>
           <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['projects']">Proyectos</a></li>
-          <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['fichas']">Fichas</a></li>
+          <li *ngIf="this.userRole != 'Financiador'"><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['schemas']">Fichas</a></li>
           <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['reports']">Reportes</a></li>
-          <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['documents']">Documentos</a></li>
+          <!--li *ngIf="this.userRole != 'Financiador'"><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['documents']">Documentos</a></li-->
           <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['institucionales']">Institucionales</a></li>
-          <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['users']">Usuarios</a></li>
-          <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['settings']">Configuración</a></li>
+          <li *ngIf="this.userRole == 'Administrador'"><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['users']">Usuarios</a></li>
+          <!--li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['settings']">Configuración</a></li-->
         </mat-list>
     </mat-drawer>
     <mat-drawer-content>
@@ -32,6 +32,6 @@
   </mat-drawer-container>
 </div>
 <ng-template #LoginView>
-  <app-login (authentication)="this.Authenticate($event)" (isWorking)="this.loadingView($event)"></app-login>
+  <app-login (authentication)="this.Authenticate()" (isWorking)="this.loadingView($event)"></app-login>
 </ng-template>
 <app-loading-view *ngIf="this.isWorking" [message]="this.loadingMessage"></app-loading-view>

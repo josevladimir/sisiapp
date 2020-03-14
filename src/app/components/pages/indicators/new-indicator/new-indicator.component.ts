@@ -14,6 +14,9 @@ export class NewIndicatorComponent{
 
   parameterSelected;
 
+  isWorking : boolean = false;
+  loadingMessage : string; 
+
   nameCtrl : FormControl = new FormControl('',[Validators.required,this._service.isBlank]);
   typeCtrl : FormControl = new FormControl('Compuesto',Validators.required);
   antiquity_diffCtrl : FormControl = new FormControl(false);
@@ -100,7 +103,8 @@ export class NewIndicatorComponent{
       this.indicatorForm = new FormGroup({
         name: this.nameCtrl,
         type: this.typeCtrl,
-        parameters_schema: this.fields
+        parameters_schema: this.fields,
+        description: this.descriptionCtrl
       });
     }else{
       this.indicatorForm = new FormGroup({
@@ -114,6 +118,8 @@ export class NewIndicatorComponent{
   }
 
   saveIndicator(){
+    this.loadingMessage = 'Guando el Indicador...';
+    this.isWorking = true;
     let body : any;
     if(this.typeCtrl.value == 'Simple'){
       if(this.indicatorForm.valid){
@@ -128,15 +134,24 @@ export class NewIndicatorComponent{
         }];
         body.antiquity_diff = false;
         console.log(body);
-      }else return alert('Todos los campos son obligatorios, por favor, revise el formulario.')
+      }else {
+        this.isWorking = false
+        return alert('Todos los campos son obligatorios, por favor, revise el formulario.');
+      }
     }else{
       body = this.indicatorForm.value;
       let flag : string;
-      if(body.parameters_schema.length == 1) return alert("Los indicadores compuestos tienen al menos 2 parámetros. Si este indicador tine solamente uno, seleccione el tipo 'Simple'");
+      if(body.parameters_schema.length == 1) {
+        this.isWorking = false;
+        return alert("Los indicadores compuestos tienen al menos 2 parámetros. Si este indicador tine solamente uno, seleccione el tipo 'Simple'");
+      }
       body.parameters_schema.forEach((parameter : any) => {
         if(!parameter.definition.length) return flag = 'Debe definir todos los parámetros del Indicador.';
       });
-      if(flag) return alert(flag);
+      if(flag){
+        this.isWorking = false;
+        return alert(flag);
+      }
       let suma : any = {
         older: 0,
         newer: 0,
@@ -152,24 +167,32 @@ export class NewIndicatorComponent{
           if(parameter.weighing.weight == null) return flag = 'Debe completar todas las ponderaciones solicitadas.';
         }
       });
-      if(flag) return alert(flag);
+      if(flag) {
+        this.isWorking = false;
+        return alert(flag);
+      }
       
       if(this.antiquity_diffCtrl.value && (suma.older != 100 || suma.newer != 100)) flag = 'La ponderación debe sumar 100% en total.';
       if(!this.antiquity_diffCtrl.value && suma.none != 100) flag = 'La ponderación debe sumar 100% en total.';
-      if(flag) return alert(flag);
+      if(flag) {
+        this.isWorking = false;
+        return alert(flag);
+      }
 
-      if(this.indicatorForm.invalid) return alert('Todos los campos son obligatorios, por favor, revise el formulario');
+      if(this.indicatorForm.invalid){ 
+        this.isWorking = false;
+        return alert('Todos los campos son obligatorios, por favor, revise el formulario');
+      }
     }
     this._service.createIndicator(body).subscribe(
       result => {
-        let indicators : any[];
-        if(localStorage.getItem('indicators')) indicators = JSON.parse(localStorage.getItem('indicators'));
-        else indicators = [];
-        indicators.push(result.indicator);
-        localStorage.setItem('indicators',JSON.stringify(indicators));
+        this._service.updateIndicatorsList(true);
+        this.isWorking = false;
         this._snackBar.open('Se ha registrado el indicador correctamente.','ENTENDIDO',{duration: 3000});
-        this._Router.navigate(['indicators']);
-      },error => this._snackBar.open('Ha ocurrido un error al registrar el indicador.','ENTENDIDO',{duration: 3000})
+      },error => {
+        this.isWorking = false;
+        this._snackBar.open('Ha ocurrido un error al registrar el indicador.','ENTENDIDO',{duration: 3000});
+      }
     );
   }
 

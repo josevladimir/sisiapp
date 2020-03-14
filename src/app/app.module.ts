@@ -9,6 +9,7 @@ import { AppRoutingModule } from './app-routing.module';
 
 import { AppComponent } from './app.component';
 import { LoginComponent } from './components/pages/login/login.component';
+import { ModalsComponent } from './components/shared/modals/modals.component';
 import { FundersComponent } from './components/pages/funders/funders/funders.component';
 import { ProjectsComponent } from './components/pages/projects/projects/projects.component';
 import { PartnersComponent } from './components/pages/organization/partners/partners.component';
@@ -19,10 +20,12 @@ import { SubToolbarComponent } from './components/shared/sub-toolbar/sub-toolbar
 import { NewProjectComponent } from './components/pages/projects/new-project/new-project.component';
 import { FunderViewComponent } from './components/pages/funders/funder-view/funder-view.component';
 import { ButtonGroupComponent } from './components/shared/button-group/button-group.component';
+import { ProjectViewComponent } from './components/pages/projects/project-view/project-view.component';
 import { LoadingViewComponent } from './components/shared/loading-view/loading-view.component';
 import { FormButtonsComponent } from './components/shared/form-buttons/form-buttons.component';
 import { NewIndicatorComponent } from './components/pages/indicators/new-indicator/new-indicator.component';
 import { OrganizationsComponent } from './components/pages/organization/organizations/organizations.component';
+import { UpdateExecutedComponent } from './components/dialogs/update-executed/update-executed.component';
 import { NewOrganizationComponent } from './components/pages/organization/new-organization/new-organization.component';
 import { OrganizationViewComponent } from './components/pages/organization/organization-view/organization-view.component';
 import { PartnersHistoricComponent } from './components/pages/organization/partners-historic/partners-historic.component';
@@ -42,9 +45,10 @@ import { MatTableModule } from '@angular/material/table';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialogModule, MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/dialog';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatStepperModule } from '@angular/material/stepper';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
@@ -52,9 +56,16 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { ModalsComponent } from './components/shared/modals/modals.component';
-import { ProjectViewComponent } from './components/pages/projects/project-view/project-view.component';
-import { UpdateExecutedComponent } from './components/dialogs/update-executed/update-executed.component';
+import { FichasComponent } from './components/pages/fichas/fichas/fichas.component';
+import { ReportComponent } from './components/pages/report/report/report.component';
+import { TableAndGraphicComponent } from './components/pages/report/table-and-graphic/table-and-graphic.component';
+import { IndicatorViewComponent } from './components/pages/indicators/indicator-view/indicator-view.component';
+import { FundersLinkComponent } from './components/dialogs/funders-link/funders-link.component';
+import { UsersComponent } from './components/pages/users/users/users.component';
+import { NewUsersComponent } from './components/pages/users/new-users/new-users.component';
+import { UsersViewComponent } from './components/pages/users/users-view/users-view.component';
+import { NewPasswordComponent } from './components/dialogs/new-password/new-password.component';
+import { NewOrganizationPreferenceComponent } from './components/dialogs/new-organization-preference/new-organization-preference.component';
 
 
 @NgModule({
@@ -80,7 +91,17 @@ import { UpdateExecutedComponent } from './components/dialogs/update-executed/up
     PartnersHistoricComponent,
     ModalsComponent,
     ProjectViewComponent,
-    UpdateExecutedComponent
+    UpdateExecutedComponent,
+    FichasComponent,
+    ReportComponent,
+    TableAndGraphicComponent,
+    IndicatorViewComponent,
+    FundersLinkComponent,
+    UsersComponent,
+    NewUsersComponent,
+    UsersViewComponent,
+    NewPasswordComponent,
+    NewOrganizationPreferenceComponent
   ],
   imports: [
     FormsModule,
@@ -102,6 +123,7 @@ import { UpdateExecutedComponent } from './components/dialogs/update-executed/up
     HttpClientModule,
     MatSidenavModule,
     MatStepperModule,
+    MatTooltipModule,
     MatToolbarModule,
     MatDividerModule,
     MatCheckboxModule,
@@ -112,8 +134,15 @@ import { UpdateExecutedComponent } from './components/dialogs/update-executed/up
     ReactiveFormsModule,
     BrowserAnimationsModule
   ],
+  entryComponents: [
+    UpdateExecutedComponent,
+    FundersLinkComponent,
+    NewPasswordComponent,
+    NewOrganizationPreferenceComponent
+  ],
   providers: [
-    {provide: MAT_DATE_LOCALE, useValue: 'es-EC'}
+    {provide: MAT_DATE_LOCALE, useValue: 'es-EC'},
+    {provide: MAT_DIALOG_DEFAULT_OPTIONS, useValue: {hasBackdrop: false}}
   ],
   bootstrap: [AppComponent]
 })

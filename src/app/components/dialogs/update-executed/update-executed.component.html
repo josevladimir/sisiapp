@@ -1,12 +1,32 @@
-<h1 mat-dialog-title>Hi {{data.name}}</h1>
-<div mat-dialog-content>
-  <p>What's your favorite animal?</p>
-  <mat-form-field>
-    <mat-label>Favorite Animal</mat-label>
-    <input matInput [(ngModel)]="data.animal">
-  </mat-form-field>
-</div>
-<div mat-dialog-actions>
-  <button mat-button (click)="onNoClick()">No Thanks</button>
-  <button mat-button [mat-dialog-close]="data.animal" cdkFocusInitial>Ok</button>
-</div>
+
+  <div *ngIf="this.data.type == 'executed'; else UpdateBudget">
+    <div mat-dialog-content>
+      <h4 class="font-weight-lighter">Actualización de Presupuesto Ejecutado</h4>
+      <mat-divider></mat-divider>
+      <mat-form-field class="full-width mt-2">
+        <mat-label>Ingrese el valor del presupuesto ejecutado hasta la fecha actual</mat-label>
+        <input matInput type="number" [(ngModel)]="data.ejecutado">
+      </mat-form-field>
+    </div>
+    <div mat-dialog-actions class="flex">
+      <div class="fill-remaining-space"></div>
+      <button mat-button (click)="onNoClick('')">CANCELAR</button>
+      <button mat-raised-button color="primary" [disabled]="this.data.ejecutado == null" [mat-dialog-close]="data.ejecutado" cdkFocusInitial>GUARDAR</button>
+    </div>
+  </div>
+
+  <ng-template #UpdateBudget>
+    <div mat-dialog-content>
+      <h4 class="font-weight-lighter">Registrar nuevo Presupuesto</h4>
+      <mat-divider></mat-divider>
+      <mat-form-field class="full-width mt-2">
+        <mat-label>Ingrese el nuevo valor total para el presupuesto</mat-label>
+        <input matInput type="number" [(ngModel)]="data.final">
+      </mat-form-field>
+    </div>
+    <div mat-dialog-actions class="flex">
+      <div class="fill-remaining-space"></div>
+      <button mat-button (click)="onNoClick('')">CANCELAR</button>
+      <button mat-raised-button color="primary" [disabled]="this.data.final == null" [mat-dialog-close]="data.final" cdkFocusInitial>GUARDAR</button>
+    </div>
+  </ng-template>

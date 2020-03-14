@@ -1,7 +1,7 @@
 <app-sub-toolbar
     title="Indicadores"
     [backButton]="false"
-    [addButton]="true">
+    [addButton]="this.userRole == 'Administrador' || this.userRole == 'Coordinador'">
 </app-sub-toolbar>
 
 <div class="page-content" *ngIf="this.Indicators.length; else NoIndicators">
@@ -11,33 +11,14 @@
                 <mat-card class="align-self-center full-width">
                     <mat-card-title class="font-weight-lighter">Buscar:</mat-card-title>
                     <mat-form-field class="full-width">
-                        <input matInput type="text" placeholder="Nombre">
+                        <input matInput type="search" (keyup)="filter()" [(ngModel)]="this.search_term" placeholder="Nombre">
                     </mat-form-field>
-                    <mat-card-title class="font-weight-lighter">Filtrar:</mat-card-title>
-                    <div class="row">
-                        <div class="col-sm-6">
-                            <mat-form-field>
-                                <mat-label>Clave de Búsqueda</mat-label>
-                                <mat-select>
-                                    <mat-option>Tipo</mat-option>
-                                </mat-select>
-                            </mat-form-field>
-                        </div>
-                        <div class="col-sm-6">
-                            <mat-form-field>
-                                <mat-label>Término de Búsqueda</mat-label>
-                                <mat-select>
-                                    <mat-option>Tipo</mat-option>
-                                </mat-select>
-                            </mat-form-field>
-                        </div>
-                    </div>
                 </mat-card>
             </div>
             <div class="col-md-6">
                 <h2 class="list-title full-width">Indicadores Registrados</h2>
                 <mat-list class="scroll-list-view bordered-list">
-                    <a mat-button *ngFor="let indicator of this.Indicators" class="full-width text-left font-weight-lighter">{{indicator.name}}</a>
+                    <a mat-button *ngFor="let indicator of this.filteredList" [routerLink]="[indicator._id]" class="full-width text-left font-weight-lighter">{{indicator.name}}</a>
                 </mat-list>
             </div>
         </div>
