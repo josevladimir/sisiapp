@@ -20,6 +20,9 @@ import { IndicatorViewComponent } from './components/pages/indicators/indicator-
 import { UsersComponent } from './components/pages/users/users/users.component';
 import { NewUsersComponent } from './components/pages/users/new-users/new-users.component';
 import { UsersViewComponent } from './components/pages/users/users-view/users-view.component';
+import { SettingsComponent } from './components/pages/settings/settings/settings.component';
+import { IndexComponent } from './components/pages/institutionals/index/index.component';
+import { DocumentsComponent } from './components/pages/documents/documents/documents.component';
 
 const routes: Routes = [
   {path: '', pathMatch: 'full', redirectTo: 'dashboard'},
@@ -39,12 +42,12 @@ const routes: Routes = [
   {path: 'projects/:id', component: ProjectViewComponent},
   {path: 'schemas', component: FichasComponent},
   {path: 'reports', component: ReportComponent},
-  {path: 'documents', component: DashboardComponent},
-  {path: 'institucionales', component: DashboardComponent},
+  {path: 'documents', component: DocumentsComponent},
+  {path: 'institucionales', component: IndexComponent},
   {path: 'users', component: UsersComponent},
   {path: 'users/add', component: NewUsersComponent},
   {path: 'users/:id', component: UsersViewComponent},
-  {path: 'settings', component: DashboardComponent},
+  {path: 'settings', component: SettingsComponent},
   {path: '**', pathMatch: 'full', redirectTo: 'dashboard'}
 ];
 

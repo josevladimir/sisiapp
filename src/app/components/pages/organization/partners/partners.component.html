@@ -10,42 +10,61 @@
     <div>
         <mat-card>
             <mat-card-title class="font-weight-lighter">Socios Iniciales</mat-card-title>
-            <div class="row">
+            <div class="row mb-2">
                 <div class="col-md-4">
-                    <mat-form-field class="full-width">
-                        <input matInput disabled [ngModel]="this.Organization.partners.mens" type="text" placeholder="Socios Hombres">
-                    </mat-form-field>
+                    <small class="label full-width">Socios Hombres</small>
+                    <div>{{this.Organization.partners.mens}}</div>
                 </div>
                 <div class="col-md-4">
-                    <mat-form-field class="full-width">
-                        <input matInput disabled [ngModel]="this.Organization.partners.womens" type="text" placeholder="Socios Mujeres">
-                    </mat-form-field>
+                    <small class="label full-width">Socios Mujeres</small>
+                    <div>{{this.Organization.partners.womens}}</div>
                 </div>
                 <div class="col-md-4">
-                    <mat-form-field class="full-width">
-                        <input matInput disabled [ngModel]="this.Organization.partners.mens + this.Organization.partners.womens" type="text" placeholder="Total Socios">
-                    </mat-form-field>
+                    <small class="label full-width">Total Socios</small>
+                    <div>{{this.Organization.partners.mens + this.Organization.partners.womens}}</div>
                 </div>
             </div>
             <mat-divider></mat-divider>
-            <mat-card-title class="font-weight-lighter mt-2">Socios Actuales</mat-card-title>
-            <div class="row">
+            <div class="pt-2 flex">
+                <mat-card-title class="font-weight-lighter">Socios Actuales</mat-card-title>
+                <span class="fill-remaining-space"></span>
+                <button mat-button *ngIf="this.userRole == 'Administrador' && !this.editLastMode" (click)="editLast()"><mat-icon>edit</mat-icon>Editar entrada</button>
+            </div>
+            <div class="row" *ngIf="!this.editLastMode">
                 <div class="col-md-4">
-                    <mat-form-field class="full-width">
-                        <input matInput disabled [ngModel]="this.ActualPartners.mens" type="text" placeholder="Socios Hombres">
-                    </mat-form-field>
+                    <small class="label full-width">Socios Hombres</small>
+                    <div>{{this.ActualPartners.mens}}</div>
                 </div>
                 <div class="col-md-4">
-                    <mat-form-field class="full-width">
-                        <input matInput disabled [ngModel]="this.ActualPartners.womens" type="text" placeholder="Socios Mujeres">
-                    </mat-form-field>
+                    <small class="label full-width">Socios Mujeres</small>
+                    <div>{{this.ActualPartners.womens}}</div>
                 </div>
                 <div class="col-md-4">
-                    <mat-form-field class="full-width">
-                        <input matInput disabled [ngModel]="this.ActualPartners.total" type="text" placeholder="Total Socios">
-                    </mat-form-field>
+                    <small class="label full-width">Total Socios</small>
+                    <div>{{this.ActualPartners.mens + this.ActualPartners.womens}}</div>
                 </div>
             </div>
+            <form *ngIf="this.editLastMode" [formGroup]="this.LastPartnersForm">
+                <div class="row">
+                    <div class="col-md-4">
+                        <mat-form-field class="full-width">
+                            <input matInput type="number" formControlName="mens" placeholder="Socios Hombres">
+                            <mat-error *ngIf="this.LastPartnersForm.controls.mens.errors?.required">Este campo es obligatorio</mat-error>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-md-4">
+                        <mat-form-field class="full-width">
+                            <input matInput type="number" formControlName="womens" placeholder="Socios Mujeres">
+                            <mat-error *ngIf="this.LastPartnersForm.controls.womens.errors?.required">Este campo es obligatorio</mat-error>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="label full-width">Total Socios</small>
+                        <div>{{this.LastPartnersForm.controls.mens.value + this.LastPartnersForm.controls.womens.value}}</div>
+                    </div>
+                </div>
+                <app-button-group (cancel)="cancelLastPartners()" [formStatus]="!(this.LastPartnersForm.valid && this.LastPartnersForm.dirty)" (save)="updateLastPartners()"></app-button-group>
+            </form>
         </mat-card>
         <mat-card class="mt-4">
             <mat-card-title class="font-weight-lighter mt-2">Nuevo Registro</mat-card-title>
@@ -53,27 +72,24 @@
                 <div class="row">
                     <div class="col-md-4">
                         <mat-form-field class="full-width">
-                            <input matInput type="text" formControlName="mens" placeholder="Socios Hombres">
+                            <input matInput type="number" formControlName="mens" placeholder="Socios Hombres">
                             <mat-error *ngIf="this.mensCtrl.errors?.required">Este campo es obligatorio</mat-error>
-                            <mat-error *ngIf="this.mensCtrl.errors?.pattern">Ingrese una cantidad válida, por favor.</mat-error>
                         </mat-form-field>
                     </div>
                     <div class="col-md-4">
                         <mat-form-field class="full-width">
-                            <input matInput type="text" formControlName="womens" placeholder="Socios Mujeres">
+                            <input matInput type="number" formControlName="womens" placeholder="Socios Mujeres">
                             <mat-error *ngIf="this.womensCtrl.errors?.required">Este campo es obligatorio</mat-error>
-                            <mat-error *ngIf="this.womensCtrl.errors?.pattern">Ingrese una cantidad válida, por favor.</mat-error>
                         </mat-form-field>
                     </div>
                     <div class="col-md-4">
-                        <mat-form-field class="full-width">
-                            <input disabled matInput type="text" value="{{this.toNumber(this.mensCtrl.value) + this.toNumber(this.womensCtrl.value)}}" placeholder="Total Socios">
-                        </mat-form-field>
+                        <small class="label full-width">Total Socios</small>    
+                        <div>{{this.mensCtrl.value + this.womensCtrl.value}}</div>
                     </div>
                 </div>
                 <app-form-buttons (cancel)="this.cancel()" [formGroup]="this.PartnerForm"></app-form-buttons>
             </form>
         </mat-card>
     </div>
-
 </div>
+<app-loading-view *ngIf="this.isWorking" [message]="this.loadingMessage"></app-loading-view>

@@ -19,8 +19,18 @@ export class PartnersComponent {
 
   buttons : ToolbarButton[];
 
-  mensCtrl : FormControl = new FormControl('',[Validators.required,Validators.pattern(new RegExp(/^\d{1,8}$/))]);
-  womensCtrl : FormControl = new FormControl('',[Validators.required,Validators.pattern(new RegExp(/^\d{1,8}$/))]);
+  mensCtrl : FormControl = new FormControl(null,[Validators.required]);
+  womensCtrl : FormControl = new FormControl(null,[Validators.required]);
+
+  isWorking : boolean = false;
+
+  LastPartnersForm : FormGroup;
+
+  loadingMessage : string;
+
+  userRole : string = localStorage.getItem('userRole');
+
+  editLastMode : boolean = false;
 
   constructor(private _ActivedRoute : ActivatedRoute,
               private _service : SisiCoreService,
@@ -35,16 +45,13 @@ export class PartnersComponent {
       mens: this.mensCtrl,
       womens: this.womensCtrl
     });
-    console.log(this.Organization);
     if(this.Organization.historyPartners.length) {
-      console.log('si hay');
       this.ActualPartners = {
         mens: this.Organization.historyPartners[this.Organization.historyPartners.length - 1].mens,
         womens: this.Organization.historyPartners[this.Organization.historyPartners.length - 1].womens,
         total: this.Organization.historyPartners[this.Organization.historyPartners.length - 1].mens + this.Organization.historyPartners[this.Organization.historyPartners.length - 1].womens
       }
     }else {
-      console.log('no hay');
       this.ActualPartners = {
         mens: this.Organization.partners.mens,
         womens: this.Organization.partners.womens,
@@ -63,6 +70,46 @@ export class PartnersComponent {
     ];
   }
 
+  editLast(){
+    this.editLastMode = true;
+    this.LastPartnersForm = new FormGroup({
+      mens: new FormControl(this.ActualPartners.mens,Validators.required),
+      womens: new FormControl(this.ActualPartners.womens,Validators.required)
+    });
+  }
+
+  cancelLastPartners(){
+    this.editLastMode = false;
+    this.LastPartnersForm = null;
+  }
+
+  updateLastPartners(){
+    this.loadingMessage = "Guardando los cambios...";
+    this.isWorking = true;
+    let history : any[];
+    history = this.Organization.historyPartners;
+    let registry = history.pop();
+    registry.mens = this.LastPartnersForm.value.mens;
+    registry.womens = this.LastPartnersForm.value.womens;
+    history.push(registry);
+    this._service.updateOrganization({historyPartners: history},this.Organization._id).subscribe(
+      result => {
+        this.Organization = result.organization;
+        this.editLastMode = false;
+        this.LastPartnersForm = null;
+        this.ActualPartners.mens = registry.mens;
+        this.ActualPartners.womens = registry.womens;
+        this.isWorking = false;
+        this._service.updateOrganizationsList(null);
+        this._snackBar.open('Se ha actualizado los socios correctamente.','ENTENDIDO',{duration: 3000});
+      },
+      error => {
+        this.isWorking = false;
+        this._snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
+      }
+    )
+  }
+
   cancel(){
     this.PartnerForm.reset();
   }
@@ -72,6 +119,8 @@ export class PartnersComponent {
   }
 
   save(){
+    this.loadingMessage = 'Actualizando socios...';
+    this.isWorking = true;
     let history : any[];
     let registry : any = this.PartnerForm.value;
     registry.period = new Date(); 
@@ -79,20 +128,16 @@ export class PartnersComponent {
     history.push(registry);
     this._service.updateOrganization({historyPartners: history},this.Organization._id).subscribe(
       result => {
-
-        this.Organization = result.organization;
-        let organizations : any[] = JSON.parse(localStorage.getItem('organizations'));
-        let position : number;
-        for(let i = 0; i < organizations.length; i++){
-          if(organizations[i]._id == this.Organization._id) position = i; 
-        }
-        organizations.splice(position,1);
-        organizations.push(result.organization);
-        localStorage.setItem('organizations',JSON.stringify(organizations));
-
+        this.ActualPartners.mens = this.mensCtrl.value;
+        this.ActualPartners.womens = this.womensCtrl.value;
+        this.isWorking = false;
+        this._service.updateOrganizationsList(null);
         this.PartnerForm.reset();
         this._snackBar.open('Se ha actualizado los socios correctamente.','ENTENDIDO',{duration: 3000});
-      },error => this._snackBar.open('Ha ocurrido un error al actualizar los socios.','ENTENDIDO',{duration: 3000})
+      },error => {
+        this.isWorking = false;
+        this._snackBar.open('Ha ocurrido un error al actualizar los socios.','ENTENDIDO',{duration: 3000});
+      }
     );
   }
 

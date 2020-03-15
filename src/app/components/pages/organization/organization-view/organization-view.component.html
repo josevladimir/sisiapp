@@ -27,7 +27,7 @@
         <mat-tab-group mat-stretch-tabs class="full-height"> 
             <mat-tab label="Infomación General">
                 <div class="container pb-3 pt-3 border-box">
-                    <form [formGroup]="this.organizationForm" (ngSubmit)="this.updateOrganization()">
+                    <form [formGroup]="this.organizationForm" (ngSubmit)="this.updateOrganization()" *ngIf="this.editMode; else Visor">
                         <mat-card>
                             <mat-card-title class="font-weight-lighter">Datos Generales</mat-card-title>
                             <div class="row">
@@ -39,10 +39,12 @@
                                 </div>
                                 <div class="col-sm-4">
                                     <mat-form-field class="full-width">
-                                        <input matInput type="text"  (blur)="setOlder()" formControlName="foundation_date" placeholder="Fecha de Constitución">
-                                        <mat-hint>Ingrese la fecha en formato: <b>01/01/2019</b></mat-hint>
+                                        <mat-label>Fecha de Constitución</mat-label>
+                                        <input matInput [matDatepicker]="picker" (dateInput)="setOlder($event)" (dateChange)="setOlder($event)" formControlName="foundation_date">
+                                        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                                        <mat-datepicker #picker></mat-datepicker>
+                                        <mat-hint>Formato: dd/mm/aaaa</mat-hint>
                                         <mat-error *ngIf="this.foundation_dateCtrl.errors?.required">Este campo es obligatorio</mat-error>
-                                        <mat-error *ngIf="this.foundation_dateCtrl.errors?.pattern">Ingrese una fecha válida</mat-error>
                                     </mat-form-field>
                                 </div>
                                 <div class="col-sm-4">
@@ -122,27 +124,39 @@
                         </mat-card>
                         <!--Parte de Beneficiarios-->
                         <mat-card class="mt-4">
-                            <mat-card-title class="font-weight-lighter">Socios y Baneficiarios</mat-card-title>
+                            <mat-card-title class="font-weight-lighter">Socios y Beneficiarios</mat-card-title>
                             <div class="row">
                                 <div class="col-sm-8">
-                                    <div class="row" formGroupName="partners">
+                                    <div class="row" *ngIf="!this.Organization.historyPartners.length; else hasHistory">
                                         <div class="col-sm-6">
-                                            <mat-form-field class="full-width">
-                                                <input matInput type="text" formControlName="mens" placeholder="Socios Hombres">
-                                                <mat-hint>Ingrese un número, por favor.</mat-hint>
-                                                <mat-error *ngIf="this.mensCtrl.errors?.required">Este campo es obligatorio</mat-error>
-                                                <mat-error *ngIf=" this.mensCtrl.errors?.pattern">Debe ingresar una cantidad numérica</mat-error>
-                                            </mat-form-field>
+                                            <div class="full-width">
+                                                <small class="label font-weight-lighter full-width">Socios Hombres</small>
+                                                <div>{{this.Organization.partners.mens}}</div>
+                                            </div>
                                         </div>
                                         <div class="col-sm-6">
-                                            <mat-form-field class="full-width">
-                                                <input matInput type="text" formControlName="womens" placeholder="Socios Mujeres">
-                                                <mat-hint>Ingrese un número, por favor.</mat-hint>
-                                                <mat-error *ngIf="this.womensCtrl.errors?.required">Este campo es obligatorio</mat-error>
-                                                <mat-error *ngIf="this.womensCtrl.errors?.pattern">Debe ingresar una cantidad numérica</mat-error>
-                                            </mat-form-field>
+                                            <div class="full-width">
+                                                <small class="label font-weight-lighter full-width">Socios Mujeres</small>
+                                                <div>{{this.Organization.partners.womens}}</div>
+                                            </div>
                                         </div>
                                     </div>
+                                    <ng-template #hasHistory>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="full-width">
+                                                    <small class="label font-weight-lighter full-width">Socios Hombres</small>
+                                                    <div>{{this.Organization.historyPartners[this.Organization.historyPartners.length - 1].mens}}</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <div class="full-width">
+                                                    <small class="label font-weight-lighter full-width">Socios Mujeres</small>
+                                                    <div>{{this.Organization.historyPartners[this.Organization.historyPartners.length - 1].womens}}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </ng-template>
                                 </div>
                                 <div class="col-sm-4">
                                     <mat-form-field class="full-width">
@@ -161,7 +175,125 @@
                         
                         <app-button-group *ngIf="this.editMode" [formStatus]="this.organizationForm.pristine" (save)="updateOrganization()" (cancel)="onCancel()" [formGroup]="this.organizationForm"></app-button-group>
                         
-                    </form>                    
+                    </form>     
+                    <!--Visor de Información-->
+                    <ng-template #Visor>
+                        <div>
+                            <mat-card>
+                                <mat-card-title class="font-weight-lighter">Datos Generales</mat-card-title>
+                                <mat-divider></mat-divider>
+                                <div class="row pt-2">
+                                    <div class="col-sm-4">
+                                        <div class="full-width">
+                                            <small class="label font-weight-lighter full-width">Nombre de la Organización</small>
+                                            <div>{{this.Organization.name}}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="full-width">
+                                            <small class="label font-weight-lighter full-width">Fecha de Constitución</small>
+                                            <div>{{this.Organization.foundation_date | date : 'd/M/yyyy'}}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="full-width">
+                                            <small class="label font-weight-lighter full-width">Sector:</small>
+                                            <div>{{this.Organization.sector}}</div>
+                                        </div>    
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-sm-4">
+                                        <div class="full-width">
+                                            <small class="label font-weight-lighter full-width">Tipo de Organización:</small>
+                                            <div>{{this.Organization.type}}</div>
+                                        </div>    
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="full-width">
+                                            <small class="label font-weight-lighter full-width">Legalizada:</small>
+                                            <div>{{this.Organization.legalized}}</div>
+                                        </div>    
+                                    </div>
+                                    <div class="col-sm-4" *ngIf="this.Organization.type == 'SFL'">
+                                        <div class="full-width">
+                                            <small class="full-width label">Esta SFL clasifica como:</small>
+                                            <div *ngIf="this.Organization.isOlder" class="text-center">Antigua</div>
+                                            <div *ngIf="!this.Organization.isOlder" class="text-center">Nueva</div>
+                                        </div>    
+                                    </div>
+                                </div>
+                            </mat-card>
+                            <!--Parte de Localización-->
+                            <mat-card class="mt-4">
+                                <mat-card-title class="font-weight-lighter">Localidad</mat-card-title>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="full-width">
+                                            <small class="label font-weight-lighter full-width">Cantón</small>
+                                            <div>{{this.Organization.ubication.canton}}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="full-width">
+                                            <small class="label font-weight-lighter full-width">Parroquia</small>
+                                            <div>{{this.Organization.ubication.parroquia}}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="full-width">
+                                            <small class="label font-weight-lighter full-width">Recinto</small>
+                                            <div>{{this.Organization.ubication.recinto}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </mat-card>
+                            <!--Parte de Beneficiarios-->
+                            <mat-card class="mt-4">
+                                <mat-card-title class="font-weight-lighter">Socios y Beneficiarios</mat-card-title>
+                                <div class="row">
+                                    <div class="col-sm-8">
+                                        <div class="row" *ngIf="!this.Organization.historyPartners.length; else hasHistory">
+                                            <div class="col-sm-6">
+                                                <div class="full-width">
+                                                    <small class="label font-weight-lighter full-width">Socios Hombres</small>
+                                                    <div>{{this.Organization.partners.mens}}</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <div class="full-width">
+                                                    <small class="label font-weight-lighter full-width">Socios Mujeres</small>
+                                                    <div>{{this.Organization.partners.womens}}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <ng-template #hasHistory>
+                                            <div class="row">
+                                                <div class="col-sm-6">
+                                                    <div class="full-width">
+                                                        <small class="label font-weight-lighter full-width">Socios Hombres</small>
+                                                        <div>{{this.Organization.historyPartners[this.Organization.historyPartners.length - 1].mens}}</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <div class="full-width">
+                                                        <small class="label font-weight-lighter full-width">Socios Mujeres</small>
+                                                        <div>{{this.Organization.historyPartners[this.Organization.historyPartners.length - 1].womens}}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </ng-template>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="full-width">
+                                            <small class="label font-weight-lighter full-width">Beneficiarios</small>
+                                            <div>{{this.Organization.beneficiaries}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </mat-card>
+                        </div>
+                    </ng-template>               
                 </div>
             </mat-tab>
             <mat-tab label="Proyectos Asociados">

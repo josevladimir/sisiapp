@@ -4,13 +4,14 @@ import { Observable } from 'rxjs';
 import { FormControl } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SisiCoreService {
 
-  URL : string = 'http://64.227.8.162:3000';
+  URL : string = environment.baseUrl;
 
   headers : HttpHeaders = new HttpHeaders({'Content-Type':'application/json','Authorization':`Bearer ${localStorage.token}`});
   authHeader : HttpHeaders = new HttpHeaders({'Authorization':`Bearer ${localStorage.token}`});
@@ -26,6 +27,7 @@ export class SisiCoreService {
 
   /*Financiadores*/
   getFunders () : Observable<any> {
+    console.log(this.URL);
     return this._httpClient.get(`${this.URL}/Funder/`,{headers: this.authHeader});
   }
   getFundersOff () :any[] {

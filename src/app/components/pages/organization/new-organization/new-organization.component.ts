@@ -5,6 +5,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { NewOrganizationPreferenceComponent } from '../../../dialogs/new-organization-preference/new-organization-preference.component';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSelect } from '@angular/material/select';
 
 @Component({
   selector: 'app-new-organization',
@@ -24,7 +25,7 @@ export class NewOrganizationComponent implements OnInit {
   newSector : boolean = false;
 
   nameCtrl : FormControl = new FormControl('',[Validators.required,this._service.existOrganization]);
-  foundation_dateCtrl : FormControl = new FormControl('',[Validators.required,Validators.pattern(new RegExp(/^(0?[1-9]|[12][0-9]|3[01])[\/](0?[1-9]|1[012])[/\\/](19|20)\d{2}$/))]);
+  foundation_dateCtrl : FormControl = new FormControl('',[Validators.required]);
   sectorCtrl : FormControl = new FormControl('',Validators.required);
   typeCtrl : FormControl = new FormControl('',Validators.required);
   legalizedCtrl : FormControl = new FormControl('',Validators.required);
@@ -60,7 +61,7 @@ export class NewOrganizationComponent implements OnInit {
   }
 
   setOlder(event){
-    let anio = this.foundation_dateCtrl.value.split('/')[2];
+    let anio : number = event.value.getFullYear();
     if(anio >= 2019) this.isOlder = false;
     else this.isOlder = true;
   }
@@ -88,11 +89,13 @@ export class NewOrganizationComponent implements OnInit {
   /**
    * Sectors
    */
-  addNewSector(){
+  addNewSector(SelectSectors : MatSelect){
     const dialogRef = this.dialog.open(NewOrganizationPreferenceComponent, {
       width: '550px',
       data: {preference: 'sectors'}
     });
+
+    SelectSectors.close();
 
     dialogRef.afterClosed().subscribe(sector => {
       if(sector){
@@ -110,11 +113,13 @@ export class NewOrganizationComponent implements OnInit {
     });
   }
 
-  addNewType(){
+  addNewType(TypesSelect : MatSelect){
     const dialogRef = this.dialog.open(NewOrganizationPreferenceComponent, {
       width: '550px',
       data: {preference: 'types'}
     });
+
+    TypesSelect.close();
 
     dialogRef.afterClosed().subscribe(type => {
       if(type){

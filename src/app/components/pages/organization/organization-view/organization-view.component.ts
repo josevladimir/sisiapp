@@ -31,8 +31,6 @@ export class OrganizationViewComponent implements OnInit{
   sectorCtrl : FormControl;
   typeCtrl : FormControl;
   legalizedCtrl : FormControl;
-  mensCtrl : FormControl;
-  womensCtrl : FormControl;
   beneficiariesCtrl : FormControl;
   cantonCtrl : FormControl;
   recintoCtrl : FormControl;
@@ -90,8 +88,6 @@ export class OrganizationViewComponent implements OnInit{
     this.sectorCtrl = new FormControl(this.Organization.sector,Validators.required);
     this.typeCtrl = new FormControl(this.Organization.type,Validators.required);
     this.legalizedCtrl = new FormControl(this.Organization.legalized,Validators.required);
-    this.mensCtrl = new FormControl(this.Organization.partners.mens,[Validators.required,Validators.pattern(new RegExp(/^\d{1,8}$/))]);
-    this.womensCtrl = new FormControl(this.Organization.partners.womens,[Validators.required,Validators.pattern(new RegExp(/^\d{1,8}$/))]);
     this.beneficiariesCtrl = new FormControl(this.Organization.beneficiaries,[Validators.required,Validators.pattern(new RegExp(/^\d{1,8}$/))]);
     this.cantonCtrl = new FormControl(this.Organization.ubication.canton,Validators.required);
     this.recintoCtrl = new FormControl(this.Organization.ubication.recinto,Validators.required);
@@ -102,10 +98,6 @@ export class OrganizationViewComponent implements OnInit{
       sector: this.sectorCtrl,
       type: this.typeCtrl,
       legalized: this.legalizedCtrl,
-      partners: new FormGroup({
-        mens: this.mensCtrl,
-        womens: this.womensCtrl
-      }),
       beneficiaries: this.beneficiariesCtrl,
       ubication: new FormGroup({
         canton: this.cantonCtrl,

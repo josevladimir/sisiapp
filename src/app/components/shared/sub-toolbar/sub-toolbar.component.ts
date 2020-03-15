@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-sub-toolbar',
@@ -19,13 +20,14 @@ export class SubToolbarComponent implements OnInit{
 
   personalizedButtons : ToolbarButton[];
 
-  constructor(private _Router : Router){
+  constructor(private _Router : Router,
+              private _location : Location){
   }
   
   back(){
     if(this.importantBack){
-      if(confirm('Todos los cambios no guardados se perderán.\n\n¿Desea continuar?')) this._Router.navigate([document.location.pathname.split('/')[1]]);
-    }else this._Router.navigate([document.location.pathname.split('/')[1]]);
+      if(confirm('Todos los cambios no guardados se perderán.\n\n¿Desea continuar?')) this._location.back();
+    }else this._location.back();
   }
   
   edit(){

@@ -1,5 +1,5 @@
 <div class="full-height full-width" *ngIf="this.auth; else LoginView">
-  <mat-toolbar color="accent" class="flex">
+  <mat-toolbar class="flex" id="main-toolbar">
     <div class="full-height p-2">
       <img src="../assets/images/logo-sisi.svg" class="full-height" alt="">
     </div>
@@ -11,19 +11,19 @@
     </mat-menu>
   </mat-toolbar>
   <mat-drawer-container>
-    <mat-drawer mode="side" opened>
+    <mat-drawer mode="side" id="side-menu" opened>
         <mat-list>
-          <!--li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['dashboard']">Dashboard</a></li-->
+          <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['dashboard']">Dashboard</a></li>
           <li *ngIf="this.userRole != 'Financiador'"><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['funders']">Financiadores</a></li>
           <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['organizations']">Organizaciones</a></li>
           <li *ngIf="this.userRole != 'Financiador'"><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['indicators']">Indicadores</a></li>
           <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['projects']">Proyectos</a></li>
           <li *ngIf="this.userRole != 'Financiador'"><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['schemas']">Fichas</a></li>
           <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['reports']">Reportes</a></li>
-          <!--li *ngIf="this.userRole != 'Financiador'"><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['documents']">Documentos</a></li-->
+          <li *ngIf="this.userRole != 'Financiador'"><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['documents']">Documentos</a></li>
           <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['institucionales']">Institucionales</a></li>
           <li *ngIf="this.userRole == 'Administrador'"><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['users']">Usuarios</a></li>
-          <!--li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['settings']">Configuración</a></li-->
+          <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['settings']">Configuración</a></li>
         </mat-list>
     </mat-drawer>
     <mat-drawer-content>

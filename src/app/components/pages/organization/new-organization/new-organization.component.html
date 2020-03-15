@@ -19,31 +19,33 @@
                 </div>
                 <div class="col-sm-4">
                     <mat-form-field class="full-width">
-                        <input matInput type="text" (blur)="setOlder($event)" formControlName="foundation_date" placeholder="Fecha de Constitución">
-                        <mat-hint>Ingrese la fecha en formato: <b>01/01/2019</b></mat-hint>
+                        <mat-label>Fecha de Constitución</mat-label>
+                        <input matInput [matDatepicker]="picker" (dateInput)="setOlder($event)" (dateChange)="setOlder($event)" formControlName="foundation_date">
+                        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                        <mat-datepicker #picker></mat-datepicker>
+                        <mat-hint>Formato: dd/mm/aaaa</mat-hint>
                         <mat-error *ngIf="this.foundation_dateCtrl.errors?.required">Este campo es obligatorio</mat-error>
-                        <mat-error *ngIf="this.foundation_dateCtrl.errors?.pattern">Ingrese una fecha válida</mat-error>
                     </mat-form-field>
                 </div>
                 <div class="col-sm-4">
                     <mat-form-field class="full-width">
                         <mat-label>Sector:</mat-label>
-                        <mat-select formControlName="sector">
+                        <mat-select formControlName="sector" #SectorSelect>
                           <mat-option *ngFor="let sector of this.Sectors" [value]="sector">
                               {{sector}}
                           </mat-option>
-                          <button *ngIf="!this.newSector" mat-button class="full-width" (click)="this.addNewSector()"><mat-icon>add</mat-icon> Añadir nuevo...</button>
+                          <button *ngIf="!this.newSector" mat-button class="full-width" (click)="this.addNewSector(SectorSelect)"><mat-icon>add</mat-icon> Añadir nuevo...</button>
                         </mat-select>
                     </mat-form-field>    
                 </div>
                 <div class="col-sm-4">
                     <mat-form-field class="full-width">
                         <mat-label>Tipo de Organización:</mat-label>
-                        <mat-select formControlName="type">
+                        <mat-select formControlName="type" #SelectType>
                             <mat-option *ngFor="let type of this.Types" [value]="type">
                                 {{type}}
                             </mat-option>
-                            <button mat-button class="full-width" (click)="this.addNewType()"><mat-icon>add</mat-icon> Añadir nuevo...</button>
+                            <button mat-button class="full-width" (click)="this.addNewType(SelectType)"><mat-icon>add</mat-icon> Añadir nuevo...</button>
                         </mat-select>
                         <mat-error>Este campo es obligatorio</mat-error>
                     </mat-form-field>    
@@ -61,6 +63,13 @@
                         </mat-select>
                         <mat-error>Este campo es obligatorio</mat-error>
                     </mat-form-field>    
+                </div>
+                <div class="col-sm-4" *ngIf="typeCtrl.value == 'SFL'">
+                    <div class="full-width">
+                        <small class="full-width label">Esta SFL clasifica como:</small>
+                        <div *ngIf="this.isOlder" class="text-center">Antigua</div>
+                        <div *ngIf="!this.isOlder" class="text-center">Nueva</div>
+                    </div>    
                 </div>
             </div>
         </mat-card>
@@ -90,7 +99,7 @@
         </mat-card>
         <!--Parte de Beneficiarios-->
         <mat-card class="mt-4">
-            <mat-card-title class="font-weight-lighter">Socios y Baneficiarios</mat-card-title>
+            <mat-card-title class="font-weight-lighter">Socios y Beneficiarios</mat-card-title>
             <div class="row">
                 <div class="col-sm-8">
                     <div class="row" formGroupName="partners">
@@ -122,10 +131,6 @@
                 </div>
             </div>
         </mat-card>
-        <!--Clasificación de la Organización en Nueva o Antigua-->
-        <div class="text-center p-4 m-4">
-            La organización clasifica como <b *ngIf="!this.isOlder; else AntiguaTemplate">Nueva</b><ng-template #AntiguaTemplate><b>Antigua</b></ng-template>
-        </div>
 
         <app-form-buttons [formGroup]="this.organizationForm"></app-form-buttons>
 

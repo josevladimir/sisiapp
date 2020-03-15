@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
-import { Router } from '@angular/router';
 import { FormGroup } from '@angular/forms';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-form-buttons',
@@ -10,10 +10,10 @@ export class FormButtonsComponent {
 
   @Input() formGroup : FormGroup;
 
-  constructor(private _Router : Router) { }
+  constructor(private _location : Location) { }
 
   cancel(){
-    if(confirm('Todos los cambios no guardados se perderán.\n\n¿Desea continuar?')) this._Router.navigate([document.location.pathname.split('/')[1]]);
+    if(confirm('Todos los cambios no guardados se perderán.\n\n¿Desea continuar?')) this._location.back();
   }
 
 }
