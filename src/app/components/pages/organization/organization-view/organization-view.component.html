@@ -96,6 +96,13 @@
                                         <mat-error>Este campo es obligatorio</mat-error>
                                     </mat-form-field>    
                                 </div>
+                                <div class="col-sm-4" *ngIf="typeCtrl.value == 'SFL'">
+                                    <div class="full-width">
+                                        <small class="full-width label">Esta SFL clasifica como:</small>
+                                        <div *ngIf="this.isOlder" class="text-center">Antigua</div>
+                                        <div *ngIf="!this.isOlder" class="text-center">Nueva</div>
+                                    </div>    
+                                </div>
                             </div>
                         </mat-card>
                         <!--Parte de Localización-->
@@ -168,12 +175,8 @@
                                 </div>
                             </div>
                         </mat-card>
-                        <!--Clasificación de la Organización en Nueva o Antigua-->
-                        <div class="text-center p-4 m-4">
-                            La organización clasifica como <b *ngIf="!this.isOlder; else AntiguaTemplate">Nueva</b><ng-template #AntiguaTemplate><b>Antigua</b></ng-template>
-                        </div>
                         
-                        <app-button-group *ngIf="this.editMode" [formStatus]="this.organizationForm.pristine" (save)="updateOrganization()" (cancel)="onCancel()" [formGroup]="this.organizationForm"></app-button-group>
+                        <app-button-group class="mt-3" *ngIf="this.editMode" [formStatus]="this.organizationForm.pristine" (save)="updateOrganization()" (cancel)="onCancel()" [formGroup]="this.organizationForm"></app-button-group>
                         
                     </form>     
                     <!--Visor de Información-->

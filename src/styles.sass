@@ -1,5 +1,9 @@
 @import './custom-theme.scss'
 
+*
+    outline-color: none !important
+    outline-style: none !important
+
 html,
 body,
 app-root,
@@ -200,6 +204,104 @@ mat-drawer
         animation: rotar .5s infinite
         height: 100px
 
+//Definition box
+.definition-box
+    display: grid
+    grid-template-columns: repeat(2,1fr)
+
+    mat-list
+        border: 1px solid #eee
+        height: 200px
+        overflow-y: scroll
+
+        .definition-column-label
+            background: #eee
+            display: block
+            padding: 5px 10px
+            width: 100%
+
+    mat-list:first-child
+        border-radius: 5px 0px 0px 0px
+
+        .definition-column-label
+            border-radius: 5px 0px 0px 0px
+
+    mat-list:last-child
+        border-left: none
+        border-radius: 0px 5px 0px 0px
+
+        .definition-column-label
+            border-radius: 0px 5px 0px 0px
+
+.definition-column
+    border: 1px solid #eee
+    border-top: none
+    height: 250px
+
+    .definition-column-label
+        background: #eee
+        display: block
+        padding: 5px 10px
+        width: 100%
+    
+    .definition-space
+        box-sizing: border-box
+        height: calc(100% - 34px - 40px)
+        overflow-y: scroll
+        padding: 10px
+    
+    .botonera
+        align-items: center
+        background: rgba(0,0,0,.5)
+        display: flex
+        justify-content: center
+        height: 40px
+
+        .botonera-btn
+            font-weight: lighter
+
+.my-chip
+    align-items: center
+    background-color: #e0e0e0
+    border-radius: 16px
+    box-sizing: border-box
+    color: rgba(0, 0, 0, 0.87)
+    cursor: default
+    display: inline-flex
+    font-size: 14px
+    font-weight: 500
+    height: 1px
+    min-height: 32px
+    margin: 4px
+    overflow: hidden
+    padding: 7px 12px
+    position: relative
+    transition: box-shadow 280ms cubic-bezier(.4,0,.2,1)
+    transform: translateZ(0)
+    -webkit-tap-highlight-color: transparent
+
+    input
+        background: rgba(257,257,257,.5)
+        border: none !important
+        outline-color: none !important
+        outline-style: none !important
+        padding-left: 5px 
+        padding-right: 5px
+        width: 75px !important
+
+    mat-icon 
+        background-repeat: no-repeat
+        color: rgba(0, 0, 0, 0.87)
+        cursor: pointer
+        display: inline-block
+        fill: currentColor
+        font-size: 18px
+        height: 18px
+        margin-left: 8px
+        margin-right: 0
+        opacity: 0.4
+        width: 18px
+
 //Report Box
 .table-box
     background: #f2f2f2
@@ -267,52 +369,18 @@ mat-drawer
 .color-red
     color: #940d0d
 
-.definition-box
-    border: 1px solid #999
-    border-radius: 5px 5px 0px 0px
-    display: grid
-    grid-template-columns: repeat(3,1fr)
-    
-    mat-list
-        height: 300px
-        overflow-y: scroll
+.delete-parameter-btn
+    background: white
+    height: 24px !important
+    position: absolute !important
+    right: -24px
+    top: 3.5px
+    width: 24px !important
 
-    mat-list:first-child
-        border-right: 1px solid #999
-
-        span
-            border-radius: 5px 0px 0px 0px
-
-    mat-list:last-child
-        border-left: 1px solid #999
-
-        span
-            border-radius: 0px 5px 0px 0px
-
-    .definition-column-label
-        background: #ccc
-        border-bottom: 1px solid #999
-        display: block
-        padding: 7px 10px
-        width: 100%
-
-.definition-column
-    .definition-space
-        border: 0px
-        height: calc(100% - 79px)
-
-    .botonera
-        background: #ccc
-        border: none !important
-        height: 40px
-        padding: 5px 0px
-
-        .botonera-btn
-            background: #aaa
-            border-radius: 5px
-            box-shadow: 0px 0px transparent
-            height: 30px
-            padding: 0px 10px
+    mat-icon
+        font-size: 18px
+        line-height: 6px !important
+        text-align: center !important
 
 .fadeIn
   -webkit-animation-name: fadeIn
@@ -327,7 +395,6 @@ mat-drawer
 
 .flex
     display: flex
-
 .flex-align-vertical
     align-items: center
 

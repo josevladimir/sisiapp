@@ -14,6 +14,7 @@ import { IndexComponent } from './components/pages/institutionals/index/index.co
 import { FichasComponent } from './components/pages/fichas/fichas/fichas.component';
 import { ReportComponent } from './components/pages/report/report/report.component';
 import { ModalsComponent } from './components/shared/modals/modals.component';
+import { ProfileComponent } from './components/pages/profile/profile.component';
 import { FundersComponent } from './components/pages/funders/funders/funders.component';
 import { ProjectsComponent } from './components/pages/projects/projects/projects.component';
 import { PartnersComponent } from './components/pages/organization/partners/partners.component';
@@ -47,6 +48,7 @@ import { NewOrganizationPreferenceComponent } from './components/dialogs/new-org
  * Material Imports
  */
 
+import { LayoutModule } from '@angular/cdk/layout';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -54,6 +56,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatTreeModule } from '@angular/material/tree';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatChipsModule } from '@angular/material/chips'
+import { MatRadioModule } from '@angular/material/radio';
 import { MatTableModule } from '@angular/material/table';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -64,6 +67,7 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatGridListModule } from '@angular/material/grid-list';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatPaginatorModule } from '@angular/material/paginator';
@@ -107,7 +111,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     NewOrganizationPreferenceComponent,
     SettingsComponent,
     IndexComponent,
-    DocumentsComponent
+    DocumentsComponent,
+    ProfileComponent
   ],
   imports: [
     FormsModule,
@@ -139,7 +144,10 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     MatNativeDateModule,
     ReactiveFormsModule,
     MatDatepickerModule,
-    BrowserAnimationsModule
+    BrowserAnimationsModule,
+    MatGridListModule,
+    LayoutModule,
+    MatRadioModule
   ],
   entryComponents: [
     UpdateExecutedComponent,

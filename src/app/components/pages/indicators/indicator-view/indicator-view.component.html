@@ -214,12 +214,6 @@
                             </ng-template>
                         </li>
                     </mat-list>
-                    <mat-list>
-                        <span class="definition-column-label">Campos de la Ficha:</span>
-                        <div *ngIf="this.ParameterSelected != null">
-                            <button mat-button type="button" class="font-weight-lighter full-width" *ngFor="let field of this.Indicator.record_schema">{{field.name}}</button>
-                        </div>
-                    </mat-list>
                     <mat-list class="definition-column">
                         <span class="definition-column-label">Definición del Parámetro</span>
                         <div class="definition-space">
@@ -235,6 +229,19 @@
     
         </ng-template>
     </div>
+
+
+
+    <!--
+
+
+        Formulario
+
+
+    -->
+
+
+
 
     <ng-template #EditMode>
         <form [formGroup]="this.IndicatorForm" (ngSubmit)="saveIndicator()">
@@ -409,7 +416,7 @@
                         </div>
                     </div>
                     <mat-card-actions>
-                        <div class="flex mb-4 mt-4">
+                        <div class="flex mb-4">
                             <span class="fill-remaining-space"></span>
                             <button mat-raised-button color="primary" type="button" (click)="this.addParameter()"><mat-icon>add</mat-icon> AGREGAR</button>
                         </div>
@@ -479,7 +486,7 @@
                             <div class="col-sm-3"></div>
                         </div>
                         <mat-card-actions>
-                            <div class="flex mb-4 mt-4">
+                            <div class="flex mb-4">
                                 <span class="fill-remaining-space"></span>
                                 <button mat-raised-button color="primary" type="button" (click)="this.addParameter()"><mat-icon>add</mat-icon> AGREGAR</button>
                             </div>
@@ -490,7 +497,7 @@
                 <!--Definición de los Parámetros-->
                 <mat-card class="mt-4 mb-4">
                     <mat-card-title class="font-weight-lighter">Definición de los Parámetros</mat-card-title>
-                    <div class="definition-box mt-2 mb-4">
+                    <div class="definition-box mt-2">
                         <mat-list> 
                             <span class="definition-column-label">Parámetro</span>
                             <li *ngFor="let parameter of this.IndicatorForm.controls.parameters_schema['controls']; let i = index">
@@ -506,23 +513,42 @@
                                 <button mat-button type="button" class="font-weight-lighter full-width" (dblclick)="addFieldToDefinition(field['controls'].name.value)" *ngFor="let field of this.IndicatorForm.controls.record_schema['controls']">{{field['controls'].name.value}}</button>
                             </div>
                         </mat-list>
+                    </div>
+                    <div class="editor-box">
                         <mat-list class="definition-column">
                             <span class="definition-column-label">Definición del Parámetro</span>
                             <div class="definition-space">
                                 <mat-chip-list *ngIf="this.ParameterSelected != null" #chipList aria-label="Fields selection">
-                                    <mat-chip *ngFor="let field of this.IndicatorForm.controls.parameters_schema['controls'][this.ParameterSelected].controls.definition.controls; let i = index" [selectable]="true" [removable]="true" (removed)="remove(i)">
-                                        {{field.value}}<mat-icon matChipRemove *ngIf="true">cancel</mat-icon>
-                                    </mat-chip>
+                                    <div *ngFor="let field of this.IndicatorForm.controls.parameters_schema['controls'][this.ParameterSelected].controls.definition.controls; let i = index">
+                                        <div>
+                                            <mat-chip *ngIf="field.get('type').value == 'field' || field.get('type').value == 'normal'" [selectable]="true" [removable]="true" (removed)="remove(i)">
+                                                <span>{{field.get('value').value}}</span>
+                                                <mat-icon matChipRemove *ngIf="true">cancel</mat-icon>
+                                            </mat-chip>
+
+                                            <div *ngIf="field.get('type').value == '%-number'" class="my-chip">
+                                                <div>% si <input type="number" width="100px" [formControl]="field.get('value')" placeholder="número"> es el 100%</div>
+                                                <mat-icon (click)="this.remove(i)" *ngIf="true">cancel</mat-icon>
+                                            </div>
+        
+                                            <div *ngIf="field.get('type').value == 'number'" class="my-chip">
+                                                <div><input type="number" width="100px" [formControl]="field.get('value')" placeholder="número"></div>
+                                                <mat-icon (click)="this.remove(i)" *ngIf="true">cancel</mat-icon>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </mat-chip-list>
                             </div>
-                            <div class="botonera flex justify-content-center">
-                                <button type="button" (click)="addOperator('+')" class="botonera-btn mr-1">+</button>
-                                <button type="button" (click)="addOperator('-')" class="botonera-btn mr-1">-</button>
-                                <button type="button" (click)="addOperator('*')" class="botonera-btn mr-1">*</button>
-                                <button type="button" (click)="addOperator('/')" class="botonera-btn mr-1">/</button>
-                                <button type="button" (click)="addOperator('(')" class="botonera-btn mr-1">(</button>
-                                <button type="button" (click)="addOperator(')')" class="botonera-btn mr-1">)</button>
-                                <button type="button" (click)="addOperator('*100%')" class="botonera-btn">*100%</button>
+                            <div class="botonera">
+                                <button type="button" mat-raised-button (click)="addOperator('+')" class="botonera-btn mr-1">+</button>
+                                <button type="button" mat-raised-button (click)="addOperator('-')" class="botonera-btn mr-1">-</button>
+                                <button type="button" mat-raised-button (click)="addOperator('*')" class="botonera-btn mr-1">*</button>
+                                <button type="button" mat-raised-button (click)="addOperator('/')" class="botonera-btn mr-1">/</button>
+                                <button type="button" mat-raised-button (click)="addOperator('(')" class="botonera-btn mr-1">(</button>
+                                <button type="button" mat-raised-button (click)="addOperator(')')" class="botonera-btn mr-1">)</button>
+                                <button type="button" mat-raised-button (click)="addOperator('*100%')" class="botonera-btn mr-1">*100%</button>
+                                <button type="button" mat-raised-button (click)="addOperator('number')" class="botonera-btn mr-1">número</button>
+                                <button type="button" mat-raised-button (click)="addOperator('%-number')" class="botonera-btn">% de número</button>
                             </div>
                         </mat-list>
                     </div>

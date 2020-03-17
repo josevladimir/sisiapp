@@ -29,9 +29,9 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(){
-    this.loadingMessage = 'Inicializando el Sistema...';
-    this.isWorking = true;
     if(localStorage.getItem('authenticated') == 'true'){
+      this.loadingMessage = 'Inicializando el Sistema...';
+      this.isWorking = true;
       this.userData = JSON.parse(localStorage.getItem('user'));
       this.auth = true;
       this.loadingMessage = 'Recuperando los Financiadores...';

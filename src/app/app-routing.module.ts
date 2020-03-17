@@ -23,6 +23,7 @@ import { UsersViewComponent } from './components/pages/users/users-view/users-vi
 import { SettingsComponent } from './components/pages/settings/settings/settings.component';
 import { IndexComponent } from './components/pages/institutionals/index/index.component';
 import { DocumentsComponent } from './components/pages/documents/documents/documents.component';
+import { ProfileComponent } from './components/pages/profile/profile.component';
 
 const routes: Routes = [
   {path: '', pathMatch: 'full', redirectTo: 'dashboard'},
@@ -48,6 +49,7 @@ const routes: Routes = [
   {path: 'users/add', component: NewUsersComponent},
   {path: 'users/:id', component: UsersViewComponent},
   {path: 'settings', component: SettingsComponent},
+  {path: 'profile', component: ProfileComponent},
   {path: '**', pathMatch: 'full', redirectTo: 'dashboard'}
 ];
 

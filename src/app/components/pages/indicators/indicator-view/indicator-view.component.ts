@@ -205,6 +205,7 @@ export class IndicatorViewComponent{
       })
     );
   }
+  
 
   addField(){
     (<FormArray>this.IndicatorForm.controls.record_schema).push(new FormGroup({
@@ -222,11 +223,25 @@ export class IndicatorViewComponent{
   }
 
   addOperator(operator : string){
-    (<FormArray> this.IndicatorForm.controls.parameters_schema['controls'][this.ParameterSelected].controls.definition).push(new FormControl(operator));
-  }
+    if(operator == '+' || operator == '-' || operator == '*' ||
+       operator == '/' || operator == '(' || operator == ')' || operator == '*100%'){
+     (<FormArray> this.IndicatorForm.controls.parameters_schema['controls'][this.ParameterSelected]['controls']['definition']).push(new FormGroup({
+       type: new FormControl('normal'),
+       value: new FormControl(operator)
+     }));
+    }else{
+     (<FormArray> this.IndicatorForm.controls.parameters_schema['controls'][this.ParameterSelected]['controls']['definition']).push(new FormGroup({
+       type: new FormControl(operator),
+       value: new FormControl('',Validators.required)
+     }));
+    }
+ }
 
   addFieldToDefinition(value : string){
-    (<FormArray> this.IndicatorForm.controls.parameters_schema['controls'][this.ParameterSelected].controls.definition).push(new FormControl(value));
+    (<FormArray> this.IndicatorForm.controls.parameters_schema['controls'][this.ParameterSelected]['controls']['definition']).push(new FormGroup({
+      type: new FormControl('field'),
+      value: new FormControl(value,Validators.required)
+    }));
   }
 
   remove(index : number){

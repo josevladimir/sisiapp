@@ -90,12 +90,20 @@ export class NewIndicatorComponent{
     );
   }
 
+  removeParameter(index : number){
+    if(confirm('Esta acción no se puede deshacer.\n\n¿Está seguro que desea eliminar este parámetro?')) (<FormArray> this.parameterCompuesto).removeAt(index);
+  }
+
   addField(){
     (<FormArray>this.record_schemaCtrl).push(new FormGroup({
       name: new FormControl('',[Validators.required,this._service.isBlank]),
       frequency: new FormControl('',[Validators.required]),
       unit: new FormControl('',[Validators.required])
     }));
+  }
+
+  removeField(index : number){
+    if(confirm('Esta acción no se puede deshacer.\n\n¿Está seguro que desea eliminar este campo?')) (<FormArray> this.record_schemaCtrl).removeAt(index);
   }
 
   changeType(ev){
@@ -201,15 +209,29 @@ export class NewIndicatorComponent{
   }
 
   addOperator(operator : string){
-    (<FormArray> this.parameterCompuesto.controls[this.parameterSelected]['controls']['definition']).push(new FormControl(operator));
+    if(operator == '+' || operator == '-' || operator == '*' ||
+       operator == '/' || operator == '(' || operator == ')' || operator == '*100%'){
+      (<FormArray> this.parameterCompuesto.controls[this.parameterSelected]['controls']['definition']).push(new FormGroup({
+        type: new FormControl('normal'),
+        value: new FormControl(operator)
+      }));
+    }else{
+      (<FormArray> this.parameterCompuesto.controls[this.parameterSelected]['controls']['definition']).push(new FormGroup({
+        type: new FormControl(operator),
+        value: new FormControl('',Validators.required)
+      }));
+    }
   }
 
   addFieldToDefinition(value : string){
-    (<FormArray> this.parameterCompuesto.controls[this.parameterSelected]['controls']['definition']).push(new FormControl(value));
+    (<FormArray> this.parameterCompuesto.controls[this.parameterSelected]['controls']['definition']).push(new FormGroup({
+      type: new FormControl('field'),
+      value: new FormControl(value,Validators.required)
+    }));
   }
 
   remove(index : number){
-    (<FormArray> this.parameterCompuesto.controls[this.parameterSelected]['controls']['definition']).removeAt(index)
+    (<FormArray> this.parameterCompuesto.controls[this.parameterSelected]['controls']['definition']).removeAt(index);
   }
 
 }
