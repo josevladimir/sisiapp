@@ -20,7 +20,8 @@ export class NewProjectComponent{
   Funders : any[] = this._service.getFundersOff();
   Indicators : any[] = this._service.getIndicatorsOff(); 
   
-  ProjectFormGroup : FormGroup;
+  GeneralFormGroup : FormGroup;
+  SchemaFormGroup : FormGroup;
 
   isValid : boolean = true;
 
@@ -33,7 +34,7 @@ export class NewProjectComponent{
   File : any; //Variable para la subida de la lista de usuarios
 
   /*Inicializando Formulario*/
-  nameCtrl : FormControl = new FormControl('',[Validators.required,this._service.existProject,this._service.isBlank]);
+  /*nameCtrl : FormControl = new FormControl('',[Validators.required,this._service.existProject,this._service.isBlank]);
   start_dateCtrl : FormControl = new FormControl('',[Validators.required,Validators.pattern(new RegExp(/^(0?[1-9]|[12][0-9]|3[01])[\/](0?[1-9]|1[012])[/\\/](19|20)\d{2}$/))]);
   durationCtrl : FormControl = new FormControl('',[Validators.required,Validators.pattern(new RegExp(/^\d{1,8}$/)),this._service.isBlank]);
   
@@ -46,59 +47,134 @@ export class NewProjectComponent{
   resultsCtrl : FormArray = new FormArray([new FormControl('',[Validators.required,this._service.isBlank])]);
 
   goalsCtrl : FormArray = new FormArray([]);
+  SchemaFormGroup.get('baseline') : FormArray = new FormArray([]);
   fundersCtrl : FormArray = new FormArray([]);
+
+  organizationDiffCtrl : FormArray = new FormArray([]);*/
 
   constructor(private _service : SisiCoreService,
               private _snackbar : MatSnackBar,
               private _Router : Router){
-    this.ProjectFormGroup = new FormGroup({
-      name: this.nameCtrl,
-      start_date: this.start_dateCtrl,
-      duration: this.durationCtrl,
+    this.GeneralFormGroup = new FormGroup({
+      name: new FormControl('',[Validators.required,this._service.existProject,this._service.isBlank]),
+      start_date: new FormControl('',[Validators.required,Validators.pattern(new RegExp(/^(0?[1-9]|[12][0-9]|3[01])[\/](0?[1-9]|1[012])[/\\/](19|20)\d{2}$/))]),
+      duration: new FormControl('',[Validators.required,Validators.pattern(new RegExp(/^\d{1,8}$/)),this._service.isBlank]),
       budgets: new FormGroup({
-        total_inicial: this.budgetCtrl
+        total_inicial: new FormControl('',[Validators.required,Validators.pattern(new RegExp(/^\d{1,10}$/))])
       }),
-      ubication: this.ubicationCtrl,
+      ubication: new FormControl('',[Validators.required,this._service.isBlank]),
       beneficiaries: new FormGroup({
-        number: this.beneficiariesNumberCtrl
+        number: new FormControl('',[Validators.required])
       }),
-      gen_objective: this.objGeneralCtrl,
-      esp_objectives: this.objEspeCtrl,
-      results: this.resultsCtrl,
-      goals: this.goalsCtrl,
-      funders: this.fundersCtrl
+      gen_objective: new FormControl('',[Validators.required,this._service.isBlank]),
+      esp_objectives: new FormArray([new FormControl('',[Validators.required,this._service.isBlank])]),
+      results: new FormArray([new FormControl('',[Validators.required,this._service.isBlank])]),
+      full_schema: new FormArray([])
+      /*goals: this.goalsCtrl,
+      baseline: this.baselineCtrl,
+      funders: this.fundersCtrl*/
     });
   }
 
   addObjective(){
-    (<FormArray> this.objEspeCtrl).push(new FormControl('',[Validators.required,this._service.isBlank]));
+    (<FormArray> this.GeneralFormGroup.get('esp_objectives')).push(new FormControl('',[Validators.required,this._service.isBlank]));
   }
 
   addResult(){
-    (<FormArray> this.resultsCtrl).push(new FormControl('',[Validators.required,this._service.isBlank]));
+    (<FormArray> this.GeneralFormGroup.get('results')).push(new FormControl('',[Validators.required,this._service.isBlank]));
   }
 
   deleteObjective(index : number){
-    if(confirm('¿Está seguro de que quiere eliminar este objetivo?')) (<FormArray> this.objEspeCtrl).removeAt(index);
+    if(confirm('¿Está seguro de que quiere eliminar este objetivo?')) (<FormArray> this.GeneralFormGroup.get('objEspeCtrl')).removeAt(index);
   }
 
   deleteResult(index : number){
-    if(confirm('¿Está seguro de que quiere eliminar este resultado?')) (<FormArray> this.resultsCtrl).removeAt(index);
+    if(confirm('¿Está seguro de que quiere eliminar este resultado?')) (<FormArray> this.GeneralFormGroup.get('results')).removeAt(index);
   }
+
+/**
+ * -------------------------------------------------------------------------------------------
+ * Schemas Table Data
+ * -------------------------------------------------------------------------------------------
+ */
+
+BASELINE_DATA: any[]; 
 
   /*Listeners para las listas de Selección de Funders, Indicators y Organizations*/
   OnIndicatorsListChange(id : string, list : MatSelectionList){
     let ready : boolean = false;
     let indice : number;
-    for(let i = 0; i < (<FormArray> this.goalsCtrl).length; i++){
-      if(this.goalsCtrl.controls[i].get('id').value == id){
+    //Verificación de si el indicador estaba seleccionado o no
+    for(let i = 0; i < (<FormArray> this.GeneralFormGroup.get('full_schema')).length; i++){
+      if(this.GeneralFormGroup.get('full_schema')['controls'][i].get('id').value == id){
+        indice = i;
+        ready = true;
+        break;
+      }
+    }
+    if(ready){ //Hay que eliminar el indicador
+      if(confirm('Esta acción no se puede deshacer.\n\n¿Está seguro que desea descartar este indicador?')){
+        (<FormArray> this.GeneralFormGroup.get('full_schema')).removeAt(indice);
+        this.indicatorsSelected.splice(indice,1);
+      }else list.options.filter(option => option.value == id)[0].selected = true;
+    }else{  //Hay que agregar el indicador
+      let indicator : any = this.Indicators.filter(indicator => indicator._id == id)[0];
+      this.indicatorsSelected.push({id: indicator._id,parameters: indicator.parameters_schema,antiquity_diff: indicator.antiquity_diff});
+      let organizationsCtrl : FormArray = new FormArray([]); //Organizaciones Older y Newer
+      let baselineCtrl : FormArray = new FormArray([]);      //LineaBase 
+      for(let i = 0; i < this.organizationsSelected.length; i++){
+        //Diferenciación de antiguedad en la organización
+        if(indicator.antiquity_diff){
+          (<FormArray> organizationsCtrl).push(new FormGroup({
+            organization: new FormControl(this.organizationsSelected[i].name),
+            id: new FormControl(this.organizationsSelected[i].id),
+            isOlder: new FormControl(false,Validators.required)
+          }));
+        }
+        //Añadiendo inputs para la lineaBase
+        (<FormArray> baselineCtrl).push(new FormGroup({
+          organization: new FormControl(this.organizationsSelected[i].name),
+          id: new FormControl(this.organizationsSelected[i].id),
+          parameters: new FormArray([])
+        }));
+        for(let j = 0; j < indicator.parameters_schema.length; j++){
+          (<FormArray> baselineCtrl.controls[i].get('parameters')).push(new FormGroup({
+            name: new FormControl(indicator.parameters_schema[i]['name']),
+            baseline: new FormControl('')
+          }));
+        }
+      }
+      if(indicator.antiquity_diff) (<FormArray> this.GeneralFormGroup.get('full_schema')).push(new FormGroup({
+        indicator: new FormControl(indicator.name),
+        id: new FormControl(indicator._id),
+        organization: organizationsCtrl,
+        goal: new FormGroup({
+          newer: new FormControl('',Validators.required),
+          older: new FormControl('',Validators.required)
+        }),
+        baseline: baselineCtrl,
+        antiquity_diff: new FormControl(indicator.antiquity_diff)
+      }));
+      else (<FormArray> this.GeneralFormGroup.get('full_schema')).push(new FormGroup({
+        indicator: new FormControl(indicator.name),
+        id: new FormControl(indicator._id),
+        goal: new FormGroup({
+          goal: new FormControl('',Validators.required)
+        }),
+        baseline: baselineCtrl,
+        antiquity_diff: new FormControl(indicator.antiquity_diff)
+      }));
+    }
+    /*
+    for(let i = 0; i < (<FormArray> this.SchemaFormGroup.get('baseline')).length; i++){
+      if(this.SchemaFormGroup.get('baseline')['controls'][i].get('id').value == id){
         indice = i;
         ready = true;
         break;
       }
     }
     if(ready){//Hay que eliminar
-      if(confirm('Esta acción no se puede deshacer.\n¿Está seguro que desea descartar este indicador?')) (<FormArray> this.goalsCtrl).removeAt(indice);
+      if(confirm('Esta acción no se puede deshacer.\n¿Está seguro que desea descartar este indicador?')) (<FormArray> this.GeneralFormGroup.get('baseline')).removeAt(indice);
       else list.options.filter(option => option.value == id)[0].selected = true;
     }else{//Agregar
       let indicator : any = this.Indicators.filter(indicator => indicator._id == id)[0];
@@ -120,13 +196,12 @@ export class NewProjectComponent{
           indicator.parameters_schema.forEach(parametro => {
             (<FormArray>indicatorCtrl.controls.organizations['controls'][i].get('parameters')).push(new FormGroup({
               name: new FormControl(parametro.name),
-              baseline: new FormControl('',[Validators.required,this._service.isBlank,Validators.pattern(new RegExp(/^\d{1,10}$/))]),
-              goal: new FormControl('',[Validators.required,this._service.isBlank,Validators.pattern(new RegExp(/^\d{1,10}$/))])
+              baseline: new FormControl('')
             }));
           })
       }
-      (<FormArray> this.goalsCtrl).push(indicatorCtrl);
-    }
+      (<FormArray> this.SchemaFormGroup.get('baseline')).push(indicatorCtrl);
+    }*/
   } 
   
   OnOrganizationsListChange(id : string, OrganizationsList : MatSelectionList){    
@@ -142,44 +217,111 @@ export class NewProjectComponent{
       }
     });
     //Agregar
+    /*
+[
+  {
+    indicator: '',
+    id: '',
+    organization: [
+      {
+        id: '',
+        name: '',
+        isOlder: true
+      }
+    ],
+    goal: {
+      goal: number,
+      newer: number,
+      older: number
+    },
+    baseline: [
+      organizations: {
+        name: '',
+        id: '',
+        parameters: [
+          {
+            name: '',
+            id: '',
+            baseline: number
+          }
+        ]
+      }
+    ]
+  }
+];*/
     if(!ready){
       let organization : any = this.Organizations.filter(organization => organization._id == id)[0];
       this.organizationsSelected.push({
         name: organization.name,
         id: organization._id
       });
-      for(let i = 0; i < this.goalsCtrl.length; i++){
+      for(let i = 0; i < (<FormArray>this.GeneralFormGroup.get('full_schema')).length; i++){
 
-        let parameters : FormArray = new FormArray([]);
+        if(this.indicatorsSelected[i].antiquity_diff){
+          console.log(this.GeneralFormGroup.get('full_schema')['controls'][i]);
+          (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('organization')).push(new FormGroup({
+            organization: new FormControl(organization.name),
+            id: new FormControl(organization._id),
+            isOlder: new FormControl(false,Validators.required)
+          }));
+        }
+
+        let baselineCtrl : FormGroup = new FormGroup({
+          organization: new FormControl(this.organizationsSelected[i].name),
+          id: new FormControl(this.organizationsSelected[i].id),
+          parameters: new FormArray([])
+        });
+
+        for(let j = 0; j < this.indicatorsSelected[i].parameters.length; j++){
+          (<FormArray> baselineCtrl.get('parameters')).push(new FormGroup({
+            name: new FormControl(this.indicatorsSelected[i].parameters[j]['name']),
+            baseline: new FormControl('')
+          }));
+        }
+
+        (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('baseline')).push(baselineCtrl);
+        
+/*
+        for(let j = 0; j < this.indicatorsSelected[0].parameters; j++){
+          (<FormArray> parameters).push(new FormGroup({
+            name: new FormControl(parameter.name),
+            baseline: new FormControl(''),
+            goal: new FormControl('',[Validators.required,this._service.isBlank])
+          }));
+        }
 
         this.indicatorsSelected[i].parameters.forEach(parameter => {
           (<FormArray> parameters).push(new FormGroup({
             name: new FormControl(parameter.name),
-            baseline: new FormControl('',[Validators.required,this._service.isBlank]),
+            baseline: new FormControl(''),
             goal: new FormControl('',[Validators.required,this._service.isBlank])
-          }))
+          }));
         });
 
-        (<FormArray> this.goalsCtrl.controls[i].get('organizations')).push(new FormGroup({
+        (<FormArray> this.SchemaFormGroup.get('baseline')['controls'][i].get('organizations')).push(new FormGroup({
           organization: new FormControl(organization.name,[Validators.required]),
           id: new FormControl(organization._id,[Validators.required]),
           parameters
-        }));
+        }));*/
       }
     }
   }
 
   RemoveFromForm(index : number){
-    for(let i = 0; i < this.goalsCtrl.length; i++){
-      (<FormArray> this.goalsCtrl.controls[i].get('organizations')).removeAt(index);
+    for(let i = 0; i < (<FormArray>this.GeneralFormGroup.get('full_schema')).length; i++){
+      if(this.GeneralFormGroup.get('full_schema')['controls'][i].get('organization')) (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('organization')).removeAt(index);
+      (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('baseline')).removeAt(index);
     }
   }
 
   OnFundersListChange(id : string){
-    (<FormArray> this.fundersCtrl).push(new FormControl(id,[Validators.required]));
+    (<FormArray> this.SchemaFormGroup.get('funders')).push(new FormControl(id,[Validators.required]));
   }
 
   createProject(){
+    console.log(this.GeneralFormGroup.value);
+    console.log('valido',this.GeneralFormGroup.valid);
+    /*
     this.loadingMessage = 'Guardando el proyecto...'
     this.isWorking = true;
     if(this.ProjectFormGroup.invalid || !this.File || !this.goalsCtrl.length || !this.fundersCtrl.length){
@@ -217,7 +359,7 @@ export class NewProjectComponent{
         this.isWorking = false;
         this._snackbar.open('Ocurrió un error al guardar el nuevo proyecto.','ENTENDIDO',{duration: 3000})
       }
-    )
+    )*/
   }
 
   prepareBeneficiariesList(event){
@@ -226,7 +368,7 @@ export class NewProjectComponent{
         let name = file.name.split('.');
         this.File = {
           name: name[0],
-          folder: this.nameCtrl.value,
+          folder: this.GeneralFormGroup.get('name').value,
           file: file.name,
           ext: name[1],
           type: getTypeFromExt(name[1]),
