@@ -55,20 +55,24 @@
                         </div>
                     </div>
                     <mat-divider></mat-divider>
-                    <div class="row pt-3">
-                        <div class="col-sm-6">
+                    <div class="row pt-3 mb-4">
+                        <div class="col-sm-4">
                             <small class="d-block full-width">Número de Beneficiarios:</small>
                             <span class="font-weight-lighter">{{this.Project.beneficiaries.number}}</span>
                         </div>
-                        <div class="col-sm-6">
+                        <div class="col-sm-4">
                             <small class="d-block full-width">Listado de Beneficiarios:</small>
                             <div *ngIf="this.File == undefined; else IfThereFile">
                                 <img src="../../../../../assets/images/logo-sisi-only.svg" width="50px">
                                 Cargando...
                             </div>
                             <ng-template #IfThereFile>
-                                <a [href]="'http://64.227.8.162:3000/'+ this.File.file" target="blank" [download]="this.File.name+this.File.ext" mat-raised-button color="primary" class="font-weight-lighter">DESCARGAR</a>
+                                <a [href]="this.URL + '/' + this.File.file" target="blank" [download]="this.File.name+this.File.ext" mat-raised-button color="primary" class="font-weight-lighter">DESCARGAR</a>
                             </ng-template>
+                        </div>
+                        <div class="col-sm-4">
+                            <small>Descargar Información del Proyecto:</small>
+                            <!--a [href]="this.URL +'/' +  this.Project.informPDF.url" target="blank" [download]="this.Project.informPDF.name+this.File.ext" mat-raised-button color="primary" class="font-weight-lighter">DESCARGAR</a-->
                         </div>
                     </div>
                 </mat-card>

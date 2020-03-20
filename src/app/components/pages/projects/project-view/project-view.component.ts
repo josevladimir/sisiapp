@@ -6,6 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { UpdateExecutedComponent } from '../../../dialogs/update-executed/update-executed.component';
 import { ToolbarButton } from '../../../shared/sub-toolbar/sub-toolbar.component';
 import { FundersLinkComponent } from '../../../dialogs/funders-link/funders-link.component';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-project-view',
@@ -18,6 +19,8 @@ export class ProjectViewComponent {
   File : any;
 
   executed_budget : any;
+
+  URL : string = environment.baseUrl;
 
   userRole : string = localStorage.getItem('userRole');
 

@@ -73,6 +73,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { FilterBoxComponent } from './components/shared/filter-box/filter-box.component';
 
 
 @NgModule({
@@ -112,7 +113,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     SettingsComponent,
     IndexComponent,
     DocumentsComponent,
-    ProfileComponent
+    ProfileComponent,
+    FilterBoxComponent
   ],
   imports: [
     FormsModule,

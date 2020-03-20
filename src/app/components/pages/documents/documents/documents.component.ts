@@ -2,13 +2,15 @@ import { Component } from '@angular/core';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { of as observableOf } from 'rxjs';
 import { FlatTreeControl } from '@angular/cdk/tree';
-import { files } from './example-data';
+//import { files } from './example-data';
+import { environment } from '../../../../../environments/environment';
 
 /** File node data with possible child nodes. */
 export interface FileNode {
   name: string;
   type: string;
   children?: FileNode[];
+  url?: string;
 }
 
 /**
@@ -18,6 +20,7 @@ export interface FileNode {
 export interface FlatTreeNode {
   name: string;
   type: string;
+  url?: string;
   level: number;
   expandable: boolean;
 }
@@ -28,6 +31,8 @@ export interface FlatTreeNode {
   styleUrls: ['./documents.component.css']
 })
 export class DocumentsComponent {
+
+  URL : string = environment.baseUrl;
 
   /** The TreeControl controls the expand/collapse state of tree nodes.  */
   treeControl: FlatTreeControl<FlatTreeNode>;
@@ -47,7 +52,68 @@ export class DocumentsComponent {
 
     this.treeControl = new FlatTreeControl(this.getLevel, this.isExpandable);
     this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
-    this.dataSource.data = files;
+    this.dataSource.data = this.formatFilesData();
+
+    
+  }
+
+
+  formatFilesData() : any{
+    let files : any[] = localStorage.getItem('files') ? JSON.parse(localStorage.getItem('files')) : [];
+
+    if(files.length){
+      let file_structure : any = [
+        {
+          name: 'Organizaciones',
+          type: 'folder',
+          children: []
+        },
+        {
+          name: 'Proyectos',
+          type: 'folder',
+          children: [{
+            name: 'Listas de Beneficiarios',
+            type: 'folder',
+            children: []
+          }]
+        }
+      ];
+      
+      let orgFiles : any[] = files.filter(file => file.entity == 'Organizaciones');
+      let orgFolders : any[] = orgFiles.map(org => org.folder.name);
+      let projectsFiles : any[] = files.filter(file => file.entity == 'Proyectos');
+
+      orgFolders.forEach(folder => file_structure[0].children.push({
+        name: folder,
+        type: 'folder',
+        children: []
+      }));
+
+      projectsFiles.forEach(file => {
+        file_structure[1].children[0].children.push({
+          name: file.name,
+          type: 'file',
+          url: file.file
+        })
+      });
+      
+      file_structure[0].children.forEach(folder => {
+        folder.children = orgFiles.filter(file => file.folder.name == folder.name).map(file => this.formatOrgFile(file));
+      });
+
+      console.log(file_structure);
+      return file_structure;
+    }
+
+    return [];
+  }
+
+  formatOrgFile(file) : any {
+    return {
+      name: file.name,
+      type: 'file',
+      url: file.file
+    }
   }
 
   /** Transform the data to something the tree can read. */
@@ -56,6 +122,7 @@ export class DocumentsComponent {
       name: node.name,
       type: node.type,
       level: level,
+      url: node.url,
       expandable: !!node.children
     };
   }

@@ -61,7 +61,14 @@ export class AppComponent implements OnInit {
                                 localStorage.setItem('sectors',JSON.stringify(result.preferences.Organizations.Sectors));
                                 localStorage.setItem('types',JSON.stringify(result.preferences.Organizations.Types));
                               }
-                              this.isWorking = false;
+                              this.loadingMessage = 'Cargando los archivos...'
+                              this._service.getFiles().subscribe(
+                                result => {
+                                  if(result.message == 'OK') localStorage.setItem('files',JSON.stringify(result.documents));
+                                  else localStorage.setItem('files','[]');
+                                  this.isWorking = false;
+                                },error => this._snackBar.open('Error recuperando los documentos.','ENTENDIDO',{duration: 3000})
+                              );
                             },error => this._snackBar.open('Error recuperando los usuarios.','ENTENDIDO',{duration: 3000})
                           );
                         },error => this._snackBar.open('Error recuperando los usuarios.','ENTENDIDO',{duration: 3000})

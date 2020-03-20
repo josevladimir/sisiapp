@@ -198,6 +198,9 @@ export class SisiCoreService {
   }
 
   /*Documentos*/
+  getFiles () : Observable<any> {
+    return this._httpClient.get(`${this.URL}/files/`,{headers: this.authHeader});
+  }
   uploadBeneficiaries (form : any) : Observable<any>{
     return this._httpClient.post(`${this.URL}/files/beneficiaries`,form,{headers: this.authHeader});
   }
