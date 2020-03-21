@@ -58,8 +58,11 @@ export class AppComponent implements OnInit {
                           this._service.getPreferences().subscribe(
                             result => {
                               if(result.message == 'OK'){
-                                localStorage.setItem('sectors',JSON.stringify(result.preferences.Organizations.Sectors));
-                                localStorage.setItem('types',JSON.stringify(result.preferences.Organizations.Types));
+                                localStorage.setItem('sectors',result.preferences.Organizations.Sectors.length ? JSON.stringify(result.preferences.Organizations.Sectors) : '[]');
+                                localStorage.setItem('types',result.preferences.Organizations.Types.length ? JSON.stringify(result.preferences.Organizations.Types) : '[]');
+                              }else {
+                                localStorage.setItem('sectors','[]');
+                                localStorage.setItem('types','[]');
                               }
                               this.loadingMessage = 'Cargando los archivos...'
                               this._service.getFiles().subscribe(

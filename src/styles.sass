@@ -424,8 +424,14 @@ th.mat-column-position, td.mat-column-position
 .fill-remaining-space
     flex: 1 auto 
 
+.filter-box
+    background: rgba(0,0,0,.15)
+    height: 60px
+    width: 100%
+
 .flex
     display: flex
+
 .flex-align-vertical
     align-items: center
 
@@ -492,6 +498,9 @@ th.mat-column-position, td.mat-column-position
     height: calc(100% - 64px)
     overflow-y: scroll
     padding: 40px
+
+.page-content.with-filter-box
+    height: calc(100% - 64px - 60px)
 
 .page-content-without-padding
     height: calc(100% - 64px)

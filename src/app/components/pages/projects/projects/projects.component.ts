@@ -11,6 +11,8 @@ export class ProjectsComponent{
   
   projects : any[] = [];
 
+  List : any[];
+
   constructor (private _service : SisiCoreService) { 
     if(this.userRole == 'Financiador'){
       let normalProjects : any[] = this._service.getProjectsOff();
@@ -21,6 +23,11 @@ export class ProjectsComponent{
         });
       });
     }else this.projects  = this._service.getProjectsOff();
+    this.List = this.projects;
+  }
+
+  updateList(event){
+    this.List = event;
   }
 
 }

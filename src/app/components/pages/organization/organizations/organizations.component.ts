@@ -11,8 +11,14 @@ export class OrganizationsComponent {
 
   userRole : string = localStorage.getItem('userRole');
 
+  List : any[] = this.Organizations;
+
   constructor(private _service : SisiCoreService) {
     
+  }
+
+  updateList(list){
+    this.List = list;
   }
 
 }

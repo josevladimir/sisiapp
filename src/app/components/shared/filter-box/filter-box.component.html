@@ -1,1 +1,36 @@
+<div class="filter-box">
+    <div class="flex flex-align-vertical pt-1 pb-1 pl-4 pr-4">
+        <h4 class="font-weight-lighter mr-5">Filtrar:</h4>
+        <mat-form-field class="mr-5 font-weight-lighter">
+            <mat-label>
+                Parámetro
+            </mat-label>
+            <mat-select [(ngModel)]="this.ParameterSelected">
+                <mat-option *ngFor="let parameter of this.SearchParameters" [value]="parameter.value">{{parameter.text}}</mat-option>
+            </mat-select>
+        </mat-form-field>
 
+        <mat-form-field *ngIf="this.ParameterSelected == 'type'" class="font-weight-lighter">
+            <mat-label>Opción de búsqueda</mat-label>
+            <mat-select (valueChange)="onOptionSelect($event)">
+                <mat-option *ngFor="let type of this._service.getTypesOff()" [value]="type">{{type}}</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field *ngIf="this.ParameterSelected == 'sector'" class="font-weight-lighter">
+            <mat-label>Opción de búsqueda</mat-label>
+            <mat-select (valueChange)="onOptionSelect($event)">
+                <mat-option *ngFor="let sector of this._service.getSectorsOff()" [value]="sector">{{sector}}</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field *ngIf="this.ParameterSelected == 'legalized'" class="font-weight-lighter">
+            <mat-label>Opción de búsqueda</mat-label>
+            <mat-select (valueChange)="onOptionSelect($event)">
+                <mat-option value="Si">Si</mat-option>
+                <mat-option value="No">No</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field *ngIf="this.ParameterSelected == 'name' || this.ParameterSelected == 'canton' || this.ParameterSelected == 'date' || this.ParameterSelected == 'ubication'" class="full-width font-weight-lighter">
+            <input [(ngModel)]="this.SearchTerm" (keyup)="SearchByTerm()" matInput type="search" placeholder="Término de búsqueda">
+        </mat-form-field>
+    </div>
+</div>

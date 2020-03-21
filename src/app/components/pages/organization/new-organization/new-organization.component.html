@@ -34,6 +34,7 @@
                           <mat-option *ngFor="let sector of this.Sectors" [value]="sector">
                               {{sector}}
                           </mat-option>
+                          <mat-option *ngIf="!this.Types.length"></mat-option>
                           <button *ngIf="!this.newSector" mat-button class="full-width" (click)="this.addNewSector(SectorSelect)"><mat-icon>add</mat-icon> Añadir nuevo...</button>
                         </mat-select>
                     </mat-form-field>    
@@ -45,6 +46,7 @@
                             <mat-option *ngFor="let type of this.Types" [value]="type">
                                 {{type}}
                             </mat-option>
+                            <mat-option *ngIf="!this.Types.length"></mat-option>
                             <button mat-button class="full-width" (click)="this.addNewType(SelectType)"><mat-icon>add</mat-icon> Añadir nuevo...</button>
                         </mat-select>
                         <mat-error>Este campo es obligatorio</mat-error>

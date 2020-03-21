@@ -4,47 +4,65 @@
     [backButton]="false">
 </app-sub-toolbar>
 
-<div class="page-content">
+<app-filter-box
+    [list]="this.Organizations"
+    type="Organizations"
+    (changeList)="updateList($event)">
+</app-filter-box>
 
-    <div class="row" *ngIf="this.Organizations.length; else NoOrganizations">
-        <div class="mb-4 col-sm-4" *ngFor="let organization of this.Organizations">
-            <mat-card>
-                <mat-card-title class="font-weight-lighter">{{organization.name}}</mat-card-title>
-                <mat-card-subtitle>{{organization.type}}</mat-card-subtitle>
-                <mat-divider></mat-divider>
-                <mat-card-content>
-                    <mat-list>
-                        <li class="pt-2">
-                            <span>
-                                Sector: <span class="font-weight-lighter">{{organization.sector}}</span>
-                            </span>
-                        </li>
-                        <li class="mt-2">
-                            <span>
-                                Ubicación: <span class="font-weight-lighter">{{organization.ubication.parroquia}}, {{organization.ubication.canton}}</span>
-                            </span>
-                        </li>
-                        <li class="mt-2">
-                            <span>
-                                Fecha de constitución: <span class="font-weight-lighter">{{organization.foundation_date | date : 'd/M/yyyy'}}</span>
-                            </span>
-                        </li>
-                    </mat-list>
-                </mat-card-content>
-                <div class="flex">
-                    <span class="fill-remaining-space"></span>
-                    <button mat-button [routerLink]="[organization._id,'partners']">SOCIOS</button>
-                    <button mat-button [routerLink]="[organization._id]">DETALLES</button>
-                </div>
-            </mat-card>
+<div class="page-content with-filter-box">
+
+    <div class="full-height" *ngIf="this.Organizations.length; else NoOrganizations">
+        <div class="row full-height" *ngIf="this.List.length; else NoList">
+            <div class="mb-4 col-sm-4" *ngFor="let organization of this.List">
+                <mat-card>
+                    <mat-card-title class="font-weight-lighter">{{organization.name}}</mat-card-title>
+                    <mat-card-subtitle>{{organization.type}}</mat-card-subtitle>
+                    <mat-divider></mat-divider>
+                    <mat-card-content>
+                        <mat-list>
+                            <li class="pt-2">
+                                <span>
+                                    Sector: <span class="font-weight-lighter">{{organization.sector}}</span>
+                                </span>
+                            </li>
+                            <li class="mt-2">
+                                <span>
+                                    Ubicación: <span class="font-weight-lighter">{{organization.ubication.parroquia}}, {{organization.ubication.canton}}</span>
+                                </span>
+                            </li>
+                            <li class="mt-2">
+                                <span>
+                                    Fecha de constitución: <span class="font-weight-lighter">{{organization.foundation_date | date : 'd/M/yyyy'}}</span>
+                                </span>
+                            </li>
+                        </mat-list>
+                    </mat-card-content>
+                    <div class="flex">
+                        <span class="fill-remaining-space"></span>
+                        <button mat-button [routerLink]="[organization._id,'partners']">SOCIOS</button>
+                        <button mat-button [routerLink]="[organization._id]">DETALLES</button>
+                    </div>
+                </mat-card>
+            </div>
         </div>
+        <ng-template #NoList>
+            <div class="full-height full-width flex justify-content-center align-items-center">
+                <div>
+                    <h2 class="text-center font-weight-lighter">No se han encontrado coincidencias</h2>
+                    <div class="font-weight-lighter">
+                        Intenta utilizando otro parámetro de búsqueda.
+                    </div>
+                </div>
+            </div>
+        </ng-template>
     </div>
 
     <ng-template #NoOrganizations>
         <div class="full-height full-width flex justify-content-center align-items-center">
             <div>
                 <h2 class="text-center font-weight-lighter">No hay Organizaciones registradas</h2>
-                <div class="font-weight-lighter">
+                <div class="font-weight-lighter text-center">
                     Para agregar organizaciones dale click al boton "Agregar" de la esquina superior derecha.
                 </div>
             </div>

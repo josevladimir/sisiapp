@@ -4,40 +4,59 @@
     [backButton]="false">
 </app-sub-toolbar> 
 
-<div class="page-content">
+<app-filter-box
+    type="Projects"
+    [list]="this.projects"
+    (changeList)="this.updateList($event)">
+</app-filter-box>
 
-    <div class="row" *ngIf="this.projects.length; else NoProjects">
-        <div class="col-sm-4 mb-4" *ngFor="let project of this.projects">
-            <mat-card>
-                <mat-card-title class="font-weight-lighter">{{project.name}}</mat-card-title>
-                <mat-divider></mat-divider>
-                <mat-card-content>
-                    <mat-list>
-                        <li class="pt-2">
-                            <span>
-                                Fecha de Inicio: <span class="font-weight-lighter">{{project.start_date | date : 'd/M/yyyy'}}</span>
-                            </span>
-                        </li>
-                        <li class="mt-2">
-                            <span>
-                                Ubicación: <span class="font-weight-lighter">{{project.ubication}}</span>
-                            </span>
-                        </li>
-                        <li class="mt-2">
-                            <span>
-                                Duración: <span class="font-weight-lighter">{{project.duration}} meses</span>
-                            </span>
-                        </li>
-                    </mat-list>
-                </mat-card-content>
-                <mat-card-actions>
-                    <div class="flex">
-                        <span class="fill-remaining-space"></span>
-                        <a mat-button [routerLink]="[project._id]">DETALLES</a>
-                    </div>
-                </mat-card-actions>
-            </mat-card>
+<div class="page-content with-filter-box">
+
+    <div class="row full-height" *ngIf="this.projects.length; else NoProjects">
+        <div class="row full-height" *ngIf="this.List.length; else NoList">
+
+            <div class="col-sm-4 mb-4" *ngFor="let project of this.List">
+                <mat-card>
+                    <mat-card-title class="font-weight-lighter">{{project.name}}</mat-card-title>
+                    <mat-divider></mat-divider>
+                    <mat-card-content>
+                        <mat-list>
+                            <li class="pt-2">
+                                <span>
+                                    Fecha de Inicio: <span class="font-weight-lighter">{{project.start_date | date : 'd/M/yyyy'}}</span>
+                                </span>
+                            </li>
+                            <li class="mt-2">
+                                <span>
+                                    Ubicación: <span class="font-weight-lighter">{{project.ubication}}</span>
+                                </span>
+                            </li>
+                            <li class="mt-2">
+                                <span>
+                                    Duración: <span class="font-weight-lighter">{{project.duration}} meses</span>
+                                </span>
+                            </li>
+                        </mat-list>
+                    </mat-card-content>
+                    <mat-card-actions>
+                        <div class="flex">
+                            <span class="fill-remaining-space"></span>
+                            <a mat-button [routerLink]="[project._id]">DETALLES</a>
+                        </div>
+                    </mat-card-actions>
+                </mat-card>
+            </div>
         </div>
+        <ng-template #NoList>
+            <div class="full-height full-width flex justify-content-center align-items-center">
+                <div>
+                    <h2 class="text-center font-weight-lighter">No se han encontrado coincidencias</h2>
+                    <div class="font-weight-lighter text-center">
+                        Intenta utilizando otro parámetro de búsqueda.
+                    </div>
+                </div>
+            </div>
+        </ng-template>
     </div>
 
     <ng-template #NoProjects>
