@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
-import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { BrowserModule } from '@angular/platform-browser';
+import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { SocketIoConfig, SocketIoModule } from 'ngx-socket-io';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule} from '@angular/forms';
 import { MAT_DATE_LOCALE, MatNativeDateModule } from '@angular/material/core';
@@ -23,6 +24,7 @@ import { NewUsersComponent } from './components/pages/users/new-users/new-users.
 import { DashboardComponent } from './components/pages/dashboard/dashboard.component';
 import { UploadBoxComponent } from './components/shared/upload-box/upload-box.component';
 import { UsersViewComponent } from './components/pages/users/users-view/users-view.component';
+import { FilterBoxComponent } from './components/shared/filter-box/filter-box.component';
 import { DocumentsComponent } from './components/pages/documents/documents/documents.component';
 import { IndicatorsComponent } from './components/pages/indicators/indicators/indicators.component';
 import { SubToolbarComponent } from './components/shared/sub-toolbar/sub-toolbar.component';
@@ -73,16 +75,28 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { FilterBoxComponent } from './components/shared/filter-box/filter-box.component';
 
+//Configurar Sockets
+const config: SocketIoConfig = { url: 'http://localhost:3000', options: {} };
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
+    UsersComponent,
+    IndexComponent,
+    ModalsComponent,
+    FichasComponent,
+    ReportComponent,
     FundersComponent,
+    ProfileComponent,
     ProjectsComponent,
     PartnersComponent,
+    SettingsComponent,
+    NewUsersComponent,
+    UsersViewComponent,
+    FilterBoxComponent,
+    DocumentsComponent,
     UploadBoxComponent,
     DashboardComponent,
     NewProjectComponent,
@@ -90,34 +104,24 @@ import { FilterBoxComponent } from './components/shared/filter-box/filter-box.co
     SubToolbarComponent,
     FunderViewComponent,
     ButtonGroupComponent,
+    NewPasswordComponent,
+    ProjectViewComponent,
+    FundersLinkComponent,
     LoadingViewComponent,
     FormButtonsComponent,
     NewIndicatorComponent,
     OrganizationsComponent,
+    IndicatorViewComponent,
+    UpdateExecutedComponent,
+    TableAndGraphicComponent,
     NewOrganizationComponent,
     OrganizationViewComponent,
     PartnersHistoricComponent,
-    ModalsComponent,
-    ProjectViewComponent,
-    UpdateExecutedComponent,
-    FichasComponent,
-    ReportComponent,
-    TableAndGraphicComponent,
-    IndicatorViewComponent,
-    FundersLinkComponent,
-    UsersComponent,
-    NewUsersComponent,
-    UsersViewComponent,
-    NewPasswordComponent,
-    NewOrganizationPreferenceComponent,
-    SettingsComponent,
-    IndexComponent,
-    DocumentsComponent,
-    ProfileComponent,
-    FilterBoxComponent
+    NewOrganizationPreferenceComponent
   ],
   imports: [
     FormsModule,
+    LayoutModule,
     BrowserModule,
     MatListModule,
     MatCardModule,
@@ -128,6 +132,7 @@ import { FilterBoxComponent } from './components/shared/filter-box/filter-box.co
     MatChipsModule,
     MatTableModule,
     MatInputModule,
+    MatRadioModule,
     NgxChartsModule,
     MatButtonModule,
     MatDialogModule,
@@ -141,20 +146,19 @@ import { FilterBoxComponent } from './components/shared/filter-box/filter-box.co
     MatDividerModule,
     MatCheckboxModule,
     MatSnackBarModule,
+    MatGridListModule,
     MatPaginatorModule,
     MatDatepickerModule,
     MatNativeDateModule,
     ReactiveFormsModule,
     MatDatepickerModule,
     BrowserAnimationsModule,
-    MatGridListModule,
-    LayoutModule,
-    MatRadioModule
+    SocketIoModule.forRoot(config)
   ],
   entryComponents: [
-    UpdateExecutedComponent,
-    FundersLinkComponent,
     NewPasswordComponent,
+    FundersLinkComponent,
+    UpdateExecutedComponent,
     NewOrganizationPreferenceComponent
   ],
   providers: [

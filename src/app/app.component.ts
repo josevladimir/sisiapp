@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { SisiCoreService } from './services/sisi-core.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
+import { SocketioService } from './services/socketio.service';
 
 @Component({
   selector: 'app-root',
@@ -10,7 +11,7 @@ import { Router } from '@angular/router';
 })
 export class AppComponent implements OnInit {
   
-  title = 'sisiapp';
+  title = 'SISI - CEFODI';
   
   auth : boolean = false;
 
@@ -24,6 +25,7 @@ export class AppComponent implements OnInit {
 
   constructor(private _service : SisiCoreService,
               private _snackBar : MatSnackBar,
+              private _socketIO : SocketioService,
               private _Router : Router){
     
   }
@@ -69,6 +71,7 @@ export class AppComponent implements OnInit {
                                 result => {
                                   if(result.message == 'OK') localStorage.setItem('files',JSON.stringify(result.documents));
                                   else localStorage.setItem('files','[]');
+                                  this._socketIO.listen('welcome').subscribe(data => this._socketIO.emit('register',{id: this.userData._id,}));
                                   this.isWorking = false;
                                 },error => this._snackBar.open('Error recuperando los documentos.','ENTENDIDO',{duration: 3000})
                               );
