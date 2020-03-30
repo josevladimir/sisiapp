@@ -4,6 +4,9 @@ import { SisiCoreService } from '../../../../services/sisi-core.service';
 import { ToolbarButton } from '../../../shared/sub-toolbar/sub-toolbar.component';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Store } from '@ngrx/store';
+import { State } from 'src/app/reducers';
+import * as fromLoadingActions from '../../../../reducers/actions/loading.actions';
 
 @Component({
   selector: 'app-partners',
@@ -22,11 +25,7 @@ export class PartnersComponent {
   mensCtrl : FormControl = new FormControl(null,[Validators.required]);
   womensCtrl : FormControl = new FormControl(null,[Validators.required]);
 
-  isWorking : boolean = false;
-
   LastPartnersForm : FormGroup;
-
-  loadingMessage : string;
 
   userRole : string = localStorage.getItem('userRole');
 
@@ -35,7 +34,8 @@ export class PartnersComponent {
   constructor(private _ActivedRoute : ActivatedRoute,
               private _service : SisiCoreService,
               private _snackBar : MatSnackBar,
-              private _Router : Router) { 
+              private _Router : Router,
+              private _store : Store<State>) { 
     
     this._ActivedRoute.params.subscribe(  
       (params: Params) => this.Organization = this._service.getOrganization(params.id)
@@ -84,8 +84,7 @@ export class PartnersComponent {
   }
 
   updateLastPartners(){
-    this.loadingMessage = "Guardando los cambios...";
-    this.isWorking = true;
+    this._store.dispatch(fromLoadingActions.initLoading({message: 'Guardando los cambios...'}));
     let history : any[];
     history = this.Organization.historyPartners;
     let registry = history.pop();
@@ -99,12 +98,12 @@ export class PartnersComponent {
         this.LastPartnersForm = null;
         this.ActualPartners.mens = registry.mens;
         this.ActualPartners.womens = registry.womens;
-        this.isWorking = false;
+        this._store.dispatch(fromLoadingActions.stopLoading());
         this._service.updateOrganizationsList(null);
         this._snackBar.open('Se ha actualizado los socios correctamente.','ENTENDIDO',{duration: 3000});
       },
       error => {
-        this.isWorking = false;
+        this._store.dispatch(fromLoadingActions.stopLoading());
         this._snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
       }
     )
@@ -119,8 +118,7 @@ export class PartnersComponent {
   }
 
   save(){
-    this.loadingMessage = 'Actualizando socios...';
-    this.isWorking = true;
+    this._store.dispatch(fromLoadingActions.initLoading({message: 'Actualizando socios...'}));
     let history : any[];
     let registry : any = this.PartnerForm.value;
     registry.period = new Date(); 
@@ -130,12 +128,12 @@ export class PartnersComponent {
       result => {
         this.ActualPartners.mens = this.mensCtrl.value;
         this.ActualPartners.womens = this.womensCtrl.value;
-        this.isWorking = false;
+        this._store.dispatch(fromLoadingActions.stopLoading());
         this._service.updateOrganizationsList(null);
         this.PartnerForm.reset();
         this._snackBar.open('Se ha actualizado los socios correctamente.','ENTENDIDO',{duration: 3000});
       },error => {
-        this.isWorking = false;
+        this._store.dispatch(fromLoadingActions.stopLoading());
         this._snackBar.open('Ha ocurrido un error al actualizar los socios.','ENTENDIDO',{duration: 3000});
       }
     );

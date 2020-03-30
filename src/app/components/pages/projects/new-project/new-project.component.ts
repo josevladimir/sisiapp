@@ -8,7 +8,9 @@ import { convertSize, getTypeFromExt } from '../../../shared/upload-box/upload-b
 import * as Moment from 'moment'
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Observable } from 'rxjs';
-import { Router } from '@angular/router';
+import { Store } from '@ngrx/store';
+import { State } from '../../../../reducers/index';
+import * as fromLoadingActions from '../../../../reducers/actions/loading.actions';
 
 @Component({
   selector: 'app-new-project',
@@ -27,14 +29,11 @@ export class NewProjectComponent{
   organizationsSelected : any = [];
   indicatorsSelected : any = [];
 
-  isWorking : boolean = false;
-  loadingMessage : string;
-
   File : any; //Variable para la subida de la lista de usuarios
 
   constructor(private _service : SisiCoreService,
               private _snackbar : MatSnackBar,
-              private _Router : Router){
+              private _store : Store<State>){
     this.GeneralFormGroup = new FormGroup({
       name: new FormControl('',[Validators.required,this._service.existProject,this._service.isBlank]),
       start_date: new FormControl('',[Validators.required,Validators.pattern(new RegExp(/^(0?[1-9]|[12][0-9]|3[01])[\/](0?[1-9]|1[012])[/\\/](19|20)\d{2}$/))]),
@@ -194,10 +193,9 @@ export class NewProjectComponent{
   }
 
   createProject(){
-    this.loadingMessage = 'Guardando el proyecto...'
-    this.isWorking = true;
+    this._store.dispatch(fromLoadingActions.initLoading({message: 'Guardando el proyecto...'}));
     if(this.GeneralFormGroup.invalid || !this.File || !this.indicatorsSelected.length || !this.organizationsSelected.length || !(<FormArray> this.GeneralFormGroup.get('funders')).length){
-      this.isWorking = false;
+      this._store.dispatch(fromLoadingActions.stopLoading());
       return alert('Debe completar todo el formulario de registro de Proyectos!\n\nNo olvide asignar los financiadores, indicadores y organizaciones. Tampoco olvide seleccionar el archivo de lista de beneficiarios.')
     }
     let project : any = this.GeneralFormGroup.value;
@@ -218,17 +216,17 @@ export class NewProjectComponent{
                 this._service.updateOrganizationsList(null);
                 this._service.updateFundersList(null);
                 this._service.updateProjectsList(true);
-                this.isWorking = false;
+                this._store.dispatch(fromLoadingActions.stopLoading());
                 this._snackbar.open('Proyecto Registrado correctamente.','ENTENDIDO',{duration: 3000});
               }
             },error => {
-              this.isWorking = false;
+              this._store.dispatch(fromLoadingActions.stopLoading());
               this._snackbar.open('Ha ocurrido un error al subir el archivo de Beneficiarios.','ENTENDIDO',{duration: 3000})
             }
           );
         }
       },error => {
-        this.isWorking = false;
+        this._store.dispatch(fromLoadingActions.stopLoading());
         this._snackbar.open('Ocurrió un error al guardar el nuevo proyecto.','ENTENDIDO',{duration: 3000})
       }
     )

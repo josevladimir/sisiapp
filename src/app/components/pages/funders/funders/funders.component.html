@@ -7,7 +7,7 @@
 <div class="page-content">
     <div class="container full-height">
         <div class="row full-height">
-            <div [ngClass]="{'col-sm-6':this.userRole == 'Administrador','col-sm-12':this.userRole != 'Administrador'}" *ngIf="this.funders.length; else NoFunders">
+            <div [ngClass]="{'col-sm-6':this.userRole == 'Administrador','col-sm-12':this.userRole != 'Administrador'}" *ngIf="this.funders.length | async; else NoFunders">
                 <h2 class="list-title full-width">Financiadores Registrados</h2>
                 <mat-list class="scroll-list-view bordered-list">
                     <a mat-button *ngFor="let funder of this.funders" [routerLink]="funder._id" class="full-width text-left font-weight-lighter">{{funder.name}} - {{funder.place}}</a>
@@ -52,4 +52,3 @@
         </div>
     </div>
 </div>
-<app-loading-view *ngIf="this.isWorking" [message]="this.loadingMessage"></app-loading-view>

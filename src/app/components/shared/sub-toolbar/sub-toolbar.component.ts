@@ -1,5 +1,4 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 
 @Component({
@@ -20,8 +19,7 @@ export class SubToolbarComponent implements OnInit{
 
   personalizedButtons : ToolbarButton[];
 
-  constructor(private _Router : Router,
-              private _location : Location){
+  constructor(private _location : Location){
   }
   
   back(){
@@ -35,6 +33,7 @@ export class SubToolbarComponent implements OnInit{
   }
   
   ngOnInit(): void {
+
     if(this.buttons && this.buttons.length) this.personalizedButtons = this.buttons;
     else this.personalizedButtons = [];
   }

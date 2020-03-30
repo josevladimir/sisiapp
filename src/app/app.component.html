@@ -1,4 +1,4 @@
-<div class="full-height full-width" *ngIf="this.auth; else LoginView">
+<div class="full-height full-width" *ngIf="this.isAuth; else LoginView">
   <mat-toolbar class="flex" id="main-toolbar">
     <div class="full-height p-2">
       <img src="../assets/images/logo-sisi.svg" class="full-height" alt="">
@@ -31,7 +31,7 @@
     </mat-drawer-content>
   </mat-drawer-container>
 </div>
-<ng-template #LoginView>
-  <app-login (authentication)="this.Authenticate()" (isWorking)="this.loadingView($event)"></app-login>
+<ng-template #LoginView> 
+  <app-login></app-login>
 </ng-template>
-<app-loading-view *ngIf="this.isWorking" [message]="this.loadingMessage"></app-loading-view>
+<app-loading-view *ngIf="this.isWorking | async"></app-loading-view>

@@ -4,6 +4,9 @@ import { SisiCoreService } from '../../../../services/sisi-core.service';
 import { FormGroup, Validators, FormControl, FormArray } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ToolbarButton } from '../../../shared/sub-toolbar/sub-toolbar.component';
+import { Store } from '@ngrx/store';
+import { State } from 'src/app/reducers';
+import * as fromLoadingActions from '../../../../reducers/actions/loading.actions';
 
 @Component({
   selector: 'app-indicator-view',
@@ -21,25 +24,21 @@ export class IndicatorViewComponent{
 
   userRole : string = localStorage.getItem('userRole');
 
-  isWorking : boolean = false;
-  loadingMessage : string = '';
-
   DeleteBtn : ToolbarButton = {
     hasIcon: true,
     icon: 'delete',
     handler: ()=>{
       if(confirm('¿Está seguro que desea eliminar este Indicador?\n\nEsta acción no se puede deshacer.')){
-        this.loadingMessage = 'Eliminando Indicador...';
-        this.isWorking = true;
+        this._store.dispatch(fromLoadingActions.initLoading({message: 'Eliminando Indicador...'}));
         this._service.deleteIndicator(this.Indicator._id).subscribe(
         result => {
           if(result.message == 'DELETED'){
             this._service.updateIndicatorsList(true);
-            this.isWorking = false;
+            this._store.dispatch(fromLoadingActions.stopLoading());
             this._snackBar.open('Se eliminó el Indicador correctamente.','ENTENDIDO',{duration: 3000});
           }
         },error => {
-          this.isWorking = false;
+          this._store.dispatch(fromLoadingActions.stopLoading());
           this._snackBar.open('Ocurrió un error al eliminar el Indicador.','ENTENDIDO',{duration: 3000})
         }
       )
@@ -50,7 +49,8 @@ export class IndicatorViewComponent{
 
   constructor(private _activatedRoute : ActivatedRoute,
               private _service : SisiCoreService,
-              private _snackBar : MatSnackBar) { 
+              private _snackBar : MatSnackBar,
+              private _store : Store<State>) { 
     this._activatedRoute.params.subscribe(
       (params : Params) => {
         this.Indicator = this._service.getIndicator(params.id);
@@ -61,7 +61,6 @@ export class IndicatorViewComponent{
   }
 
   getFormFromIndicator(){
-    console.log(this.Indicator);
     if(this.Indicator.type == 'Simple'){
       let description : string;
       if(this.Indicator.description) description = this.Indicator.description;
@@ -115,7 +114,6 @@ export class IndicatorViewComponent{
           (<FormArray> this.IndicatorForm.controls.parameters_schema['controls'][i].controls.definition).push(new FormControl(operator,Validators.required))
         });
     });
-    console.log(this.IndicatorForm.value);
 
   }
 
@@ -124,13 +122,12 @@ export class IndicatorViewComponent{
   }
 
   saveIndicator(){
-    this.loadingMessage = 'Guardando los cambios en el Indicador...';
-    this.isWorking = true;
+    this._store.dispatch(fromLoadingActions.initLoading({message: 'Guardando los cambios en el Indicador...'}));
     let body : any = this.IndicatorForm.value;
     console.log(body);
     if(body.type == 'Simple'){
       if(!this.IndicatorForm.valid){
-        this.isWorking = false;
+        this._store.dispatch(fromLoadingActions.stopLoading());
         return alert('Todos los campos son obligatorios, por favor, revise el formulario.');
       }
     }else{ //Indicador Compuesto
@@ -139,7 +136,7 @@ export class IndicatorViewComponent{
         if(!parameter.definition.length) return flag = 'Debe definir todos los parámetros del Indicador.';
       });
       if(flag) {
-        this.isWorking = false;
+        this._store.dispatch(fromLoadingActions.stopLoading());
         return alert(flag);
       }
       let suma : any = {
@@ -158,19 +155,19 @@ export class IndicatorViewComponent{
         }
       });
       if(flag) {
-        this.isWorking = false;
+        this._store.dispatch(fromLoadingActions.stopLoading());
         return alert(flag);
       }
       
       if(body.antiquity_diff && (suma.older != 100 || suma.newer != 100)) flag = 'La ponderación debe sumar 100% en total.';
       if(!body.antiquity_diff && suma.none != 100) flag = 'La ponderación debe sumar 100% en total.';
       if(flag) {
-        this.isWorking = false;
+        this._store.dispatch(fromLoadingActions.stopLoading());
         return alert(flag);
       }
 
       if(this.IndicatorForm.invalid){
-        this.isWorking = false;
+        this._store.dispatch(fromLoadingActions.stopLoading());
         return alert('Todos los campos son obligatorios, por favor, revise el formulario');
       }
     }
@@ -181,11 +178,11 @@ export class IndicatorViewComponent{
           this.editMode = false;
           this.getFormFromIndicator();
           this._service.updateIndicatorsList(null);
-          this.isWorking = false;
+          this._store.dispatch(fromLoadingActions.stopLoading());
           this._snackBar.open('Se ha modificado el indicador correctamente.','ENTENDIDO',{duration: 3000});
         }
       },error => {
-        this.isWorking = false;
+        this._store.dispatch(fromLoadingActions.stopLoading());
         this._snackBar.open('Ha ocurrido un error al actualizar el indicador.','ENTENDIDO',{duration: 3000});
       }
     );

@@ -4,6 +4,9 @@ import { SisiCoreService } from '../../../../services/sisi-core.service';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ToolbarButton } from '../../../shared/sub-toolbar/sub-toolbar.component';
+import { Store } from '@ngrx/store';
+import { State } from '../../../../reducers/index';
+import * as fromLoadingActions from '../../../../reducers/actions/loading.actions';
 
 @Component({
   selector: 'app-funder-view',
@@ -21,28 +24,25 @@ export class FunderViewComponent{
 
   FunderFormGroup : FormGroup;
 
-  isWorking : boolean = false;
-
-  loadingMessage : string = '';
+  LoadingComponentOptions : any;
 
   DeleteBtn : ToolbarButton = {
     hasIcon: true,
     icon: 'delete',
     handler: ()=>{
       if(confirm('¿Está seguro que desea eliminar este Financiador?\n\nEsta acción no se puede deshacer.')){
-        this.loadingMessage = 'Eliminando Financiador...'
-        this.isWorking = true;
+        this._store.dispatch(fromLoadingActions.initLoading({message: 'Eliminando Financiador...'}));
         this._service.deleteFunder(this.Funder._id).subscribe(
           result => {
             if(result.message == 'DELETED'){
               this._service.updateProjectsList(null);
               this._service.updateFundersList(true);
-              this.isWorking = false;
+              this._store.dispatch(fromLoadingActions.stopLoading());
               this._snackBar.open('Se eliminó el Financiador correctamente.','ENTENDIDO',{duration: 3000});
             }
           
           },error => {
-            this.isWorking = false;
+            this._store.dispatch(fromLoadingActions.stopLoading());
             this._snackBar.open('Ocurrió un error al eliminar el Financiador.','ENTENDIDO',{duration: 3000})
           }
         )
@@ -54,7 +54,8 @@ export class FunderViewComponent{
   constructor(private _activatedRoute : ActivatedRoute,
               private _service : SisiCoreService,
               private _snackBar : MatSnackBar,
-              private _Router : Router) { 
+              private _store : Store<State>) { 
+  
     this._activatedRoute.params.subscribe(
       (params : Params) => {
         this.funderID = params.id;
@@ -74,18 +75,17 @@ export class FunderViewComponent{
   }
 
   save(){
-    this.loadingMessage = 'Guardando los cambios en el Financiador...';
-    this.isWorking = true;
+    this._store.dispatch(fromLoadingActions.initLoading({message: 'Guardando el Nuevo Financiador...'}));
     this._service.updateFunder(this.FunderFormGroup.value,this.funderID).subscribe(
       result => {
         this._service.updateFundersList(false);
         this.Funder = result.funder;
         this.editMode = false;
         this.FunderFormGroup.disable();
-        this.isWorking = false;
+        this._store.dispatch(fromLoadingActions.stopLoading());
         this._snackBar.open('Se han guardado los cambios.','ENTENDIDO',{duration: 3000});
       },error => {
-        this.isWorking = false;
+        this._store.dispatch(fromLoadingActions.stopLoading());
         this._snackBar.open('Ha ocurrido un error al guardar los cambios','ENTENDIDO',{duration: 3000})
       }
     )

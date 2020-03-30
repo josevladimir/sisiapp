@@ -5,6 +5,9 @@ import { FormGroup, FormControl, Validators, AbstractControl, ValidatorFn } from
 import { MatDialog } from '@angular/material/dialog';
 import { NewPasswordComponent } from '../../../dialogs/new-password/new-password.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Store } from '@ngrx/store';
+import { State } from '../../../../reducers/index';
+import * as fromLoadingActions from '../../../../reducers/actions/loading.actions';
 
 @Component({
   selector: 'app-users-view',
@@ -20,14 +23,11 @@ export class UsersViewComponent {
 
   Funders : any[] = this._service.getFundersOff();
 
-  isWorking: boolean = false;
-
-  loadingMessage : string;
-
   constructor(private _service : SisiCoreService,
               private _ActivatedRoute : ActivatedRoute,
               private _snackBar : MatSnackBar,
-              private dialog : MatDialog) {
+              private dialog : MatDialog,
+              private _store: Store<State>) {
 
     this._ActivatedRoute.params.subscribe(
       (params : Params) => {
@@ -40,8 +40,7 @@ export class UsersViewComponent {
   }
 
   updateUser(){
-    this.loadingMessage = 'Actualizando usuario...';
-    this.isWorking = true;
+    this._store.dispatch(fromLoadingActions.initLoading({message: 'Actualizando usuario...'}));
     let body = this.UserForm.value;
     if(body.role == 'Financiador' && !body.funder) return alert('Es necesario que indique a que financiador representa este usuario.');
     else if(body.role != 'Financiador') delete body.funder;
@@ -52,12 +51,12 @@ export class UsersViewComponent {
           this.getFormFromUser();
           this.EditMode = false;
           this.UserForm.disable();
-          this.isWorking = false;
+          this._store.dispatch(fromLoadingActions.stopLoading());
           this._snackBar.open('Usuario actualizado correctamente.','ENTENDIDO',{duration: 3000});
           this._service.updateUsersList(null);
         }
       },error => {
-        this.isWorking = false;
+        this._store.dispatch(fromLoadingActions.stopLoading());
         this._snackBar.open('Ha ocurrido un error al guardar el usuario.','ENTENDIDO',{duration: 3000});
       }
     )
@@ -99,14 +98,13 @@ export class UsersViewComponent {
     dialogRef.afterClosed().subscribe(passwords => {
       if(passwords){
         /**Actualizar Contraseña */
-        this.loadingMessage = 'Guardando los cambios...';
-        this.isWorking = true;
+        this._store.dispatch(fromLoadingActions.initLoading({message: 'Guardando los cambios...'}));
         this._service.updateUser({password: passwords.password},this.User._id).subscribe(
           result => {
-            this.isWorking = false;
+            this._store.dispatch(fromLoadingActions.stopLoading());
             this._snackBar.open('Se generó la contraseña correctamente.','ENTENDIDO',{duration: 3000});
           },error => {
-            this.isWorking = false;
+            this._store.dispatch(fromLoadingActions.stopLoading());
             this._snackBar.open('Ocurrió un error al generar la contraseña.','ENTENDIDO',{duration: 3000});
           }
         )

@@ -81,4 +81,3 @@
         <app-button-group *ngIf="this.EditMode" (cancel)="this.cancel()" (save)="this.updateUser()" [formStatus]="this.UserForm.invalid"></app-button-group>
     </form>
 </div>
-<app-loading-view *ngIf="this.isWorking" [message]="this.loadingMessage"></app-loading-view>

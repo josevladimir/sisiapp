@@ -2,10 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { SisiCoreService } from '../../../../services/sisi-core.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Router } from '@angular/router';
 import { NewOrganizationPreferenceComponent } from '../../../dialogs/new-organization-preference/new-organization-preference.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSelect } from '@angular/material/select';
+import { Store } from '@ngrx/store';
+import { State } from 'src/app/reducers';
+import * as fromLoadingActions from '../../../../reducers/actions/loading.actions';
 
 @Component({
   selector: 'app-new-organization',
@@ -19,8 +21,6 @@ export class NewOrganizationComponent implements OnInit {
   Types : any[] = this._service.getTypesOff();
 
   isOlder : boolean = false;
-  isWorking : boolean= false;
-  loadingMessage : string = '';
 
   newSector : boolean = false;
 
@@ -38,7 +38,8 @@ export class NewOrganizationComponent implements OnInit {
 
   constructor(private _service : SisiCoreService,
               private _snackBar : MatSnackBar,
-              private dialog : MatDialog) { }
+              private dialog : MatDialog,
+              private _store : Store<State>) { }
 
   ngOnInit() {
     this.organizationForm = new FormGroup({
@@ -67,8 +68,7 @@ export class NewOrganizationComponent implements OnInit {
   }
 
   saveOrganization(){
-    this.loadingMessage = 'Guardando nueva organización...'
-    this.isWorking = true;
+    this._store.dispatch(fromLoadingActions.initLoading({message: 'Guardando nueva organización...'}));
     let organization = this.organizationForm.value;
     organization.created_by = localStorage.getItem('userID');
     organization.isOlder = this.isOlder;
@@ -76,11 +76,11 @@ export class NewOrganizationComponent implements OnInit {
     this._service.createOrganization(organization).subscribe(
       result => {
         this._service.updateOrganizationsList(true);
-        this.isWorking = false;
+        this._store.dispatch(fromLoadingActions.stopLoading());
         this._snackBar.open('La organización se registró correctamente.','ENTENDIDO',{duration: 3000});
 
       },error => {
-        this.isWorking = false;
+        this._store.dispatch(fromLoadingActions.stopLoading());
         this._snackBar.open('Ocurrió un error al guardar la organización.','ENTENDIDO',{duration: 3000});
       }
     );

@@ -1,7 +1,12 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormGroup, FormControl, Validators, } from '@angular/forms';
-import { SisiCoreService } from '../../../services/sisi-core.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Store } from '@ngrx/store';
+import { State } from 'src/app/reducers';
+import * as fromLoadingActions from '../../../reducers/actions/loading.actions';
+import { AuthServiceService } from '../../../services/auth-service.service';
+import { AuthObject } from 'src/app/reducers/actions/session.actions';
+import * as fromSessionActions from '../../../reducers/actions/session.actions';
 
 @Component({
   selector: 'app-login',
@@ -9,13 +14,11 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class LoginComponent{
 
-  @Output() authentication : EventEmitter<void> = new EventEmitter();
-  @Output() isWorking : EventEmitter<any> = new EventEmitter();
-
   LoginForm : FormGroup;
 
-  constructor(private _service : SisiCoreService,
-              private _snackBar : MatSnackBar) { 
+  constructor(private service : AuthServiceService,
+              private _snackBar : MatSnackBar,
+              private _store : Store<State>) { 
     this.LoginForm = new FormGroup({
       'username': new FormControl('',Validators.required),
       'password': new FormControl('',[Validators.required,Validators.minLength(8)])
@@ -23,22 +26,33 @@ export class LoginComponent{
   }
 
   login(){
-    this.isWorking.emit({isWorking: true, message: 'Ingresando'});
-    let body = this.LoginForm.value;
-    body.last_login_date = new Date();
+    this._store.dispatch(fromLoadingActions.initLoading({message: 'Ingresando...'}));
 
-    this._service.authenticate(body).subscribe(
+    let authObject : AuthObject = this.LoginForm.value;
+    
+    this.service.Login(authObject).subscribe(
       result => {
-        this._snackBar.open(result.message,'ENTENDIDO',{duration: 3000});
         if(result.message == 'Ingreso exitoso.'){
-          localStorage.setItem('user',JSON.stringify(result.user));
-          localStorage.setItem('token',result.token);
-          this.authentication.emit();
+          let user : fromSessionActions.User = {
+            token: result.token,
+            username: result.user.username,
+            name: result.user.name,
+            last_names: result.user.last_names,
+            email: result.user.email,
+            role: result.user.role,
+            position: result.user.position,
+            _id: result.user._id,
+            funder: result.user.funder ? result.user.funder : null
+          }
+          this._store.dispatch(fromSessionActions.authenticate({user}))
+          //localStorage.setItem('user',JSON.stringify(result.user));
+          //localStorage.setItem('token',result.token);
         }
-        this.isWorking.emit({isWorking: false});
+        this._store.dispatch(fromLoadingActions.stopLoading());
+        this._snackBar.open(result.message,'ENTENDIDO',{duration: 3000});
       },
       error => {
-        this.isWorking.emit({isWorking: false});
+        this._store.dispatch(fromLoadingActions.stopLoading());
         this._snackBar.open('Ha ocurrido un error, intente nuevamente.','ENTENDIDO',{duration: 3000})
       }
     );

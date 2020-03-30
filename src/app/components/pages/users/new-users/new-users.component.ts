@@ -2,6 +2,9 @@ import { Component } from '@angular/core';
 import { FormGroup, FormControl, Validators, AbstractControl, ValidatorFn } from '@angular/forms';
 import { SisiCoreService } from '../../../../services/sisi-core.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Store } from '@ngrx/store';
+import { State } from 'src/app/reducers';
+import * as fromLoadingActions from '../../../../reducers/actions/loading.actions';
 
 @Component({
   selector: 'app-new-users',
@@ -14,11 +17,9 @@ export class NewUsersComponent {
   
   Funders : any[];
 
-  isWorking : boolean = false;
-  loadingMessage : string;
-
   constructor(private _service : SisiCoreService,
-              private _snackBar : MatSnackBar) { 
+              private _snackBar : MatSnackBar,
+              private _store : Store<State>) { 
     this.UserForm = new FormGroup({
       username: new FormControl('',[Validators.required,this._service.isBlank,this._service.existUser]),
       name: new FormControl('',[Validators.required,this._service.isBlank]),
@@ -43,8 +44,7 @@ export class NewUsersComponent {
   }
 
   createUser(){
-    this.loadingMessage = 'Guardando Usuario...';
-    this.isWorking = true;
+    this._store.dispatch(fromLoadingActions.initLoading({message: 'Guardando Usuario...'}));
     let body = this.UserForm.value;
     delete body.repassword;
     if(body.role == 'Financiador' && !body.funder) return alert('Es necesario que indique a que financiador representa este usuario.');
@@ -53,11 +53,11 @@ export class NewUsersComponent {
       result => {
         if(result.message == 'CREATED'){
           this._service.updateUsersList(true);
-          this.isWorking = false;
+          this._store.dispatch(fromLoadingActions.stopLoading());
           this._snackBar.open('Usuario registrado correctamente.','ENTENDIDO',{duration: 3000})
         }
       },error => {
-        this.isWorking = false;
+        this._store.dispatch(fromLoadingActions.stopLoading());
         this._snackBar.open('Ha ocurrido un error al guardar el usuario.','ENTENDIDO',{duration: 3000});
       }
     )

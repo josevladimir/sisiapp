@@ -30,9 +30,6 @@ export class FichasComponent {
 
   Status : string = 'none';
 
-  isWorking : boolean = false;
-  loadingMessage : string;
-
   constructor(public _service : SisiCoreService,
               private _snackBar : MatSnackBar) { 
     this.Projects = this._service.getProjectsOff().map(project => this.formatProjects(project));
@@ -46,8 +43,6 @@ export class FichasComponent {
   }
 
   generateSchema(){
-    this.loadingMessage = 'Generando la Ficha...';
-    this.isWorking = true;
     this.Status = 'loading';
     setTimeout(this.makeSchema.bind(this),1500);
   }
@@ -63,7 +58,6 @@ export class FichasComponent {
           let user = this._service.getUser(this.SchemaForm.created_by);
           this.UserResponsable = `${user.name} ${user.last_names} - ${user.position}`
           this.Status = 'already-filled';
-          this.isWorking = false;
           break;
         }else{
           this.Status = 'ready';
@@ -103,7 +97,6 @@ export class FichasComponent {
         });
       });
     });
-    this.isWorking = false;
   }
 
   onProjectSelect(ev){

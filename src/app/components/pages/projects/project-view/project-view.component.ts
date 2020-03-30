@@ -7,6 +7,9 @@ import { UpdateExecutedComponent } from '../../../dialogs/update-executed/update
 import { ToolbarButton } from '../../../shared/sub-toolbar/sub-toolbar.component';
 import { FundersLinkComponent } from '../../../dialogs/funders-link/funders-link.component';
 import { environment } from '../../../../../environments/environment';
+import { Store } from '@ngrx/store';
+import { State } from 'src/app/reducers';
+import * as fromLoadingActions from '../../../../reducers/actions/loading.actions';
 
 @Component({
   selector: 'app-project-view',
@@ -24,25 +27,21 @@ export class ProjectViewComponent {
 
   userRole : string = localStorage.getItem('userRole');
 
-  loadingMessage : string;
-  isWorking : boolean = false; 
-
   DeleteBtn : ToolbarButton = {
     hasIcon: true,
     icon: 'delete',
     handler: ()=>{
       if(confirm('¿Está seguro que desea eliminar este Proyecto?\n\nEsta acción no se puede deshacer.')){
-        this.loadingMessage = 'Eliminando el proyecto...';
-        this.isWorking = true;
+        this._store.dispatch(fromLoadingActions.initLoading({message: 'Eliminando el proyecto...'}));
         this._service.deleteProject(this.Project._id).subscribe(
         result => {
           if(result.message == 'DELETED'){
             this._service.updateProjectsList(true);
-            this.isWorking = false;
+            this._store.dispatch(fromLoadingActions.stopLoading());
             this._snackBar.open('Se eliminó el Proyecto correctamente.','ENTENDIDO',{duration: 3000});
           }
         },error => {
-          this.isWorking = false;
+          this._store.dispatch(fromLoadingActions.stopLoading());
           this._snackBar.open('Ocurrió un error al eliminar el Proyecto.','ENTENDIDO',{duration: 3000});
         }
       )
@@ -54,7 +53,8 @@ export class ProjectViewComponent {
   constructor(private _service : SisiCoreService,
               private _ActivatedRoute : ActivatedRoute,
               private _snackBar: MatSnackBar,
-              private dialog : MatDialog) { 
+              private dialog : MatDialog,
+              private _store : Store<State>) { 
 
     this._ActivatedRoute.params.subscribe(
       (params : Params) => {
@@ -86,8 +86,7 @@ export class ProjectViewComponent {
     dialogRef.afterClosed().subscribe(funders => {
       if(funders){
         /**Actualizar Financiadores */
-        this.loadingMessage = 'Guardando los cambios...';
-        this.isWorking = true;
+        this._store.dispatch(fromLoadingActions.initLoading({message: 'Guardando los cambios...'}));
         this._service.updateProject({funders},this.Project._id).subscribe(
           result => {
             if(result.message == 'UPDATED'){
@@ -97,13 +96,13 @@ export class ProjectViewComponent {
                 updatedFunders.push(this.formatFunder(this._service.getFunder(id)))
               });
               this.Project.funders = updatedFunders;
-              this.isWorking = false;
+              this._store.dispatch(fromLoadingActions.stopLoading());
               this._snackBar.open('Se ha vinculado el Financiador.','ENTENDIDO',{duration: 3000});
               this._service.updateProjectsList(null);
               this._service.updateFundersList(null);
             }
           },error => {
-            this.isWorking = false;
+            this._store.dispatch(fromLoadingActions.stopLoading());
             this._snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000})
           }
         )
@@ -132,11 +131,10 @@ export class ProjectViewComponent {
     dialogRef.afterClosed().subscribe(result => {
       if(result){
         /**Actualizar Ejecutado */
-        this.loadingMessage = 'Guardando los cambios...'
-        this.isWorking = true;
+        this._store.dispatch(fromLoadingActions.initLoading({message: 'Guardando los cambios...'}));
         let newBudget : number = parseInt(result);
         if(newBudget <= this.executed_budget.value){
-          this.isWorking = false;
+          this._store.dispatch(fromLoadingActions.stopLoading());
           return this._snackBar.open('El presupuesto ejecutado debe ir aumentando, no puede ser menor o igual que el último registrado.','ENTENDIDO',{duration: 3000});
         }
         let budgets = { 
@@ -154,11 +152,11 @@ export class ProjectViewComponent {
               this.multi[1].series.push(budgets.budgets);
               this._service.updateProjectsList(null);
               this.generateChartData();
-              this.isWorking = false;
+              this._store.dispatch(fromLoadingActions.stopLoading());
               this._snackBar.open('Cambios guardados correctamente.','ENTENDIDO',{duration: 3000});
             }
           },error => {
-            this.isWorking = false;
+            this._store.dispatch(fromLoadingActions.stopLoading());
             this._snackBar.open('Ocurrió un error al actualizar el presupuesto.','ENTENDIDO',{duration: 3000});
           }
         )
@@ -175,8 +173,7 @@ export class ProjectViewComponent {
     dialogRef.afterClosed().subscribe(result => {
       if(result){
         /**Actualizar Ejecutado */
-        this.loadingMessage = 'Guardando los cambios...';
-        this.isWorking = true;
+        this._store.dispatch(fromLoadingActions.initLoading({message: 'Guardando los cambios...'}));
         let newBudget : number = parseInt(result);
         let body = { newBudget }
         this._service.updateProject(body,this.Project._id).subscribe(
@@ -187,11 +184,11 @@ export class ProjectViewComponent {
               this.multi[0].series.push({value: result, name: new Date()});
               this._service.updateProjectsList(null);
               this.generateChartData();
-              this.isWorking = false;
+              this._store.dispatch(fromLoadingActions.stopLoading());
               this._snackBar.open('Cambios guardados correctamente.','ENTENDIDO',{duration: 3000});
             }
           },error => {
-            this.isWorking = false;
+            this._store.dispatch(fromLoadingActions.stopLoading());
             this._snackBar.open('Ocurrió un error al actualizar el presupuesto.','ENTENDIDO',{duration: 3000})
           }
         )

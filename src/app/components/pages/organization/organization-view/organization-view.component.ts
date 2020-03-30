@@ -4,6 +4,9 @@ import { SisiCoreService } from '../../../../services/sisi-core.service';
 import { FormGroup,FormControl,Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ToolbarButton } from '../../../shared/sub-toolbar/sub-toolbar.component';
+import { Store } from '@ngrx/store';
+import { State } from 'src/app/reducers';
+import * as fromLoadingActions from '../../../../reducers/actions/loading.actions';
 
 @Component({
   selector: 'app-organization-view',
@@ -23,9 +26,6 @@ export class OrganizationViewComponent implements OnInit{
 
   isOlder : boolean = false;
 
-  isWorking : boolean = false;
-  loadingMessage : string;
-
   nameCtrl : FormControl;
   foundation_dateCtrl : FormControl;
   sectorCtrl : FormControl;
@@ -40,7 +40,8 @@ export class OrganizationViewComponent implements OnInit{
   constructor(private _ActivatedRoute : ActivatedRoute,
               private _service : SisiCoreService,
               private _snackBar : MatSnackBar,
-              private _Router : Router) {
+              private _Router : Router,
+              private _store : Store<State>) {
     
     this._ActivatedRoute.params.subscribe(
       (params : Params) => this.Organization = this._service.getOrganization(params.id)
@@ -61,17 +62,16 @@ export class OrganizationViewComponent implements OnInit{
         icon: 'delete',
         handler: () => {
           if(confirm('¿Está seguro que desea eliminar esta Organización?\n\nEsta acción no se puede deshacer.')) {
-            this.loadingMessage = 'Eliminando la Organización ...';
-            this.isWorking = true;
+            this._store.dispatch(fromLoadingActions.initLoading({message: 'Elimimnando la Organización...'}));
             this._service.deleteOrganization(this.Organization._id).subscribe(
             result => {
               if(result.message == 'DELETED'){
                 this._service.updateOrganizationsList(true);
-                this.isWorking = false;
+                this._store.dispatch(fromLoadingActions.stopLoading());
                 this._snackBar.open('Se eliminó la Organización correctamente.','ENTENDIDO',{duration: 3000});
               }
             },error => {
-              this.isWorking = false;
+              this._store.dispatch(fromLoadingActions.stopLoading());
               this._snackBar.open('Ocurrió un error al eliminar la Organización.','ENTENDIDO',{duration: 3000})
             }
           )
@@ -115,8 +115,7 @@ export class OrganizationViewComponent implements OnInit{
   }
 
   updateOrganization(){
-    this.loadingMessage = 'Guardando los cambios...'
-    this.isWorking = true;
+    this._store.dispatch(fromLoadingActions.initLoading({message: 'Guardando los cambios...'}));
     let body : any = this.organizationForm.value;
     body.isOlder = this.isOlder;
     body.last_updated_by = localStorage.getItem('userID');
@@ -126,10 +125,10 @@ export class OrganizationViewComponent implements OnInit{
         this._service.updateOrganizationsList(null);
         this.editMode = false;
         this.organizationForm.disable();
-        this.isWorking = false;
+        this._store.dispatch(fromLoadingActions.stopLoading());
         this._snackBar.open('Se han guardado los cambios correctamente.','ENTENDIDO',{duration: 3000});
       },error => {
-        this.isWorking = false;
+        this._store.dispatch(fromLoadingActions.stopLoading());
         this._snackBar.open('Ocurrió un problema al guardar los cambios.','ENTENDIDO',{duration: 3000});
       }
     );
