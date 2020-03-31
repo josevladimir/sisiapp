@@ -8,7 +8,7 @@ import { ActivatedRoute, Params } from '@angular/router';
 import { FundersServiceService, Funder } from '../../../../services/funders-service.service';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { isEditMode } from '../../../../reducers/selectors/general.selector';
-import { editModeSetEnabled } from '../../../../reducers/actions/general.actions';
+import { editModeSetDisabled } from '../../../../reducers/actions/general.actions';
 
 @Component({
   selector: 'app-funder-view',
@@ -17,10 +17,9 @@ import { editModeSetEnabled } from '../../../../reducers/actions/general.actions
 export class FunderViewComponent implements OnInit{
 
   isAdmin : Observable<boolean>;
+  editMode : Observable<boolean>;
 
   Funder : Funder = {name: '',projects: [],place: '',website: '',_id: '',coop_date: '',created_by: '',created_at: null, last_update: null};
-  
-  editMode : boolean = false;
 
   FunderFormGroup : FormGroup;
 
@@ -35,13 +34,13 @@ export class FunderViewComponent implements OnInit{
               private _fundersService : FundersServiceService,
               private _store : Store<State>) { 
   
+    this.editMode = this._store.select(isEditMode);
+    this.isAdmin = this._store.select(isAdmin);
     this._activatedRoute.params.subscribe(
       (params : Params) => {
-        this._fundersService.getFunder().subscribe((funders : Funder[]) => this.Funder = funders.filter((funder : Funder) => funder._id == params.id)[0]);
+        this._fundersService.getFundersLocal().subscribe((funders : Funder[]) => this.Funder = funders.filter((funder : Funder) => funder._id == params.id)[0]);
       });
 
-    this.isAdmin = this._store.select(isAdmin);
-    this._store.select(isEditMode).subscribe(value => this.editMode = value);
 
   }
   
@@ -56,8 +55,6 @@ export class FunderViewComponent implements OnInit{
     });
   }
 
-  setEditMode = () => this._store.dispatch(editModeSetEnabled());
-
   save(){
     this._store.dispatch(fromLoadingActions.initLoading({message: 'Guardando cambios en el financiador...'}));
     this._fundersService.updateFunder(this.FunderFormGroup.value,this.Funder._id);
@@ -70,7 +67,7 @@ export class FunderViewComponent implements OnInit{
       website: this.Funder.website,
       coop_date: this.Funder.coop_date
     });
-    this.editMode = false;
+    this._store.dispatch(editModeSetDisabled())
   }
 
 }

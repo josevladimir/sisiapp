@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
 import { FormGroup, FormControl, Validators, FormArray } from '@angular/forms';
-import { SisiCoreService } from '../../../../services/sisi-core.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { State } from 'src/app/reducers';
 import * as fromLoadingActions from '../../../../reducers/actions/loading.actions';
+import { IndicatorsServiceService } from '../../../../services/indicators-service.service';
+import { MyValidators } from '../../../../models/Validators';
 
 @Component({
   selector: 'app-new-indicator',
@@ -16,11 +17,6 @@ export class NewIndicatorComponent{
   indicatorForm : FormGroup;
 
   parameterSelected;
-
-  nameCtrl : FormControl = new FormControl('',[Validators.required,this._service.isBlank]);
-  typeCtrl : FormControl = new FormControl('Compuesto',Validators.required);
-  antiquity_diffCtrl : FormControl = new FormControl(false);
-  descriptionCtrl : FormControl = new FormControl('',[Validators.required,this._service.isBlank]);
   
   fields : FormGroup = new FormGroup({
     name: new FormControl('',Validators.required),
@@ -45,31 +41,24 @@ export class NewIndicatorComponent{
 
   record_schemaCtrl : FormArray = new FormArray([
     new FormGroup({
-      name: new FormControl('',[Validators.required,this._service.isBlank]),
+      name: new FormControl('',[Validators.required,MyValidators.isBlank]),
       frequency: new FormControl('',[Validators.required]),
       unit: new FormControl('',Validators.required)
     })
   ]);
 
-  constructor(private _service : SisiCoreService,
+  constructor(private _indicatorsService : IndicatorsServiceService,
               private _snackBar : MatSnackBar,
               private _Router : Router,
               private _store : Store<State>) { 
-    if(this.typeCtrl.value == 'Simple'){
+                
+      //Inicialización del Formulario Simple
       this.indicatorForm = new FormGroup({
-        name: this.nameCtrl,
-        type: this.typeCtrl,
-        parameters_schema: this.fields
+        name: new FormControl('',[Validators.required,MyValidators.isBlank]),
+        type: new FormControl('Simple',Validators.required),
+        parameters_schema: this.fields,
+        description: new FormControl('',[Validators.required,MyValidators.isBlank])
       });
-    }else{
-      this.indicatorForm = new FormGroup({
-        name: this.nameCtrl,
-        type: this.typeCtrl,
-        record_schema: this.record_schemaCtrl,
-        parameters_schema: this.parameterCompuesto,
-        antiquity_diff: this.antiquity_diffCtrl
-      });
-    }
   }
 
   showData(){
@@ -97,7 +86,7 @@ export class NewIndicatorComponent{
 
   addField(){
     (<FormArray>this.record_schemaCtrl).push(new FormGroup({
-      name: new FormControl('',[Validators.required,this._service.isBlank]),
+      name: new FormControl('',[Validators.required,MyValidators.isBlank]),
       frequency: new FormControl('',[Validators.required]),
       unit: new FormControl('',[Validators.required])
     }));
@@ -110,18 +99,18 @@ export class NewIndicatorComponent{
   changeType(ev){
     if(ev == 'Simple'){
       this.indicatorForm = new FormGroup({
-        name: this.nameCtrl,
-        type: this.typeCtrl,
+        name: new FormControl('',[Validators.required,MyValidators.isBlank]),
+        type: new FormControl('Simple',Validators.required),
         parameters_schema: this.fields,
-        description: this.descriptionCtrl
+        description: new FormControl('',[Validators.required,MyValidators.isBlank])
       });
     }else{
       this.indicatorForm = new FormGroup({
-        name: this.nameCtrl,
-        type: this.typeCtrl,
+        name: new FormControl('',[Validators.required,MyValidators.isBlank]),
+        type: new FormControl('Compuesto',Validators.required),
         record_schema: this.record_schemaCtrl,
         parameters_schema: this.parameterCompuesto,
-        antiquity_diff: this.antiquity_diffCtrl
+        antiquity_diff: new FormControl(false)
       });
     }
   }
@@ -129,7 +118,7 @@ export class NewIndicatorComponent{
   saveIndicator(){
     this._store.dispatch(fromLoadingActions.initLoading({message: 'Guardando el Indicador...'}));
     let body : any;
-    if(this.typeCtrl.value == 'Simple'){
+    if(this.indicatorForm.get('type').value == 'Simple'){
       if(this.indicatorForm.valid){
         body = this.indicatorForm.value;
         body.parameters_schema = [{
@@ -137,7 +126,7 @@ export class NewIndicatorComponent{
           frequency: this.fields.controls.frequency.value,
           isAcum: this.fields.controls.isAcum.value,
           unit: this.fields.controls.unit.value,
-          definition: this.descriptionCtrl.value,
+          definition: this.indicatorForm.get('description').value,
           weighing: {weight: 100}
         }];
         body.antiquity_diff = false;
@@ -166,7 +155,7 @@ export class NewIndicatorComponent{
         none: 0
       }
       body.parameters_schema.forEach(parameter => {
-        if(this.antiquity_diffCtrl.value){
+        if(this.indicatorForm.get('antiquity_diff').value){
           suma.older += parseInt(parameter.weighing.older);
           suma.newer += parseInt(parameter.weighing.newer);
           if(parameter.weighing.newer == null || parameter.weighing.older == null) return flag = 'Debe completar todas las ponderaciones solicitadas.';
@@ -180,8 +169,8 @@ export class NewIndicatorComponent{
         return alert(flag);
       }
       
-      if(this.antiquity_diffCtrl.value && (suma.older != 100 || suma.newer != 100)) flag = 'La ponderación debe sumar 100% en total.';
-      if(!this.antiquity_diffCtrl.value && suma.none != 100) flag = 'La ponderación debe sumar 100% en total.';
+      if(this.indicatorForm.get('antiquity_diff').value && (suma.older != 100 || suma.newer != 100)) flag = 'La ponderación debe sumar 100% en total.';
+      if(!this.indicatorForm.get('antiquity_diff').value && suma.none != 100) flag = 'La ponderación debe sumar 100% en total.';
       if(flag) {
         this._store.dispatch(fromLoadingActions.stopLoading());
         return alert(flag);
@@ -192,16 +181,7 @@ export class NewIndicatorComponent{
         return alert('Todos los campos son obligatorios, por favor, revise el formulario');
       }
     }
-    this._service.createIndicator(body).subscribe(
-      result => {
-        this._service.updateIndicatorsList(true);
-        this._store.dispatch(fromLoadingActions.stopLoading());
-        this._snackBar.open('Se ha registrado el indicador correctamente.','ENTENDIDO',{duration: 3000});
-      },error => {
-        this._store.dispatch(fromLoadingActions.stopLoading());
-        this._snackBar.open('Ha ocurrido un error al registrar el indicador.','ENTENDIDO',{duration: 3000});
-      }
-    );
+    this._indicatorsService.createIndicator(body);
   }
 
   cancel(){

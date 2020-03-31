@@ -1,7 +1,7 @@
 <app-sub-toolbar
     title="Indicadores"
     [backButton]="false"
-    [addButton]="this.userRole == 'Administrador' || this.userRole == 'Coordinador'">
+    [addButton]="((this.Authorization.isAdmin | async) || (this.Authorization.isCoordinator | async))">
 </app-sub-toolbar>
 
 <div class="page-content" *ngIf="this.Indicators.length; else NoIndicators">

@@ -2,9 +2,8 @@
     [title]="this.Funder.name"
     [backButton]="true"
     [addButton]="false"
-    [importantBack]="this.editMode"
-    [editButton]="true"
-    (editClick)="setEditMode()"
+    [importantBack]="(this.editMode | async)"
+    [editButton]="!(this.editMode | async)"
     [deleteButton]="this.DeleteBtn">
 </app-sub-toolbar>
 
@@ -15,7 +14,7 @@
 </app-sub-toolbar>
 
 <div class="page-content">
-    <mat-card *ngIf="!this.editMode; else EditForm">
+    <mat-card *ngIf="!(this.editMode | async); else EditForm">
         <mat-card-title class="font-weight-lighter">Datos Generales</mat-card-title>
         <mat-card-content>
             <div class="row mb-4">

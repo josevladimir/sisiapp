@@ -41,10 +41,6 @@ export class FundersServiceService implements OnInit{
     return this.storage.watch('funders');
   }
     
-  getFunder () : Observable<any> {
-    return this.storage.watch('funders');
-  }
-    
   createFunder (funder : any) : void {
     this.http
         .post(`${environment.baseUrl}/Funder/`,funder,{headers: this.headersGenerator.generateJsonHeader()})

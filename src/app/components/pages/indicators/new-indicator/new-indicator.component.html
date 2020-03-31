@@ -13,8 +13,8 @@
                 <div class="col-sm-6">
                     <mat-form-field class="full-width">
                         <input matInput type="text" formControlName="name" placeholder="Nombre del Indicador">
-                        <mat-error *ngIf="this.nameCtrl.errors?.required">Este campo es obligatorio.</mat-error>
-                        <mat-error *ngIf="!this.nameCtrl.errors?.required && this.nameCtrl.errors?.isBlank">Este campo no puede quedar en blanco.</mat-error>
+                        <mat-error *ngIf="this.indicatorForm.get('name').errors?.required">Este campo es obligatorio.</mat-error>
+                        <mat-error *ngIf="!this.indicatorForm.get('name').errors?.required && this.indicatorForm.get('name').errors?.isBlank">Este campo no puede quedar en blanco.</mat-error>
                     </mat-form-field>
                 </div>
                 <div class="col-sm-6">
@@ -28,20 +28,20 @@
                 </div>
             </div>
             <div class="flex mt-3 justify-content-center">
-                <mat-checkbox *ngIf="this.typeCtrl.value == 'Compuesto'" formControlName="antiquity_diff">Diferenciar entre organizaciones nuevas y antiguas</mat-checkbox>
+                <mat-checkbox *ngIf="this.indicatorForm.get('type').value == 'Compuesto'" formControlName="antiquity_diff">Diferenciar entre organizaciones nuevas y antiguas</mat-checkbox>
             </div>
         </mat-card>
 
         <!--Parámetros Indicador Simple-->
-        <div class="mt-4" *ngIf="this.typeCtrl.value == 'Simple'; else EsquemaCompuesto">
+        <div class="mt-4" *ngIf="this.indicatorForm.get('type').value == 'Simple'; else EsquemaCompuesto">
             <mat-card>
                 <mat-card-title class="font-weight-lighter">Descripción del Indicador</mat-card-title>
                 <div class="row">
                     <div class="col-sm-12">
                         <mat-form-field class="full-width">
-                            <textarea matInput #input [formControl]="this.descriptionCtrl" maxlength="250" placeholder="Escriba una breve descripción del Indicador Simple aquí..."></textarea>
-                            <mat-error *ngIf="this.descriptionCtrl.errors?.required">Este campo es obligatorio.</mat-error>
-                            <mat-error *ngIf="!this.descriptionCtrl.errors?.required && this.descriptionCtrl.errors?.isBlank">Este campo no puede quedar en blanco.</mat-error>
+                            <textarea matInput #input formControlName="description" maxlength="250" placeholder="Escriba una breve descripción del Indicador Simple aquí..."></textarea>
+                            <mat-error *ngIf="this.indicatorForm.get('description').errors?.required">Este campo es obligatorio.</mat-error>
+                            <mat-error *ngIf="!this.indicatorForm.get('description').errors?.required && this.indicatorForm.get('description').errors?.isBlank">Este campo no puede quedar en blanco.</mat-error>
                             <mat-hint align="end">{{input.value?.length || 0}}/250</mat-hint>
                         </mat-form-field>
                     </div>
@@ -137,7 +137,7 @@
             </mat-card>
 
             <!--Parámetros Indicador Compuesto Sin Diferenciación-->
-            <mat-card class="mt-4" *ngIf="!this.antiquity_diffCtrl.value; else ConDiferenciacion">
+            <mat-card class="mt-4" *ngIf="!this.indicatorForm.get('antiquity_diff').value; else ConDiferenciacion">
                 <mat-card-title class="font-weight-lighter">Parámetros del Indicador</mat-card-title>
                 <div class="row mb-2">
                     <div class="col-sm-3">

@@ -10,13 +10,12 @@ import { SocketioService } from './socketio.service';
 import { Store } from '@ngrx/store';
 import { State } from '../reducers';
 import * as fromLoading from '../reducers/actions/loading.actions';
-import { getUserRole, getUserId, getUserData } from '../reducers/selectors/session.selector';
+import { getUserId, getUserData } from '../reducers/selectors/session.selector';
 import { HeadersGenerator } from './headersGenerator.service';
 import { StorageMap } from '@ngx-pwa/local-storage';
 import { stopLoading, initLoading } from '../reducers/actions/loading.actions';
 import { Router } from '@angular/router';
 import { logout, User } from '../reducers/actions/session.actions';
-import { Subscription } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -66,6 +65,9 @@ export class AppServiceService {
     this.socket.listen('funderWasCreated').subscribe((funder :Funder) => this.fundersService.addToStorage(funder,true));
     this.socket.listen('funderWasUpdated').subscribe(() => this.fundersService.updateFundersOnStorage(true));
     this.socket.listen('funderWasDeleted').subscribe((id : string) => this.fundersService.removeFromStorage(id,true));
+    this.socket.listen('indicatorWasCreated').subscribe((indicator :any) => this.indicatorsService.addToStorage(indicator,true));
+    this.socket.listen('indicatorWasUpdated').subscribe(() => this.indicatorsService.updateIndicatorsOnStorage(true));
+    this.socket.listen('indicatorWasDeleted').subscribe((id : string) => this.indicatorsService.removeFromStorage(id,true));
   }
 
 }

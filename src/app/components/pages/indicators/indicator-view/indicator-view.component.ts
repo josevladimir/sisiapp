@@ -1,12 +1,16 @@
 import { Component } from '@angular/core';
-import { ActivatedRoute, Params } from '@angular/router';
-import { SisiCoreService } from '../../../../services/sisi-core.service';
-import { FormGroup, Validators, FormControl, FormArray } from '@angular/forms';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { ToolbarButton } from '../../../shared/sub-toolbar/sub-toolbar.component';
 import { Store } from '@ngrx/store';
 import { State } from 'src/app/reducers';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import * as fromLoadingActions from '../../../../reducers/actions/loading.actions';
+import { ActivatedRoute, Params } from '@angular/router';
+import { IndicatorsServiceService } from '../../../../services/indicators-service.service';
+import { FormGroup, Validators, FormControl, FormArray } from '@angular/forms';
+import { MyValidators } from '../../../../models/Validators';
+import { isAdmin } from '../../../../reducers/selectors/session.selector';
+import { Observable } from 'rxjs';
+import { isEditMode } from '../../../../reducers/selectors/general.selector';
+import { editModeSetDisabled } from '../../../../reducers/actions/general.actions';
 
 @Component({
   selector: 'app-indicator-view',
@@ -14,47 +18,32 @@ import * as fromLoadingActions from '../../../../reducers/actions/loading.action
 })
 export class IndicatorViewComponent{
 
-  Indicator : any;
+  Indicator : any; 
 
   IndicatorForm : FormGroup;
 
   ParameterSelected : number;
 
-  editMode : boolean;
+  editMode : Observable<boolean>;
 
-  userRole : string = localStorage.getItem('userRole');
+  isAdmin : Observable<boolean>;
 
-  DeleteBtn : ToolbarButton = {
-    hasIcon: true,
-    icon: 'delete',
-    handler: ()=>{
+  DeleteBtn : () => void = ()=>{
       if(confirm('¿Está seguro que desea eliminar este Indicador?\n\nEsta acción no se puede deshacer.')){
         this._store.dispatch(fromLoadingActions.initLoading({message: 'Eliminando Indicador...'}));
-        this._service.deleteIndicator(this.Indicator._id).subscribe(
-        result => {
-          if(result.message == 'DELETED'){
-            this._service.updateIndicatorsList(true);
-            this._store.dispatch(fromLoadingActions.stopLoading());
-            this._snackBar.open('Se eliminó el Indicador correctamente.','ENTENDIDO',{duration: 3000});
-          }
-        },error => {
-          this._store.dispatch(fromLoadingActions.stopLoading());
-          this._snackBar.open('Ocurrió un error al eliminar el Indicador.','ENTENDIDO',{duration: 3000})
-        }
-      )
+        this._indicatorsService.deleteIndicator(this.Indicator._id);
       }
-    },
-    message: 'ELIMINAR'
-  }
+    }
 
   constructor(private _activatedRoute : ActivatedRoute,
-              private _service : SisiCoreService,
+              private _indicatorsService : IndicatorsServiceService,
               private _snackBar : MatSnackBar,
               private _store : Store<State>) { 
+    this.isAdmin = this._store.select(isAdmin);
+    this.editMode = this._store.select(isEditMode);
     this._activatedRoute.params.subscribe(
       (params : Params) => {
-        this.Indicator = this._service.getIndicator(params.id);
-        this.editMode = false;
+        this._indicatorsService.getIndicatorsLocal().subscribe((indicators : any[]) => this.Indicator = indicators.filter(indicator => indicator._id == params.id)[0]);
         this.getFormFromIndicator();
       }
     );
@@ -66,15 +55,15 @@ export class IndicatorViewComponent{
       if(this.Indicator.description) description = this.Indicator.description;
       else description = '';
       this.IndicatorForm = new FormGroup({
-        name: new FormControl(this.Indicator.name,[Validators.required,this._service.isBlank]),
+        name: new FormControl(this.Indicator.name,[Validators.required,MyValidators.isBlank]),
         type : new FormControl(this.Indicator.type,Validators.required),
         antiquity_diff: new FormControl(this.Indicator.antiquity_diff),
         parameters_schema: new FormArray([]),
-        description: new FormControl(description,[Validators.required,this._service.isBlank])
+        description: new FormControl(description,[Validators.required,MyValidators.isBlank])
       });
     }else{
       this.IndicatorForm = new FormGroup({
-        name: new FormControl(this.Indicator.name,[Validators.required,this._service.isBlank]),
+        name: new FormControl(this.Indicator.name,[Validators.required,MyValidators.isBlank]),
         type : new FormControl(this.Indicator.type,Validators.required),
         antiquity_diff: new FormControl(this.Indicator.antiquity_diff),
         record_schema: new FormArray([]),
@@ -82,7 +71,7 @@ export class IndicatorViewComponent{
       });
       this.Indicator.record_schema.forEach(field => {
         (<FormArray> this.IndicatorForm.controls.record_schema).push(new FormGroup({
-          name: new FormControl(field.name,[Validators.required,this._service.isBlank]),
+          name: new FormControl(field.name,[Validators.required,MyValidators.isBlank]),
           frequency: new FormControl(field.frequency,[Validators.required]),
           unit: new FormControl(field.unit,[Validators.required])
         }));
@@ -115,10 +104,6 @@ export class IndicatorViewComponent{
         });
     });
 
-  }
-
-  setEditMode(){
-    this.editMode = true;
   }
 
   saveIndicator(){
@@ -171,21 +156,7 @@ export class IndicatorViewComponent{
         return alert('Todos los campos son obligatorios, por favor, revise el formulario');
       }
     }
-    this._service.updateIndicator(body,this.Indicator._id).subscribe(
-      result => {
-        if(result.message == 'UPDATED'){
-          this.Indicator = result.indicator;
-          this.editMode = false;
-          this.getFormFromIndicator();
-          this._service.updateIndicatorsList(null);
-          this._store.dispatch(fromLoadingActions.stopLoading());
-          this._snackBar.open('Se ha modificado el indicador correctamente.','ENTENDIDO',{duration: 3000});
-        }
-      },error => {
-        this._store.dispatch(fromLoadingActions.stopLoading());
-        this._snackBar.open('Ha ocurrido un error al actualizar el indicador.','ENTENDIDO',{duration: 3000});
-      }
-    );
+    this._indicatorsService.updateIndicator(body,this.Indicator._id);
   }
   
   addParameter(){
@@ -206,7 +177,7 @@ export class IndicatorViewComponent{
 
   addField(){
     (<FormArray>this.IndicatorForm.controls.record_schema).push(new FormGroup({
-      name: new FormControl('',[Validators.required,this._service.isBlank]),
+      name: new FormControl('',[Validators.required,MyValidators.isBlank]),
       frequency: new FormControl('',[Validators.required]),
       unit: new FormControl('',[Validators.required])
     }));
@@ -214,7 +185,7 @@ export class IndicatorViewComponent{
 
   cancel(){
     if(confirm('Los cambios no guardados se borrarán.\n\n¿Está seguro que desea cancelar la Edición?')){
-      this.editMode = false;
+      this._store.dispatch(editModeSetDisabled());
       this.getFormFromIndicator();
     }
   }

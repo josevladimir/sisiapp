@@ -1,19 +1,18 @@
-<app-sub-toolbar *ngIf="this.userRole == 'Administrador'"
+<app-sub-toolbar *ngIf="this.isAdmin | async"
     title="Indicador: {{this.Indicator.name}}"
     [backButton]="true"
-    [editButton]="!editMode"
-    [buttons]="[this.DeleteBtn]"
-    (editClick)="setEditMode()"
-    [importantBack]="editMode">
+    [editButton]="!(this.editMode | async)"
+    [deleteButton]="this.DeleteBtn"
+    [importantBack]="(this.editMode | async)">
 </app-sub-toolbar>
 
-<app-sub-toolbar *ngIf="this.userRole != 'Administrador'"
+<app-sub-toolbar *ngIf="!(this.isAdmin | async)"
     title="Indicador: {{this.Indicator.name}}"
     [backButton]="true">
 </app-sub-toolbar>
 
 <div class="page-content">
-    <div *ngIf="!this.editMode; else EditMode">
+    <div *ngIf="!(this.editMode | async); else EditMode">
         <mat-card class="pb-3">
             <mat-card-title class="font-weight-lighter">Información General</mat-card-title>
             <div class="row mb-3">
@@ -219,7 +218,7 @@
                         <div class="definition-space">
                             <div *ngIf="this.ParameterSelected != null">
                                 <label class="p-1 font-weight-lighter" *ngFor="let field of this.Indicator.parameters_schema[this.ParameterSelected].definition">
-                                    {{field}}
+                                    {{field.value}}
                                 </label>
                             </div>
                         </div>
@@ -560,4 +559,4 @@
         
         </form>
     </ng-template>
-</div>
+</div> 
