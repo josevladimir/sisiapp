@@ -1,0 +1,33 @@
+<div class="full-height full-width">
+    <mat-toolbar class="flex" id="main-toolbar">
+      <div class="full-height p-2">
+        <img src="../assets/images/logo-sisi.svg" class="full-height" alt="">
+      </div>
+      <span class="fill-remaining-space"></span>
+      <button mat-button [matMenuTriggerFor]="menu"> {{this.userData.name}} {{this.userData.last_names}} <mat-icon>arrow_drop_down</mat-icon></button>
+      <mat-menu #menu="matMenu" xPosition="before">
+        <a mat-menu-item [routerLink]="['/profile']">Mi Perfil</a>
+        <button mat-menu-item (click)="logout()">Cerrar Sesión</button>
+      </mat-menu>
+    </mat-toolbar>
+    <mat-drawer-container>
+      <mat-drawer mode="side" id="side-menu" opened>
+          <mat-list>
+            <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['dashboard']">Dashboard</a></li>
+            <li *ngIf="this.userData.role!= 'Financiador'"><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['./funders']">Financiadores</a></li>
+            <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['organizations']">Organizaciones</a></li>
+            <li *ngIf="this.userData.role!= 'Financiador'"><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['indicators']">Indicadores</a></li>
+            <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['projects']">Proyectos</a></li>
+            <li *ngIf="this.userData.role!= 'Financiador'"><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['schemas']">Fichas</a></li>
+            <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['reports']">Reportes</a></li>
+            <li *ngIf="this.userData.role!= 'Financiador'"><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['documents']">Documentos</a></li>
+            <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['institucionales']">Institucionales</a></li>
+            <li *ngIf="this.userData.role== 'Administrador'"><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['users']">Usuarios</a></li>
+            <li><a mat-button class="full-width font-weight-lighter text-lg-left link-side" routerLinkActive="linkActive" [routerLink]="['settings']">Configuración</a></li>
+          </mat-list>
+      </mat-drawer>
+      <mat-drawer-content>
+        <router-outlet></router-outlet>
+      </mat-drawer-content>
+    </mat-drawer-container>
+  </div>

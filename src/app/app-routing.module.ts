@@ -24,33 +24,45 @@ import { SettingsComponent } from './components/pages/settings/settings/settings
 import { IndexComponent } from './components/pages/institutionals/index/index.component';
 import { DocumentsComponent } from './components/pages/documents/documents/documents.component';
 import { ProfileComponent } from './components/pages/profile/profile.component';
+import { LoginComponent } from './components/pages/login/login.component';
+import { MainComponent } from './components/pages/main/main.component';
+import { GuardService } from './services/guard.service';
 
 const routes: Routes = [
-  {path: '', pathMatch: 'full', redirectTo: 'dashboard'},
-  {path: 'dashboard', component: DashboardComponent},
-  {path: 'funders', component: FundersComponent},
-  {path: 'funders/:id', component: FunderViewComponent},
-  {path: 'organizations', component: OrganizationsComponent},
-  {path: 'organizations/add', component: NewOrganizationComponent},
-  {path: 'organizations/:id', component: OrganizationViewComponent},
-  {path: 'organizations/:id/partners', component: PartnersComponent},
-  {path: 'organizations/:id/partners/historic', component: PartnersHistoricComponent},
-  {path: 'indicators', component: IndicatorsComponent},
-  {path: 'indicators/add', component: NewIndicatorComponent},
-  {path: 'indicators/:id', component: IndicatorViewComponent},
-  {path: 'projects', component: ProjectsComponent},
-  {path: 'projects/add', component: NewProjectComponent},
-  {path: 'projects/:id', component: ProjectViewComponent},
-  {path: 'schemas', component: FichasComponent},
-  {path: 'reports', component: ReportComponent},
-  {path: 'documents', component: DocumentsComponent},
-  {path: 'institucionales', component: IndexComponent},
-  {path: 'users', component: UsersComponent},
-  {path: 'users/add', component: NewUsersComponent},
-  {path: 'users/:id', component: UsersViewComponent},
-  {path: 'settings', component: SettingsComponent},
-  {path: 'profile', component: ProfileComponent},
-  {path: '**', pathMatch: 'full', redirectTo: 'dashboard'}
+  {path: '', pathMatch: 'full', redirectTo: 'main'},
+  {path: 'login', component: LoginComponent},
+  {
+    path: 'main', 
+    component: MainComponent,
+    canActivate: [GuardService],
+    children: [
+      {path: 'dashboard', component: DashboardComponent},
+      {path: 'funders', component: FundersComponent},
+      {path: 'funders/:id', component: FunderViewComponent},
+      {path: 'organizations', component: OrganizationsComponent},
+      {path: 'organizations/add', component: NewOrganizationComponent},
+      {path: 'organizations/:id', component: OrganizationViewComponent},
+      {path: 'organizations/:id/partners', component: PartnersComponent},
+      {path: 'organizations/:id/partners/historic', component: PartnersHistoricComponent},
+      {path: 'indicators', component: IndicatorsComponent},
+      {path: 'indicators/add', component: NewIndicatorComponent},
+      {path: 'indicators/:id', component: IndicatorViewComponent},
+      {path: 'projects', component: ProjectsComponent},
+      {path: 'projects/add', component: NewProjectComponent},
+      {path: 'projects/:id', component: ProjectViewComponent},
+      {path: 'schemas', component: FichasComponent},
+      {path: 'reports', component: ReportComponent},
+      {path: 'documents', component: DocumentsComponent},
+      {path: 'institucionales', component: IndexComponent},
+      {path: 'users', component: UsersComponent},
+      {path: 'users/add', component: NewUsersComponent},
+      {path: 'users/:id', component: UsersViewComponent},
+      {path: 'settings', component: SettingsComponent},
+      {path: 'profile',component: ProfileComponent},
+      {path: '**', pathMatch: 'full', redirectTo:'dashboard'}
+    ]
+  },
+  {path: '**', pathMatch: 'full', redirectTo: 'main'}
 ];
 
 @NgModule({

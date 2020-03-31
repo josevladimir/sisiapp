@@ -7,30 +7,30 @@
 <div class="page-content">
     <div class="container full-height">
         <div class="row full-height">
-            <div [ngClass]="{'col-sm-6':this.userRole == 'Administrador','col-sm-12':this.userRole != 'Administrador'}" *ngIf="this.funders.length | async; else NoFunders">
+            <div [ngClass]="{'col-sm-6':(this.isAdmin | async),'col-sm-12':!(this.isAdmin | async)}" *ngIf="this.funders.length; else NoFunders">
                 <h2 class="list-title full-width">Financiadores Registrados</h2>
                 <mat-list class="scroll-list-view bordered-list">
                     <a mat-button *ngFor="let funder of this.funders" [routerLink]="funder._id" class="full-width text-left font-weight-lighter">{{funder.name}} - {{funder.place}}</a>
                 </mat-list>
             </div>
             <ng-template #NoFunders>
-                <div [ngClass]="{'col-sm-6':this.userRole == 'Administrador','col-sm-12':this.userRole != 'Administrador'}" class="full-height">
+                <div [ngClass]="{'col-sm-6':(this.isAdmin | async),'col-sm-12':!(this.isAdmin | async)}" class="full-height">
                     <h3 class="font-weight-lighter mt-5 text-center">No hay Financiadores registrados</h3>
                     <div class="font-weight-lighter full-width text-center">Para agregar un financiador, use el formulario de la derecha.</div>
                 </div>
             </ng-template> 
-            <div class="col-sm-6" *ngIf="this.userRole == 'Administrador'">
+            <div class="col-sm-6" *ngIf="this.isAdmin | async">
                 <mat-card>
                     <mat-card-title class="font-weight-lighter">Nuevo Financiador:</mat-card-title>
                     <form [formGroup]="this.fundersForm" class="mt-3" (ngSubmit)="saveFunder()" novalidate>
                         <mat-form-field class="full-width">
                             <input matInput type="text" formControlName="name" placeholder="Nombre del Financiador:">
-                            <mat-error *ngIf="this.nameCtrl.errors?.required && this.nameCtrl.touched">Este campo es obligatorio</mat-error>
-                            <mat-error *ngIf="this.nameCtrl.errors?.exist && this.nameCtrl.touched">Ya existe un Financiador con ese nombre</mat-error>
+                            <mat-error *ngIf="this.fundersForm.controls.name.errors?.required && this.fundersForm.controls.name.touched">Este campo es obligatorio</mat-error>
+                            <mat-error *ngIf="this.fundersForm.controls.name.errors?.exist && this.fundersForm.controls.name.touched">Ya existe un Financiador con ese nombre</mat-error>
                         </mat-form-field>
                         <mat-form-field class="full-width">
                             <input matInput type="text" formControlName="place" placeholder="País:">
-                            <mat-error *ngIf="this.ubicationCtrl.invalid && this.ubicationCtrl.touched">Este campo es obligatorio</mat-error>
+                            <mat-error *ngIf="this.fundersForm.controls.place.invalid && this.fundersForm.controls.place.touched">Este campo es obligatorio</mat-error>
                         </mat-form-field>
                         <mat-form-field class="full-width">
                             <input matInput type="text" formControlName="website" placeholder="Sitio Web:">
@@ -38,8 +38,8 @@
                         <mat-form-field class="full-width">
                             <input matInput formControlName="coop_date" placeholder="Inicio de Trabajo en Conjunto">
                             <mat-hint>Utilice el siguiente formato: <b>07/2019</b></mat-hint>
-                            <mat-error *ngIf="this.fundersForm.controls['coop_date'].errors?.required && this.coop_dateCtrl.touched">Este campo es obligatorio</mat-error>
-                            <mat-error *ngIf="this.fundersForm.controls['coop_date'].errors?.pattern && this.coop_dateCtrl.touched">Ingrese una fecha con el formato válido</mat-error>
+                            <mat-error *ngIf="this.fundersForm.controls['coop_date'].errors?.required && this.fundersForm.controls.coop_date.touched">Este campo es obligatorio</mat-error>
+                            <mat-error *ngIf="this.fundersForm.controls['coop_date'].errors?.pattern && this.fundersForm.controls.coop_date.touched">Ingrese una fecha con el formato válido</mat-error>
                         </mat-form-field>
                         <div class="flex">
                             <span class="fill-remaining-space"></span>

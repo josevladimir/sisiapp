@@ -1,88 +1,98 @@
-<app-sub-toolbar *ngIf="this.userRole == 'Administrador'"
+<app-sub-toolbar *ngIf="this.isAdmin | async"
     [title]="this.Funder.name"
     [backButton]="true"
     [addButton]="false"
-    [buttons]="[this.DeleteBtn]"
-    [importantBack]="this.editMode">
+    [importantBack]="this.editMode"
+    [editButton]="true"
+    (editClick)="setEditMode()"
+    [deleteButton]="this.DeleteBtn">
 </app-sub-toolbar>
 
-<app-sub-toolbar *ngIf="this.userRole != 'Administrador'"
+<app-sub-toolbar *ngIf="!(this.isAdmin | async)"
     [title]="this.Funder.name"
     [backButton]="true"
     [addButton]="false">
 </app-sub-toolbar>
 
 <div class="page-content">
-    <mat-card>
-        <form [formGroup]="this.FunderFormGroup">
-            <div class="flex">
-                <mat-card-title class="font-weight-lighter">Datos Generales</mat-card-title>
-                <span class="fill-remaining-space"></span>
-                <button mat-button *ngIf="this.userRole == 'Administrador' && !this.editMode" (click)="this.edit()"><mat-icon>edit</mat-icon> EDITAR</button>
-            </div>
+    <mat-card *ngIf="!this.editMode; else EditForm">
+        <mat-card-title class="font-weight-lighter">Datos Generales</mat-card-title>
+        <mat-card-content>
             <div class="row mb-4">
                 <div class="col-md-3">
-                    <mat-form-field class="full-width">
-                        <input matInput type="text" formControlName="name" placeholder="Nombre del Financiador">
-                        <mat-error>Este campo es obligatorio</mat-error>
-                    </mat-form-field>
+                    <div class="full-width">
+                        <small class="label full-width font-weight-lighter">Nombre</small>
+                        <div>{{Funder.name}}</div>
+                    </div>
                 </div>
                 <div class="col-md-3">
-                    <mat-form-field class="full-width">
-                        <input matInput type="text" formControlName="place" placeholder="Ubicación">
-                        <mat-error>Este campo es obligatorio</mat-error>
-                    </mat-form-field>
+                    <div class="full-width">
+                        <small class="label full-width font-weight-lighter">Ubicación</small>
+                        <div>{{Funder.place}}</div>
+                    </div>
                 </div>
                 <div class="col-md-3">
-                    <mat-form-field class="full-width">
-                        <input matInput type="text" formControlName="website" placeholder="Sitio Web">
-                        <mat-error>Este campo es obligatorio</mat-error>
-                    </mat-form-field>    
+                    <div class="full-width">
+                        <small class="label full-width font-weight-lighter">Sitio Web</small>
+                        <a [href]="'https://' + Funder.website" target="_blank">{{Funder.website}}</a>
+                    </div>
                 </div>
                 <div class="col-md-3">
-                    <mat-form-field disabled class="full-width">
-                        <input matInput type="text" formControlName="coop_date" placeholder="Fecha de Constitución">
-                        <mat-error>Este campo es obligatorio</mat-error>
-                    </mat-form-field>    
+                    <div class="full-width">
+                        <small class="label full-width font-weight-lighter">Inicio de Trabajo en Conjunto</small>
+                        <div>{{Funder.coop_date}}</div>
+                    </div>
                 </div>
             </div>
-            <app-button-group *ngIf="this.editMode" [formStatus]="this.FunderFormGroup.pristine" (save)="this.save()" (cancel)="this.cancel()"></app-button-group>
-        </form>
+        </mat-card-content>
     </mat-card>
+    
+    <ng-template #EditForm>
+        <mat-card>
+            <mat-card-title class="font-weight-lighter">Datos Generales</mat-card-title>
+            <mat-card-content>
+                <form [formGroup]="this.FunderFormGroup" (ngSubmit)="save()">
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <mat-form-field class="full-width">
+                                <input matInput type="text" formControlName="name" placeholder="Nombre del Financiador">
+                                <mat-error>Este campo es obligatorio</mat-error>
+                            </mat-form-field>
+                        </div>
+                        <div class="col-md-3">
+                            <mat-form-field class="full-width">
+                                <input matInput type="text" formControlName="place" placeholder="Ubicación">
+                                <mat-error>Este campo es obligatorio</mat-error>
+                            </mat-form-field>
+                        </div>
+                        <div class="col-md-3">
+                            <mat-form-field class="full-width">
+                                <input matInput type="text" formControlName="website" placeholder="Sitio Web">
+                                <mat-error>Este campo es obligatorio</mat-error>
+                            </mat-form-field>    
+                        </div>
+                        <div class="col-md-3">
+                            <mat-form-field disabled class="full-width">
+                                <input matInput type="text" formControlName="coop_date" placeholder="Fecha de Constitución">
+                                <mat-error>Este campo es obligatorio</mat-error>
+                            </mat-form-field>    
+                        </div>
+                    </div>
+                    <div class="flex">
+                        <span class="fill-remaining-space"></span>
+                        <button mat-button class="mr-3" (click)="this.cancel()" type="reset">CANCELAR</button>
+                        <button [disabled]="this.FunderFormGroup.pristine" type="submit" mat-raised-button color="primary">GUARDAR</button>
+                    </div>
+                </form>
+            </mat-card-content>
+        </mat-card>
+    </ng-template>
 
     <div>
         <h2 class="mt-5 font-weight-lighter">Proyectos asociados:</h2>
         <div *ngIf="this.Funder.projects.length; else NoProjects" class="row row-cols-1 row-cols-md-3">
             <div class="col mb-4" *ngFor="let project of this.Funder.projects">
-                <mat-card>
-                    <mat-card-title class="font-weight-lighter">{{project.name}}</mat-card-title>
-                    <mat-divider></mat-divider>
-                    <mat-card-content>
-                        <mat-list>
-                            <li class="pt-2">
-                                <span>
-                                    Fecha de Inicio: <span class="font-weight-lighter">{{project.start_date}}</span>
-                                </span>
-                            </li>
-                            <li class="mt-2">
-                                <span>
-                                    Ubicación: <span class="font-weight-lighter">{{project.ubication}}</span>
-                                </span>
-                            </li>
-                            <li class="mt-2">
-                                <span>
-                                    Duración: <span class="font-weight-lighter">{{project.duration}}</span>
-                                </span>
-                            </li>
-                        </mat-list>
-                    </mat-card-content>
-                    <mat-card-actions>
-                        <div class="flex">
-                            <span class="fill-remaining-space"></span>
-                            <a mat-button [routerLink]="['/projects',project._id]">DETALLES</a>
-                        </div>
-                    </mat-card-actions>
-                </mat-card>
+                <app-project-card [project]="project"></app-project-card>
             </div>
         </div>
         <ng-template #NoProjects>

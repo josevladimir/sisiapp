@@ -14,6 +14,7 @@ export class SubToolbarComponent implements OnInit{
   @Input() editButton;
   @Input() buttons : ToolbarButton[];
   @Input() importantBack : boolean;
+  @Input() deleteButton : () => void;
 
   @Output() editClick : EventEmitter<any> = new EventEmitter();
 

@@ -1,98 +1,69 @@
-import { Component } from '@angular/core';
-import { ActivatedRoute, Params, Router } from '@angular/router';
-import { SisiCoreService } from '../../../../services/sisi-core.service';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { ToolbarButton } from '../../../shared/sub-toolbar/sub-toolbar.component';
+import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { State } from '../../../../reducers/index';
+import { isAdmin } from 'src/app/reducers/selectors/session.selector';
+import { Observable } from 'rxjs';
 import * as fromLoadingActions from '../../../../reducers/actions/loading.actions';
+import { ActivatedRoute, Params } from '@angular/router';
+import { FundersServiceService, Funder } from '../../../../services/funders-service.service';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { isEditMode } from '../../../../reducers/selectors/general.selector';
+import { editModeSetEnabled } from '../../../../reducers/actions/general.actions';
 
 @Component({
   selector: 'app-funder-view',
   templateUrl: './funder-view.component.html'
 })
-export class FunderViewComponent{
+export class FunderViewComponent implements OnInit{
 
-  funderID : string;
+  isAdmin : Observable<boolean>;
 
+  Funder : Funder = {name: '',projects: [],place: '',website: '',_id: '',coop_date: '',created_by: '',created_at: null, last_update: null};
+  
   editMode : boolean = false;
-
-  userRole : string = localStorage.getItem('userRole');
-
-  Funder : any;
 
   FunderFormGroup : FormGroup;
 
-  LoadingComponentOptions : any;
-
-  DeleteBtn : ToolbarButton = {
-    hasIcon: true,
-    icon: 'delete',
-    handler: ()=>{
+  DeleteBtn : () => void = ()=>{
       if(confirm('¿Está seguro que desea eliminar este Financiador?\n\nEsta acción no se puede deshacer.')){
         this._store.dispatch(fromLoadingActions.initLoading({message: 'Eliminando Financiador...'}));
-        this._service.deleteFunder(this.Funder._id).subscribe(
-          result => {
-            if(result.message == 'DELETED'){
-              this._service.updateProjectsList(null);
-              this._service.updateFundersList(true);
-              this._store.dispatch(fromLoadingActions.stopLoading());
-              this._snackBar.open('Se eliminó el Financiador correctamente.','ENTENDIDO',{duration: 3000});
-            }
-          
-          },error => {
-            this._store.dispatch(fromLoadingActions.stopLoading());
-            this._snackBar.open('Ocurrió un error al eliminar el Financiador.','ENTENDIDO',{duration: 3000})
-          }
-        )
+        this._fundersService.deleteFunder(this.Funder._id);
       }
-    },
-    message: 'ELIMINAR'
-  }
+    }
 
   constructor(private _activatedRoute : ActivatedRoute,
-              private _service : SisiCoreService,
-              private _snackBar : MatSnackBar,
+              private _fundersService : FundersServiceService,
               private _store : Store<State>) { 
   
     this._activatedRoute.params.subscribe(
       (params : Params) => {
-        this.funderID = params.id;
-        this.Funder = this._service.getFunder(this.funderID)
+        this._fundersService.getFunder().subscribe((funders : Funder[]) => this.Funder = funders.filter((funder : Funder) => funder._id == params.id)[0]);
       });
+
+    this.isAdmin = this._store.select(isAdmin);
+    this._store.select(isEditMode).subscribe(value => this.editMode = value);
+
+  }
+  
+  ngOnInit(): void {
+    //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
+    //Add 'implements OnInit' to the class.
     this.FunderFormGroup = new FormGroup({
-      name: new FormControl({value: this.Funder.name, disabled: true},Validators.required),
-      place: new FormControl({value: this.Funder.place, disabled: true},Validators.required),
-      website: new FormControl({value: this.Funder.website, disabled: true}),
-      coop_date: new FormControl({value: this.Funder.coop_date, disabled: true},[Validators.required,Validators.pattern(new RegExp(/^\d{1,2}\/\d{4}$/))])
+      name: new FormControl(this.Funder.name,Validators.required),
+      place: new FormControl(this.Funder.place,Validators.required),
+      website: new FormControl(this.Funder.website),
+      coop_date: new FormControl(this.Funder.coop_date,[Validators.required,Validators.pattern(new RegExp(/^\d{1,2}\/\d{4}$/))])
     });
   }
 
-  edit(){
-    this.editMode = true;
-    this.FunderFormGroup.enable();
-  }
+  setEditMode = () => this._store.dispatch(editModeSetEnabled());
 
   save(){
-    this._store.dispatch(fromLoadingActions.initLoading({message: 'Guardando el Nuevo Financiador...'}));
-    this._service.updateFunder(this.FunderFormGroup.value,this.funderID).subscribe(
-      result => {
-        this._service.updateFundersList(false);
-        this.Funder = result.funder;
-        this.editMode = false;
-        this.FunderFormGroup.disable();
-        this._store.dispatch(fromLoadingActions.stopLoading());
-        this._snackBar.open('Se han guardado los cambios.','ENTENDIDO',{duration: 3000});
-      },error => {
-        this._store.dispatch(fromLoadingActions.stopLoading());
-        this._snackBar.open('Ha ocurrido un error al guardar los cambios','ENTENDIDO',{duration: 3000})
-      }
-    )
+    this._store.dispatch(fromLoadingActions.initLoading({message: 'Guardando cambios en el financiador...'}));
+    this._fundersService.updateFunder(this.FunderFormGroup.value,this.Funder._id);
   }
 
   cancel(){
-    this.FunderFormGroup.disable();
     this.FunderFormGroup.reset({
       name: this.Funder.name,
       place: this.Funder.place,

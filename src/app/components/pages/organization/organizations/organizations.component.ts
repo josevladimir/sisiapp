@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { SisiCoreService } from '../../../../services/sisi-core.service';
+import { OrganizationsServiceService } from '../../../../services/organizations-service.service';
 
 @Component({
   selector: 'app-organizations',
@@ -7,14 +7,17 @@ import { SisiCoreService } from '../../../../services/sisi-core.service';
 })
 export class OrganizationsComponent {
 
-  Organizations : any[] = this._service.getOrganizationsOff();
+  Organizations : any[] = [];
 
   userRole : string = localStorage.getItem('userRole');
 
-  List : any[] = this.Organizations;
+  List : any[] = [];
 
-  constructor(private _service : SisiCoreService) {
-    
+  constructor(private organizationsService : OrganizationsServiceService) {
+    this.organizationsService.getOrganizationsLocal().subscribe(data => {
+      this.Organizations = data.organizations;
+      this.List = data.organizations;
+    });
   }
 
   updateList(list){

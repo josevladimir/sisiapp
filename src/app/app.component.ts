@@ -1,16 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { SisiCoreService } from './services/sisi-core.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { Router } from '@angular/router';
-import { SocketioService } from './services/socketio.service';
 import { Store } from '@ngrx/store';
 import { State } from './reducers/index';
-import * as fromLoadingActions from './reducers/actions/loading.actions';
 import { Observable } from 'rxjs';
 import { getLoaderState } from './reducers/selectors/loading.selector';
-import { isAuth, getUserData } from './reducers/selectors/session.selector';
-import { User } from './reducers/actions/session.actions';
-import { FundersServiceService } from './services/funders-service.service';
+import { initLoading, stopLoading } from './reducers/actions/loading.actions';
+import { SessionService } from './services/session.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -18,147 +13,28 @@ import { FundersServiceService } from './services/funders-service.service';
   styleUrls: ['./app.component.sass']
 })
 
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit{
   
   title = 'SISI - CEFODI';
   
   //From Store
-  isAuth : boolean;
   isWorking : Observable<boolean>;
-  userData : User;
-  userRole : string = localStorage.getItem('userRole');
 
-  constructor(private _service : SisiCoreService,
-              private _fundersService : FundersServiceService,
-              private _snackBar : MatSnackBar,
-              private _socketIO : SocketioService,
-              private _Router : Router,
-              private _store : Store<State>){ 
-
-    //Subscribe to Store
-    this._store.select(isAuth).subscribe((data : boolean) => this.isAuth = data);
-    this.isWorking = this._store.select(getLoaderState);
-    this._store.select(getUserData).subscribe((data : User) => {this.userData = data; if(data.token) this.initialize()});
+  constructor(private store : Store<State>,
+              private sessionService : SessionService,
+              private Router : Router){ 
+    this.isWorking = this.store.select(getLoaderState);
   }
-
-
-  initialize(){
-    this._fundersService.getFunders();
-  }
-
+  
   ngOnInit(){
-
-    if(this.isAuth){
-      this._store.dispatch(fromLoadingActions.initLoading({message: 'Inicializando el sistema...'}));
-      this.userData = JSON.parse(localStorage.getItem('user'));
-      this._store.dispatch(fromLoadingActions.changeMessage({message: 'Recuperando los Financiadores...'}));
-      /*this._service.getFunders().subscribe(
-        result => {
-          localStorage.setItem('funders',JSON.stringify(result.funders));
-          this._store.dispatch(fromLoadingActions.changeMessage({message:'Recuperando las Organizaciones...'}));
-          this._service.getOrganizations().subscribe(
-            result => {
-              localStorage.setItem('organizations',JSON.stringify(result.organizations));
-              this._store.dispatch(fromLoadingActions.changeMessage({message:'Recuperando los Proyectos...'}));
-              this._service.getProjects().subscribe(
-                result => {
-                  localStorage.setItem('projects',JSON.stringify(result.projects));
-                  this._store.dispatch(fromLoadingActions.changeMessage({message:'Recuperando los Indicadores...'}));
-                  this._service.getIndicators().subscribe(
-                    result => {
-                      localStorage.setItem('indicators',JSON.stringify(result.indicators));
-                      this._store.dispatch(fromLoadingActions.changeMessage({message:'Recuperando los Usuarios...'}));
-                      this._service.getUsers().subscribe(
-                        result => {
-                          localStorage.setItem('users',JSON.stringify(result.users));
-                          this._store.dispatch(fromLoadingActions.changeMessage({message:'Cargando las preferencias...'}));
-                          this._service.getPreferences().subscribe(
-                            result => {
-                              if(result.message == 'OK'){
-                                localStorage.setItem('sectors',result.preferences.Organizations.Sectors.length ? JSON.stringify(result.preferences.Organizations.Sectors) : '[]');
-                                localStorage.setItem('types',result.preferences.Organizations.Types.length ? JSON.stringify(result.preferences.Organizations.Types) : '[]');
-                              }else {
-                                localStorage.setItem('sectors','[]');
-                                localStorage.setItem('types','[]');
-                              }
-                              this._store.dispatch(fromLoadingActions.changeMessage({message: 'Cargando los archivos...'}));
-                              this._service.getFiles().subscribe(
-                                result => {
-                                  if(result.message == 'OK') localStorage.setItem('files',JSON.stringify(result.documents));
-                                  else localStorage.setItem('files','[]');
-                                  this._socketIO.listen('welcome').subscribe(data => this._socketIO.emit('register',{id: this.userData._id}));
-                                  this._store.dispatch(fromLoadingActions.stopLoading());
-                                },error => this._snackBar.open('Error recuperando los documentos.','ENTENDIDO',{duration: 3000})
-                              );
-                            },error => this._snackBar.open('Error recuperando los usuarios.','ENTENDIDO',{duration: 3000})
-                          );
-                        },error => this._snackBar.open('Error recuperando los usuarios.','ENTENDIDO',{duration: 3000})
-                      );
-                    },error => this._snackBar.open('Error recuperando los indicadores.','ENTENDIDO',{duration: 3000})
-                  );
-                },error => this._snackBar.open('Error recuperando los proyectos.','ENTENDIDO',{duration: 3000})
-              );
-            },error => this._snackBar.open('Error recuperando las organizaciones.','ENTENDIDO',{duration: 3000})
-          );
-        },error => this._snackBar.open('Error recuperando los financiadores.','ENTENDIDO',{duration: 3000})
-      );*/
-    }
-  }
-
-  Authenticate(){
-    this._Router.navigate(['dashboard']);
-    this.userData = JSON.parse(localStorage.getItem('user')); 
-    //localStorage.setItem('authenticated','true');
-    //localStorage.setItem('userID',this.userData._id);
-    //localStorage.setItem('userRole',this.userData.role);
-    //this.auth = true;
-    this._store.dispatch(fromLoadingActions.initLoading({message: 'Estamos cargando la información...'}));
-    this.userRole = localStorage.getItem('userRole');
-    this._service.getFunders().subscribe(
-      result => {
-        if(result.message == 'OK') localStorage.setItem('funders',JSON.stringify(result.funders));
-      },error => this._snackBar.open('Error recuperando los financiadores.','ENTENDIDO',{duration: 3000})
-    );
-    this._service.getOrganizations().subscribe(
-      result => {
-        if(result.message == 'OK') localStorage.setItem('organizations',JSON.stringify(result.organizations));
-      },error => this._snackBar.open('Error recuperando las organizaciones.','ENTENDIDO',{duration: 3000})
-    );
-    this._service.getProjects().subscribe(
-      result => {
-        if(result.message == 'OK') localStorage.setItem('projects',JSON.stringify(result.projects));
-        else localStorage.setItem('projects','[]');
-      },error => this._snackBar.open('Error recuperando los proyectos.','ENTENDIDO',{duration: 3000})
-    );
-    this._service.getIndicators().subscribe(
-      result => {
-        if(result.message == 'OK') localStorage.setItem('indicators',JSON.stringify(result.indicators));
-      },error => this._snackBar.open('Error recuperando los indicadores.','ENTENDIDO',{duration: 3000})
-    );
-    this._service.getUsers().subscribe(
-      result => {
-        if(result.message == 'OK') localStorage.setItem('users',JSON.stringify(result.users));
-      },error => this._snackBar.open('Error recuperando los usuarios.','ENTENDIDO',{duration: 3000})
-    );
-    this._service.getPreferences().subscribe(
-      result => {
-        if(result.message == 'OK') {
-          localStorage.setItem('sectors',JSON.stringify(result.preferences.Organizations.Sectors));
-          localStorage.setItem('types',JSON.stringify(result.preferences.Organizations.Types));
-        } 
-      },error => this._snackBar.open('Error recuperando los usuarios.','ENTENDIDO',{duration: 3000})
-    );
-  }
-
-  logout(){
-    localStorage.removeItem('user');
-    localStorage.removeItem('funders');
-    localStorage.removeItem('projects');
-    localStorage.removeItem('organizations');
-    localStorage.removeItem('indicators');
-    this.userData = null;
-    //this.auth = false;
-    localStorage.setItem('authenticated','false');
+    this.store.dispatch(initLoading({message: 'Cargando...'}));
+    this.sessionService.initSession().subscribe(session => {
+      if(session) this.sessionService.loadSession(session);
+      else {
+        this.Router.navigateByUrl('/login');
+        this.store.dispatch(stopLoading());
+      }
+    });
   }
 
 }

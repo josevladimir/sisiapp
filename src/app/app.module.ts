@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
-import { SocketIoConfig, SocketIoModule } from 'ngx-socket-io';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule} from '@angular/forms';
 import { MAT_DATE_LOCALE, MatNativeDateModule } from '@angular/material/core';
@@ -83,11 +82,10 @@ import { AppEffects } from './app.effects';
 import { StoreRouterConnectingModule, routerReducer } from '@ngrx/router-store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { environment } from '../environments/environment';
-import { reducers, metaReducers } from './reducers/index';
+import { reducers } from './reducers/index';
 import { StorageModule } from '@ngx-pwa/local-storage';
-
-//Configurar Sockets
-const config: SocketIoConfig = { url: 'http://localhost:3000', options: {} };
+import { MainComponent } from './components/pages/main/main.component';
+import { ProjectCardComponent } from './components/cards/project-card/project-card.component';
 
 @NgModule({
   declarations: [
@@ -127,7 +125,9 @@ const config: SocketIoConfig = { url: 'http://localhost:3000', options: {} };
     NewOrganizationComponent,
     OrganizationViewComponent,
     PartnersHistoricComponent,
-    NewOrganizationPreferenceComponent
+    NewOrganizationPreferenceComponent,
+    MainComponent,
+    ProjectCardComponent
   ],
   imports: [
     FormsModule,
@@ -163,8 +163,7 @@ const config: SocketIoConfig = { url: 'http://localhost:3000', options: {} };
     ReactiveFormsModule,
     MatDatepickerModule,
     BrowserAnimationsModule,
-    SocketIoModule.forRoot(config),
-    StoreModule.forRoot(reducers,{metaReducers}),
+    StoreModule.forRoot(reducers),
     EffectsModule.forRoot([AppEffects]),
     StoreRouterConnectingModule.forRoot(),
     StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: environment.production }),

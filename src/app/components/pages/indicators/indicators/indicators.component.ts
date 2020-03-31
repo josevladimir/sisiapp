@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { SisiCoreService } from '../../../../services/sisi-core.service';
+import { IndicatorsServiceService } from '../../../../services/indicators-service.service';
 
 @Component({
   selector: 'app-indicators',
@@ -7,16 +7,19 @@ import { SisiCoreService } from '../../../../services/sisi-core.service';
 })
 export class IndicatorsComponent{
 
-  Indicators : any[] = this._service.getIndicatorsOff();
+  Indicators : any[] = [];
 
   search_term : string = '';
 
-  filteredList : any[] = this.Indicators;
+  filteredList : any[] = [];
 
   userRole : string = localStorage.getItem('userRole');
 
-  constructor(private _service : SisiCoreService) { 
-
+  constructor(private indicatorsService : IndicatorsServiceService) {
+    this.indicatorsService.getIndicatorsLocal().subscribe((data => {
+      this.Indicators = data.indicators;
+      this.filteredList = data.indicators;
+    }));
   }
 
   filter(){

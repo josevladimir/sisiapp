@@ -34,6 +34,10 @@ export function reducer (state : SessionState = initialState, action) : SessionS
             isAdmin: action.user.role == 'Administrador' ? true : false
         });
 
+        case ACTIONS_KEYS.LOGOUT_KEY: return initialState;
+
+        case ACTIONS_KEYS.LOAD_SESSION_KEY: return action.session;
+
         default: return state;
     }
 }

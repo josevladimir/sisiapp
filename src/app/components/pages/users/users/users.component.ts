@@ -1,21 +1,26 @@
-import { Component } from '@angular/core';
-import { SisiCoreService } from '../../../../services/sisi-core.service';
+import { Component, OnDestroy } from '@angular/core';
+import { UsersServiceService } from '../../../../services/users-service.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-users',
   templateUrl: './users.component.html'
 })
-export class UsersComponent {
+export class UsersComponent implements OnDestroy {
+
+  subscription : Subscription;
 
   filter : string = "name";
   search_term : string = '';
 
-  Users : any[];
-  filteredList : any[];
+  Users : any[] = [];
+  filteredList : any[] = [];
 
-  constructor(private _service : SisiCoreService) {
-    this.Users = this._service.getUsersOff();
-    this.filteredList = this.Users;
+  constructor(private userService : UsersServiceService) {
+    this.subscription = this.userService.getUsersLocal().subscribe(data => {
+      this.Users = data.users;
+      this.filteredList = data.users;
+    });
   }
 
   filterByTerm(){
@@ -26,6 +31,10 @@ export class UsersComponent {
   filterByRole(role){
     if(!role) return this.filteredList = this.Users;
     this.filteredList = this.Users.filter(user => user[this.filter] == role);
+  }
+
+  ngOnDestroy(){
+    this.subscription.unsubscribe();
   }
 
 }

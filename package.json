@@ -36,8 +36,8 @@
     "jquery": "^3.4.1",
     "moment": "^2.24.0",
     "ng2-charts": "^2.3.0",
-    "ngx-socket-io": "^3.0.1",
     "rxjs": "~6.5.4",
+    "socket.io-client": "^2.3.0",
     "tslib": "^1.10.0",
     "zone.js": "~0.10.3"
   },
@@ -57,7 +57,6 @@
     "karma-coverage-istanbul-reporter": "~2.0.1",
     "karma-jasmine": "~2.0.1",
     "karma-jasmine-html-reporter": "^1.4.0",
-    "ngrx-store-freeze": "^0.2.4",
     "protractor": "~5.4.0",
     "ts-node": "~7.0.0",
     "tslint": "~5.15.0",

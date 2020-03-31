@@ -1,9 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
-import { of as observableOf } from 'rxjs';
+import { of as observableOf, Subscription } from 'rxjs';
 import { FlatTreeControl } from '@angular/cdk/tree';
-//import { files } from './example-data';
 import { environment } from '../../../../../environments/environment';
+import { DocumentsServiceService } from '../../../../services/documents-service.service';
 
 /** File node data with possible child nodes. */
 export interface FileNode {
@@ -27,10 +27,9 @@ export interface FlatTreeNode {
 
 @Component({
   selector: 'app-documents',
-  templateUrl: './documents.component.html',
-  styleUrls: ['./documents.component.css']
+  templateUrl: './documents.component.html'
 })
-export class DocumentsComponent {
+export class DocumentsComponent implements OnDestroy {
 
   URL : string = environment.baseUrl;
 
@@ -43,25 +42,30 @@ export class DocumentsComponent {
   /** The MatTreeFlatDataSource connects the control and flattener to provide data. */
   dataSource: MatTreeFlatDataSource<FileNode, FlatTreeNode>;
 
-  constructor() {
+  subscription : Subscription;
+  files : any[];
+
+  constructor(private documentsService : DocumentsServiceService) {
+    
     this.treeFlattener = new MatTreeFlattener(
       this.transformer,
       this.getLevel,
       this.isExpandable,
       this.getChildren);
-
-    this.treeControl = new FlatTreeControl(this.getLevel, this.isExpandable);
-    this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
-    this.dataSource.data = this.formatFilesData();
-
-    
+      
+      this.treeControl = new FlatTreeControl(this.getLevel, this.isExpandable);
+      this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
+      
+      this.subscription = this.documentsService.getDocumentsLocal().subscribe((data : any) => {
+        this.files = data.documents;
+        this.dataSource.data = this.formatFilesData();
+      });
   }
 
 
   formatFilesData() : any{
-    let files : any[] = localStorage.getItem('files') ? JSON.parse(localStorage.getItem('files')) : [];
 
-    if(files.length){
+    if(this.files.length){
       let file_structure : any = [
         {
           name: 'Organizaciones',
@@ -79,9 +83,9 @@ export class DocumentsComponent {
         }
       ];
       
-      let orgFiles : any[] = files.filter(file => file.entity == 'Organizaciones');
+      let orgFiles : any[] = this.files.filter(file => file.entity == 'Organizaciones');
       let orgFolders : any[] = orgFiles.map(org => org.folder.name);
-      let projectsFiles : any[] = files.filter(file => file.entity == 'Proyectos');
+      let projectsFiles : any[] = this.files.filter(file => file.entity == 'Proyectos');
 
       orgFolders.forEach(folder => file_structure[0].children.push({
         name: folder,
@@ -146,4 +150,11 @@ export class DocumentsComponent {
   getChildren(node: FileNode) {
     return observableOf(node.children);
   }
+
+  ngOnDestroy(): void {
+    //Called once, before the instance is destroyed.
+    //Add 'implements OnDestroy' to the class.
+    this.subscription.unsubscribe();
+  }
+  
 }

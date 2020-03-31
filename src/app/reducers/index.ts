@@ -1,20 +1,22 @@
+import * as fromGeneral from './reducers/general.reducer';
 import * as fromLoading from './reducers/loading.reducer';
 import * as fromSession from './reducers/session.reducer';
+import * as fromSockets from './reducers/sockets.reducer';
 
-import { environment } from '../../environments/environment';
-import { storeFreeze } from 'ngrx-store-freeze';
 import {
-  ActionReducerMap, MetaReducer,
+  ActionReducerMap,
 } from '@ngrx/store';
 
 export interface State {
+  general: fromGeneral.GeneralState;
   loading: fromLoading.LoadingState;
   session: fromSession.SessionState;
+  sockets: fromSockets.SocketState;
 }
 
 export const reducers : ActionReducerMap<State> = {
+  general: fromGeneral.reducer,
   loading: fromLoading.reducer,
-  session: fromSession.reducer
+  session: fromSession.reducer,
+  sockets: fromSockets.reducer
 }
-
-export const metaReducers: MetaReducer<State>[] = !environment.production ? [storeFreeze]: [];

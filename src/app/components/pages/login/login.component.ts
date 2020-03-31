@@ -7,6 +7,8 @@ import * as fromLoadingActions from '../../../reducers/actions/loading.actions';
 import { AuthServiceService } from '../../../services/auth-service.service';
 import { AuthObject } from 'src/app/reducers/actions/session.actions';
 import * as fromSessionActions from '../../../reducers/actions/session.actions';
+import { Router } from '@angular/router';
+import { SessionService } from 'src/app/services/session.service';
 
 @Component({
   selector: 'app-login',
@@ -17,8 +19,10 @@ export class LoginComponent{
   LoginForm : FormGroup;
 
   constructor(private service : AuthServiceService,
+              private sessionService : SessionService,
               private _snackBar : MatSnackBar,
-              private _store : Store<State>) { 
+              private _store : Store<State>,
+              private _Router : Router) { 
     this.LoginForm = new FormGroup({
       'username': new FormControl('',Validators.required),
       'password': new FormControl('',[Validators.required,Validators.minLength(8)])
@@ -44,12 +48,12 @@ export class LoginComponent{
             _id: result.user._id,
             funder: result.user.funder ? result.user.funder : null
           }
-          this._store.dispatch(fromSessionActions.authenticate({user}))
-          //localStorage.setItem('user',JSON.stringify(result.user));
-          //localStorage.setItem('token',result.token);
+          this._store.dispatch(fromSessionActions.authenticate({user}));
         }
         this._store.dispatch(fromLoadingActions.stopLoading());
+        this.sessionService.saveSession();
         this._snackBar.open(result.message,'ENTENDIDO',{duration: 3000});
+        this._Router.navigateByUrl('/main/dashboard');
       },
       error => {
         this._store.dispatch(fromLoadingActions.stopLoading());

@@ -1,0 +1,29 @@
+<mat-card>
+    <mat-card-title class="font-weight-lighter">{{project.name}}</mat-card-title>
+    <mat-divider></mat-divider>
+    <mat-card-content>
+        <mat-list>
+            <li class="pt-2">
+                <span>
+                    Fecha de Inicio: <span class="font-weight-lighter">{{project.start_date | date : 'd/MM/yyyy'}}</span>
+                </span>
+            </li>
+            <li class="mt-2">
+                <span>
+                    Ubicación: <span class="font-weight-lighter">{{project.ubication}}</span>
+                </span>
+            </li>
+            <li class="mt-2">
+                <span>
+                    Duración: <span class="font-weight-lighter">{{project.duration}} meses</span>
+                </span>
+            </li>
+        </mat-list>
+    </mat-card-content>
+    <mat-card-actions>
+        <div class="flex">
+            <span class="fill-remaining-space"></span>
+            <a mat-button [routerLink]="['/projects',project._id]">DETALLES</a>
+        </div>
+    </mat-card-actions>
+</mat-card>

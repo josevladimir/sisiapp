@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { SisiCoreService } from '../../../../services/sisi-core.service';
+import { ProjectsServiceService } from '../../../../services/projects-service.service';
 
 @Component({
   selector: 'app-projects',
@@ -11,10 +11,10 @@ export class ProjectsComponent{
   
   projects : any[] = [];
 
-  List : any[];
+  List : any[] = [];
 
-  constructor (private _service : SisiCoreService) { 
-    if(this.userRole == 'Financiador'){
+  constructor (private projectsService : ProjectsServiceService) { 
+    /*if(this.userRole == 'Financiador'){
       let normalProjects : any[] = this._service.getProjectsOff();
       let userProjects = JSON.parse(localStorage.getItem('user')).funder.projects;
       userProjects.forEach(project => {
@@ -23,7 +23,11 @@ export class ProjectsComponent{
         });
       });
     }else this.projects  = this._service.getProjectsOff();
-    this.List = this.projects;
+    this.List = this.projects;*/
+    this.projectsService.getProjectsLocal().subscribe((data : any) => {
+      this.projects = data.projects;
+      this.List = data.projects;
+    });
   }
 
   updateList(event){

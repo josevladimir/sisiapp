@@ -1,44 +1,44 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { FormGroup, Validators, FormControl } from '@angular/forms';
 import { SisiCoreService } from '../../../../services/sisi-core.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Store } from '@ngrx/store';
 import { State } from '../../../../reducers/index';
 import * as fromLoadingActions from '../../../../reducers/actions/loading.actions';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { FundersServiceService, Funder } from '../../../../services/funders-service.service';
+import { SocketioService } from '../../../../services/socketio.service';
+import { isAdmin } from '../../../../reducers/selectors/session.selector';
 
 @Component({
   selector: 'app-funders',
   templateUrl: './funders.component.html'
 })
-export class FundersComponent{
+export class FundersComponent implements OnDestroy{
   
-  funders : Observable<Funder[]>;
+  funders : Funder[] = [];
+
+  subscription : Subscription;
   
-  userID : string = localStorage.getItem('userID');
-  userRole : string = localStorage.getItem('userRole');
+  isAdmin : Observable<boolean>;
   
   fundersForm : FormGroup;
-  nameCtrl : FormControl = new FormControl('',[Validators.required,this._service.existFunder]);
-  ubicationCtrl : FormControl = new FormControl('',Validators.required);
-  websiteCtrl : FormControl = new FormControl('');
-  coop_dateCtrl : FormControl = new FormControl('',[Validators.required,Validators.pattern(new RegExp(/^\d{1,2}\/\d{4}$/))]);
   
   constructor(private _service : SisiCoreService,
-    private _fundersService : FundersServiceService,
-    private _snackBar : MatSnackBar,
-    private _store : Store<State>) { 
+              private _fundersService : FundersServiceService,
+              private _socketsService : SocketioService,
+              private _snackBar : MatSnackBar,
+              private _store : Store<State>) { 
       
-      //this.funders = this._fundersService.getFundersLocal();
+      this.subscription = this._fundersService.getFundersLocal().subscribe((funders : Funder[]) => {console.log('Actualizacion',funders);this.funders = funders});
 
-      //this._fundersService.getFundersLocal().subscribe((funders : any) => {this.funders = funders.funders; console.log(funders);});
-      
+      this.isAdmin = this._store.select(isAdmin);
+
       this.fundersForm = new FormGroup({
-      name: this.nameCtrl,
-      place: this.ubicationCtrl,
-      website: this.websiteCtrl,
-      coop_date: this.coop_dateCtrl
+      name: new FormControl('',[Validators.required,this._service.existFunder]),
+      place: new FormControl('',Validators.required),
+      website: new FormControl(''),
+      coop_date: new FormControl('',[Validators.required,Validators.pattern(new RegExp(/^\d{1,2}\/\d{4}$/))])
     });
   }
 
@@ -49,7 +49,8 @@ export class FundersComponent{
   saveFunder(){
     this._store.dispatch(fromLoadingActions.initLoading({message: 'Guardando el nuevo Financiador...'}));
     let body = this.fundersForm.value;
-    this._service.createFunder(body).subscribe(
+    this._fundersService.createFunder(body);
+    /*this._service.createFunder(body).subscribe(
       result => {
         //this.funders.push(result.funder);
         this._service.updateFundersList(null);
@@ -60,7 +61,13 @@ export class FundersComponent{
         this._store.dispatch(fromLoadingActions.stopLoading());
         this._snackBar.open('Ha ocurrido un error al registrar el financiador.','ENTENDIDO',{duration: 3000})
       }
-    );
+    );*/
+  }
+
+  ngOnDestroy(): void {
+    //Called once, before the instance is destroyed.
+    //Add 'implements OnDestroy' to the class.
+    this.subscription.unsubscribe();
   }
 
 }
