@@ -86,6 +86,7 @@ import { reducers } from './reducers/index';
 import { StorageModule } from '@ngx-pwa/local-storage';
 import { MainComponent } from './components/pages/main/main.component';
 import { ProjectCardComponent } from './components/cards/project-card/project-card.component';
+import { OrganizationCardComponent } from './components/cards/organization-card/organization-card.component';
 
 @NgModule({
   declarations: [
@@ -127,7 +128,8 @@ import { ProjectCardComponent } from './components/cards/project-card/project-ca
     PartnersHistoricComponent,
     NewOrganizationPreferenceComponent,
     MainComponent,
-    ProjectCardComponent
+    ProjectCardComponent,
+    OrganizationCardComponent
   ],
   imports: [
     FormsModule,

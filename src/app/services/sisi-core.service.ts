@@ -168,14 +168,6 @@ export class SisiCoreService {
     }
     return null;
   }
-  existOrganization( control: FormControl ) : {[s:string]:boolean} {
-    if(localStorage.getItem('organizations')) {
-      let organizations = JSON.parse(localStorage.getItem('organizations'));
-      let result = organizations.filter(organization => organization.name.toLowerCase() == control.value.toLowerCase());
-      if(result.length) return {exist: true};
-    }
-    return null;
-  }
   existProject( control: FormControl ) : {[s:string]:boolean} {
     if(localStorage.getItem('projects')) {
       let projects = JSON.parse(localStorage.getItem('projects'));

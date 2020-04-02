@@ -2,8 +2,7 @@
     title="Indicador: {{this.Indicator.name}}"
     [backButton]="true"
     [editButton]="!(this.editMode | async)"
-    [deleteButton]="this.DeleteBtn"
-    [importantBack]="(this.editMode | async)">
+    [deleteButton]="this.DeleteBtn">
 </app-sub-toolbar>
 
 <app-sub-toolbar *ngIf="!(this.isAdmin | async)"

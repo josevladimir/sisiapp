@@ -84,22 +84,6 @@ export class IndicatorsServiceService {
     }
   }
 
-  /*.subscribe(
-    result => {
-      if(result.message == 'UPDATED'){
-        this.Indicator = result.indicator;
-        this.editMode = false;
-        this.getFormFromIndicator();
-        this._service.updateIndicatorsList(null);
-        this._store.dispatch(fromLoadingActions.stopLoading());
-        this._snackBar.open('Se ha modificado el indicador correctamente.','ENTENDIDO',{duration: 3000});
-      }
-    },error => {
-      this._store.dispatch(fromLoadingActions.stopLoading());
-      this._snackBar.open('Ha ocurrido un error al actualizar el indicador.','ENTENDIDO',{duration: 3000});
-    }
-  );*/
-
   deleteIndicator (id : string) : void {
     this.http
         .delete(`${environment.baseUrl}/Indicator/${id}`,{headers: this.headersGenerator.generateAuthHeader()})

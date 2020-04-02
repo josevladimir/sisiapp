@@ -1,8 +1,7 @@
 <app-sub-toolbar
     title="Nueva Organización"
     [backButton]="true"
-    [addButton]="false"
-    [importantBack]="true">
+    [addButton]="false">
 </app-sub-toolbar>
 
 <div class="page-content">
@@ -13,8 +12,8 @@
                 <div class="col-sm-4">
                     <mat-form-field class="full-width">
                         <input matInput type="text" formControlName="name" placeholder="Nombre de la Organización">
-                        <mat-error *ngIf="this.nameCtrl.errors?.required">Este campo es obligatorio</mat-error>
-                        <mat-error *ngIf="this.nameCtrl.errors?.exist">Ya existe una organización con ese nombre</mat-error>
+                        <mat-error *ngIf="this.organizationForm.get('name').errors?.required">Este campo es obligatorio</mat-error>
+                        <mat-error *ngIf="this.organizationForm.get('name').errors?.exist">Ya existe una organización con ese nombre</mat-error>
                     </mat-form-field>
                 </div>
                 <div class="col-sm-4">
@@ -24,32 +23,33 @@
                         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                         <mat-datepicker #picker></mat-datepicker>
                         <mat-hint>Formato: dd/mm/aaaa</mat-hint>
-                        <mat-error *ngIf="this.foundation_dateCtrl.errors?.required">Este campo es obligatorio</mat-error>
+                        <mat-error *ngIf="this.organizationForm.get('foundation_date').errors?.required">Este campo es obligatorio</mat-error>
                     </mat-form-field>
                 </div>
                 <div class="col-sm-4">
                     <mat-form-field class="full-width">
                         <mat-label>Sector:</mat-label>
                         <mat-select formControlName="sector" #SectorSelect>
-                          <mat-option *ngFor="let sector of this.Sectors" [value]="sector">
+                          <mat-option *ngFor="let sector of this.OptionsOfSelects.Sectors" [value]="sector">
                               {{sector}}
                           </mat-option>
-                          <mat-option *ngIf="!this.Types.length"></mat-option>
+                          <mat-option *ngIf="!this.OptionsOfSelects.Types.length"></mat-option>
                           <button *ngIf="!this.newSector" mat-button class="full-width" (click)="this.addNewSector(SectorSelect)"><mat-icon>add</mat-icon> Añadir nuevo...</button>
                         </mat-select>
+                        <mat-error *ngIf="this.organizationForm.get('type').errors?.required">Este campo es obligatorio</mat-error>
                     </mat-form-field>    
                 </div>
                 <div class="col-sm-4">
                     <mat-form-field class="full-width">
                         <mat-label>Tipo de Organización:</mat-label>
                         <mat-select formControlName="type" #SelectType>
-                            <mat-option *ngFor="let type of this.Types" [value]="type">
+                            <mat-option *ngFor="let type of this.OptionsOfSelects.Types" [value]="type">
                                 {{type}}
                             </mat-option>
-                            <mat-option *ngIf="!this.Types.length"></mat-option>
+                            <mat-option *ngIf="!this.OptionsOfSelects.Types.length"></mat-option>
                             <button mat-button class="full-width" (click)="this.addNewType(SelectType)"><mat-icon>add</mat-icon> Añadir nuevo...</button>
                         </mat-select>
-                        <mat-error>Este campo es obligatorio</mat-error>
+                        <mat-error *ngIf="this.organizationForm.get('sector').errors?.required">Este campo es obligatorio</mat-error>
                     </mat-form-field>    
                 </div>
                 <div class="col-sm-4">
@@ -63,10 +63,10 @@
                                 No
                             </mat-option>
                         </mat-select>
-                        <mat-error>Este campo es obligatorio</mat-error>
+                        <mat-error *ngIf="this.organizationForm.get('legalized').errors?.required">Este campo es obligatorio</mat-error>
                     </mat-form-field>    
                 </div>
-                <div class="col-sm-4" *ngIf="typeCtrl.value == 'SFL'">
+                <div class="col-sm-4" *ngIf="this.organizationForm.get('type').value == 'SFL'">
                     <div class="full-width">
                         <small class="full-width label">Esta SFL clasifica como:</small>
                         <div *ngIf="this.isOlder" class="text-center">Antigua</div>
@@ -100,7 +100,7 @@
             </div>
         </mat-card>
         <!--Parte de Beneficiarios-->
-        <mat-card class="mt-4">
+        <mat-card class="mt-4 mb-4">
             <mat-card-title class="font-weight-lighter">Socios y Beneficiarios</mat-card-title>
             <div class="row">
                 <div class="col-sm-8">
@@ -109,21 +109,21 @@
                             <mat-form-field class="full-width">
                                 <input matInput type="text" formControlName="mens" placeholder="Socios Hombres">
                                 <mat-hint>Ingrese un número, por favor.</mat-hint>
-                                <mat-error *ngIf="this.mensCtrl.errors?.required">Este campo es obligatorio</mat-error>
-                                <mat-error *ngIf=" this.mensCtrl.errors?.pattern">Debe ingresar una cantidad numérica</mat-error>
+                                <mat-error *ngIf="this.organizationForm.get('partners').get('mens').errors?.required">Este campo es obligatorio</mat-error>
+                                <mat-error *ngIf=" this.organizationForm.get('partners').get('mens').errors?.pattern">Debe ingresar una cantidad numérica</mat-error>
                             </mat-form-field>
                         </div>
                         <div class="col-sm-6">
                             <mat-form-field class="full-width">
                                 <input matInput type="text" formControlName="womens" placeholder="Socios Mujeres">
                                 <mat-hint>Ingrese un número, por favor.</mat-hint>
-                                <mat-error *ngIf="this.womensCtrl.errors?.required">Este campo es obligatorio</mat-error>
-                                <mat-error *ngIf="this.womensCtrl.errors?.pattern">Debe ingresar una cantidad numérica</mat-error>
+                                <mat-error *ngIf="this.organizationForm.get('partners').get('womens').errors?.required">Este campo es obligatorio</mat-error>
+                                <mat-error *ngIf="this.organizationForm.get('partners').get('womens').errors?.pattern">Debe ingresar una cantidad numérica</mat-error>
                             </mat-form-field>
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-4">
+                <div class="col-sm-4"> 
                     <mat-form-field class="full-width">
                         <input matInput type="text" formControlName="beneficiaries" placeholder="Beneficiarios">
                         <mat-hint>Ingrese un número, por favor.</mat-hint>

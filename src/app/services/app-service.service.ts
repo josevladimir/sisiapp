@@ -48,6 +48,7 @@ export class AppServiceService {
     this.projectsService.getProjects((userData.role == 'Financiador'));
     if(userData.role != 'Financiador') this.documentsService.getDocuments();
     if(userData.role == 'Administrador') this.usersService.getUsers();
+    this.preferencesService.getPreferences();
     this.store.dispatch(fromLoading.stopLoading());
   }
 
@@ -68,6 +69,10 @@ export class AppServiceService {
     this.socket.listen('indicatorWasCreated').subscribe((indicator :any) => this.indicatorsService.addToStorage(indicator,true));
     this.socket.listen('indicatorWasUpdated').subscribe(() => this.indicatorsService.updateIndicatorsOnStorage(true));
     this.socket.listen('indicatorWasDeleted').subscribe((id : string) => this.indicatorsService.removeFromStorage(id,true));
+    this.socket.listen('preferencesWasUpdated').subscribe(() => this.preferencesService.updatePreferencesOnStorage(true));
+    this.socket.listen('organizationWasCreated').subscribe((organization :any) => this.organizationsService.addToStorage(organization,true));
+    this.socket.listen('organizationWasUpdated').subscribe(() => this.organizationsService.updateOrganizationsOnStorage(true));
+    this.socket.listen('organizationWasDeleted').subscribe((id : string) => this.organizationsService.removeFromStorage(id,true));
   }
 
 }

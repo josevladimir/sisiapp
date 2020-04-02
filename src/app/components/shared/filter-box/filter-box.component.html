@@ -13,13 +13,13 @@
         <mat-form-field *ngIf="this.ParameterSelected == 'type'" class="font-weight-lighter">
             <mat-label>Opción de búsqueda</mat-label>
             <mat-select (valueChange)="onOptionSelect($event)">
-                <mat-option *ngFor="let type of this._service.getTypesOff()" [value]="type">{{type}}</mat-option>
+                <mat-option *ngFor="let type of this.OptionsForSelect.types" [value]="type">{{type}}</mat-option>
             </mat-select>
         </mat-form-field>
         <mat-form-field *ngIf="this.ParameterSelected == 'sector'" class="font-weight-lighter">
             <mat-label>Opción de búsqueda</mat-label>
             <mat-select (valueChange)="onOptionSelect($event)">
-                <mat-option *ngFor="let sector of this._service.getSectorsOff()" [value]="sector">{{sector}}</mat-option>
+                <mat-option *ngFor="let sector of this.OptionsForSelect.sectors" [value]="sector">{{sector}}</mat-option>
             </mat-select>
         </mat-form-field>
         <mat-form-field *ngIf="this.ParameterSelected == 'legalized'" class="font-weight-lighter">

@@ -1,5 +1,6 @@
 import { Component, Output, EventEmitter, Input, OnInit } from '@angular/core';
 import { SisiCoreService } from '../../../services/sisi-core.service';
+import { PreferencesServiceService } from '../../../services/preferences-service.service';
 
 @Component({
   selector: 'app-filter-box',
@@ -15,8 +16,16 @@ export class FilterBoxComponent implements OnInit{
   ParameterSelected : string = 'name';
   SearchTerm : string = '';
 
-  constructor(public _service : SisiCoreService) {
+  OptionsForSelect : any = {
+    sectors: [],
+    types: []
+  }
 
+  constructor(private preferencesService : PreferencesServiceService) {
+    this.preferencesService.getPreferencesLocal().subscribe(preferences => this.OptionsForSelect = {
+      sectors: preferences.sectors,
+      types: preferences.types
+    });
   }
 
   ngOnInit(){

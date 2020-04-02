@@ -37,7 +37,6 @@ export class IndicatorViewComponent{
 
   constructor(private _activatedRoute : ActivatedRoute,
               private _indicatorsService : IndicatorsServiceService,
-              private _snackBar : MatSnackBar,
               private _store : Store<State>) { 
     this.isAdmin = this._store.select(isAdmin);
     this.editMode = this._store.select(isEditMode);

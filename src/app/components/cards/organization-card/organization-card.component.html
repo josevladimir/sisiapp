@@ -1,0 +1,29 @@
+<mat-card>
+    <mat-card-title class="font-weight-lighter">{{organization.name}}</mat-card-title>
+    <mat-card-subtitle>{{organization.type}}</mat-card-subtitle>
+    <mat-divider></mat-divider>
+    <mat-card-content>
+        <mat-list>
+            <li class="pt-2">
+                <span>
+                    Sector: <span class="font-weight-lighter">{{organization.sector}}</span>
+                </span>
+            </li>
+            <li class="mt-2">
+                <span>
+                    Ubicación: <span class="font-weight-lighter">{{organization.ubication.parroquia}}, {{organization.ubication.canton}}</span>
+                </span>
+            </li>
+            <li class="mt-2">
+                <span>
+                    Fecha de constitución: <span class="font-weight-lighter">{{organization.foundation_date | date : 'd/M/yyyy'}}</span>
+                </span>
+            </li>
+        </mat-list>
+    </mat-card-content>
+    <div class="flex">
+        <span class="fill-remaining-space"></span>
+        <button mat-button [routerLink]="[organization._id,'partners']">SOCIOS</button>
+        <button mat-button [routerLink]="[organization._id]">DETALLES</button>
+    </div>
+</mat-card>

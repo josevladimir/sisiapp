@@ -1,5 +1,9 @@
 import { Component } from '@angular/core';
 import { OrganizationsServiceService } from '../../../../services/organizations-service.service';
+import { Observable } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { State } from '../../../../reducers/index';
+import { isFunder } from 'src/app/reducers/selectors/session.selector';
 
 @Component({
   selector: 'app-organizations',
@@ -7,16 +11,18 @@ import { OrganizationsServiceService } from '../../../../services/organizations-
 })
 export class OrganizationsComponent {
 
-  Organizations : any[] = [];
+  isFunder : Observable<boolean>;
 
-  userRole : string = localStorage.getItem('userRole');
+  Organizations : any[] = [];
 
   List : any[] = [];
 
-  constructor(private organizationsService : OrganizationsServiceService) {
-    this.organizationsService.getOrganizationsLocal().subscribe(data => {
-      this.Organizations = data.organizations;
-      this.List = data.organizations;
+  constructor(private organizationsService : OrganizationsServiceService,
+              private store : Store<State>) {
+    this.isFunder = this.store.select(isFunder);
+    this.organizationsService.getOrganizationsLocal().subscribe(organizations => {
+      this.Organizations = organizations;
+      this.List = organizations;
     });
   }
 

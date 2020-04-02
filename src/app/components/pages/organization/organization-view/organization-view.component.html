@@ -1,40 +1,39 @@
-<app-sub-toolbar *ngIf="this.userRole == 'Administrador'"
-    [title]="this.Organization.name"
+<app-sub-toolbar *ngIf="this.isAdmin | async"
+    [title]="'Organización: ' + this.Organization.name"
     [backButton]="true"
     [addButton]="false"
     [buttons]="this.buttons"
-    [importantBack]="this.editMode"
-    [editButton]="!this.editMode" (editClick)="this.edit()">
+    [deleteButton]="this.DeleteButton"
+    [editButton]="!(this.editMode | async)">
 </app-sub-toolbar>
 
-<app-sub-toolbar *ngIf="this.userRole == 'Coordinador'"
-    [title]="this.Organization.name"
+<app-sub-toolbar *ngIf="this.isCoordinator | async"
+    [title]="'Organización: ' + this.Organization.name"
     [backButton]="true"
     [addButton]="false"
-    [buttons]="[this.buttons[0]]"
-    [importantBack]="this.editMode"
-    [editButton]="!this.editMode" (editClick)="this.edit()">
+    [buttons]="this.buttons"
+    [editButton]="!(this.editMode | async)">
 </app-sub-toolbar>
 
-<app-sub-toolbar *ngIf="this.userRole != 'Administrador' && this.userRole != 'Coordinador'"
-    [title]="this.Organization.name"
+<app-sub-toolbar *ngIf="!(this.isAdmin | async) && !(this.isCoordinator | async)"
+    [title]="'Organización: ' + this.Organization.name"
     [backButton]="true"
     [addButton]="false"
-    [buttons]="[this.buttons[0]]">
+    [buttons]="this.buttons">
 </app-sub-toolbar>
 
-    <div>
+    <div class="full-height">
         <mat-tab-group mat-stretch-tabs class="full-height"> 
             <mat-tab label="Infomación General">
                 <div class="container pb-3 pt-3 border-box">
-                    <form [formGroup]="this.organizationForm" (ngSubmit)="this.updateOrganization()" *ngIf="this.editMode; else Visor">
+                    <form [formGroup]="this.organizationForm" (ngSubmit)="this.updateOrganization()" *ngIf="(this.editMode | async); else Visor">
                         <mat-card>
                             <mat-card-title class="font-weight-lighter">Datos Generales</mat-card-title>
                             <div class="row">
                                 <div class="col-sm-4">
                                     <mat-form-field class="full-width">
                                         <input matInput type="text" formControlName="name" placeholder="Nombre de la Organización">
-                                        <mat-error *ngIf="this.nameCtrl.errors?.required">Este campo es obligatorio</mat-error>
+                                        <mat-error *ngIf="this.organizationForm.get('name').errors?.required">Este campo es obligatorio</mat-error>
                                     </mat-form-field>
                                 </div>
                                 <div class="col-sm-4">
@@ -44,42 +43,33 @@
                                         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                                         <mat-datepicker #picker></mat-datepicker>
                                         <mat-hint>Formato: dd/mm/aaaa</mat-hint>
-                                        <mat-error *ngIf="this.foundation_dateCtrl.errors?.required">Este campo es obligatorio</mat-error>
+                                        <mat-error *ngIf="this.organizationForm.get('foundation_date').errors?.required">Este campo es obligatorio</mat-error>
                                     </mat-form-field>
                                 </div>
-                                <div class="col-sm-4">
+                                <div>
                                     <mat-form-field class="full-width">
                                         <mat-label>Sector:</mat-label>
-                                        <mat-select formControlName="sector">
-                                        <mat-option value="Cacao">
-                                            Cacao
+                                        <mat-select formControlName="sector" #SectorSelect>
+                                        <mat-option *ngFor="let sector of this.OptionsOfSelects.Sectors" [value]="sector">
+                                            {{sector}} 
                                         </mat-option>
-                                        <mat-option value="Agricultura">
-                                            Agricultura
-                                        </mat-option>
-                                        <mat-option value="Turismo">
-                                            Turismo
-                                        </mat-option>
-                                        <button mat-button><mat-icon>add</mat-icon> Añadir nuevo...</button>
+                                        <mat-option *ngIf="!this.OptionsOfSelects.Types.length"></mat-option>
+                                        <button mat-button class="full-width" (click)="this.addNewSector(SectorSelect)"><mat-icon>add</mat-icon> Añadir nuevo...</button>
                                         </mat-select>
+                                        <mat-error *ngIf="this.organizationForm.get('type').errors?.required">Este campo es obligatorio</mat-error>
                                     </mat-form-field>    
                                 </div>
                                 <div class="col-sm-4">
                                     <mat-form-field class="full-width">
                                         <mat-label>Tipo de Organización:</mat-label>
-                                        <mat-select formControlName="type">
-                                            <mat-option value="SFL">
-                                                SFL
+                                        <mat-select formControlName="type" #SelectType>
+                                            <mat-option *ngFor="let type of this.OptionsOfSelects.Types" [value]="type">
+                                                {{type}}
                                             </mat-option>
-                                            <mat-option value="Empresa">
-                                                Empresa
-                                            </mat-option>
-                                            <mat-option value="Asociación">
-                                                Asociación
-                                            </mat-option>
-                                            <button mat-button><mat-icon>add</mat-icon> Añadir nuevo...</button>
+                                            <mat-option *ngIf="!this.OptionsOfSelects.Types.length"></mat-option>
+                                            <button mat-button class="full-width" (click)="this.addNewType(SelectType)"><mat-icon>add</mat-icon> Añadir nuevo...</button>
                                         </mat-select>
-                                        <mat-error>Este campo es obligatorio</mat-error>
+                                        <mat-error *ngIf="this.organizationForm.get('sector').errors?.required">Este campo es obligatorio</mat-error>
                                     </mat-form-field>    
                                 </div>
                                 <div class="col-sm-4">
@@ -96,7 +86,7 @@
                                         <mat-error>Este campo es obligatorio</mat-error>
                                     </mat-form-field>    
                                 </div>
-                                <div class="col-sm-4" *ngIf="typeCtrl.value == 'SFL'">
+                                <div class="col-sm-4" *ngIf="this.organizationForm.get('type').value == 'SFL'">
                                     <div class="full-width">
                                         <small class="full-width label">Esta SFL clasifica como:</small>
                                         <div *ngIf="this.isOlder" class="text-center">Antigua</div>
@@ -130,7 +120,7 @@
                             </div>
                         </mat-card>
                         <!--Parte de Beneficiarios-->
-                        <mat-card class="mt-4">
+                        <mat-card class="mt-4 mb-3">
                             <mat-card-title class="font-weight-lighter">Socios y Beneficiarios</mat-card-title>
                             <div class="row">
                                 <div class="col-sm-8">
@@ -174,14 +164,14 @@
                                     </mat-form-field>
                                 </div>
                             </div>
-                        </mat-card>
+                        </mat-card> 
                         
                         <app-button-group class="mt-3" *ngIf="this.editMode" [formStatus]="this.organizationForm.pristine" (save)="updateOrganization()" (cancel)="onCancel()" [formGroup]="this.organizationForm"></app-button-group>
                         
                     </form>     
                     <!--Visor de Información-->
                     <ng-template #Visor>
-                        <div>
+                        <div class="pb-3">
                             <mat-card>
                                 <mat-card-title class="font-weight-lighter">Datos Generales</mat-card-title>
                                 <mat-divider></mat-divider>
@@ -299,50 +289,22 @@
                     </ng-template>               
                 </div>
             </mat-tab>
-            <mat-tab label="Proyectos Asociados">
-                <div class="container pb-3 pt-3 border-box">
+            <mat-tab label="Proyectos Asociados" class="full-height">
+                <div class="container full-height pb-3 pt-3 border-box">
                     
                         <!--Sección de los Proyectos-->
                         <div class="row" *ngIf="this.Organization.projects.length; else NoProjects">
                             <div class="col-sm-4 mb-4" *ngFor="let project of this.Organization.projects">
-                                <mat-card>
-                                    <mat-card-title class="font-weight-lighter">{{project.name}}</mat-card-title>
-                                    <mat-divider></mat-divider>
-                                    <mat-card-content>
-                                        <mat-list>
-                                            <li class="pt-2">
-                                                <span>
-                                                    Fecha de Inicio: <span class="font-weight-lighter">{{project.start_date | date : 'd/M/yyyy'}}</span>
-                                                </span>
-                                            </li>
-                                            <li class="mt-2">
-                                                <span>
-                                                    Ubicación: <span class="font-weight-lighter">{{project.ubication}}</span>
-                                                </span>
-                                            </li>
-                                            <li class="mt-2">
-                                                <span>
-                                                    Duración: <span class="font-weight-lighter">{{project.duration}} meses</span>
-                                                </span>
-                                            </li>
-                                        </mat-list>
-                                    </mat-card-content>
-                                    <mat-card-actions>
-                                        <div class="flex">
-                                            <span class="fill-remaining-space"></span>
-                                            <a mat-button [routerLink]="['/projects',project._id]">DETALLES</a>
-                                        </div>
-                                    </mat-card-actions>
-                                </mat-card>
+                                <app-project-card [project]="project"></app-project-card>
                             </div>
                         </div>
                     
                         <ng-template #NoProjects>
-                            <div class="full-height full-width flex justify-content-center align-items-center">
+                            <div class="full-height full-width flex justify-content-center flex-align-vertical">
                                 <div>
-                                    <h2 class="text-center font-weight-lighter">No hay Proyectos registrados</h2>
-                                    <div class="font-weight-lighter">
-                                        Para agregar un nuevo proyecto dale click al boton "Agregar" de la esquina superior derecha.
+                                    <h2 class="text-center font-weight-lighter">No se han encontrado registros</h2>
+                                    <div class="font-weight-lighter text-center">
+                                        No se ha incluido esta organización en ningún proyecto.
                                     </div>
                                 </div>
                             </div>

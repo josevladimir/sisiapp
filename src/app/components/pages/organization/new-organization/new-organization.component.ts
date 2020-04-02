@@ -1,13 +1,15 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
-import { SisiCoreService } from '../../../../services/sisi-core.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { NewOrganizationPreferenceComponent } from '../../../dialogs/new-organization-preference/new-organization-preference.component';
-import { MatDialog } from '@angular/material/dialog';
-import { MatSelect } from '@angular/material/select';
 import { Store } from '@ngrx/store';
 import { State } from 'src/app/reducers';
+import { MatSelect } from '@angular/material/select';
+import { MatDialog } from '@angular/material/dialog';
+import { Subscription } from 'rxjs';
+import { MyValidators } from '../../../../models/Validators';
 import * as fromLoadingActions from '../../../../reducers/actions/loading.actions';
+import { PreferencesServiceService } from '../../../../services/preferences-service.service';
+import { OrganizationsServiceService } from '../../../../services/organizations-service.service';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { NewOrganizationPreferenceComponent } from '../../../dialogs/new-organization-preference/new-organization-preference.component';
 
 @Component({
   selector: 'app-new-organization',
@@ -17,46 +19,42 @@ export class NewOrganizationComponent implements OnInit {
 
   organizationForm : FormGroup;
 
-  Sectors : any[] = this._service.getSectorsOff();
-  Types : any[] = this._service.getTypesOff();
+  OptionsOfSelects : any = {
+    Sectors: [],
+    Types: []
+  }
 
   isOlder : boolean = false;
 
   newSector : boolean = false;
 
-  nameCtrl : FormControl = new FormControl('',[Validators.required,this._service.existOrganization]);
-  foundation_dateCtrl : FormControl = new FormControl('',[Validators.required]);
-  sectorCtrl : FormControl = new FormControl('',Validators.required);
-  typeCtrl : FormControl = new FormControl('',Validators.required);
-  legalizedCtrl : FormControl = new FormControl('',Validators.required);
-  mensCtrl : FormControl = new FormControl('',[Validators.required,Validators.pattern(new RegExp(/^\d{1,8}$/))]);
-  womensCtrl : FormControl = new FormControl('',[Validators.required,Validators.pattern(new RegExp(/^\d{1,8}$/))]);
-  beneficiariesCtrl : FormControl = new FormControl('',[Validators.required,Validators.pattern(new RegExp(/^\d{1,8}$/))]);
-  cantonCtrl : FormControl = new FormControl('',Validators.required);
-  recintoCtrl : FormControl = new FormControl('',Validators.required);
-  parroquiaCtrl : FormControl = new FormControl('',Validators.required);
+  subscription : Subscription;
 
-  constructor(private _service : SisiCoreService,
-              private _snackBar : MatSnackBar,
+  constructor(private _organizationsService : OrganizationsServiceService,
+              private _preferencesService : PreferencesServiceService,
               private dialog : MatDialog,
-              private _store : Store<State>) { }
+              private _store : Store<State>) { 
+  
+    this.subscription = this._preferencesService.getPreferencesLocal().subscribe(preference => this.OptionsOfSelects = {Sectors: preference.sectors,Types: preference.types});
+
+  }
 
   ngOnInit() {
     this.organizationForm = new FormGroup({
-      name : this.nameCtrl,
-      foundation_date : this.foundation_dateCtrl,
-      sector: this.sectorCtrl,
-      type: this.typeCtrl,
-      legalized: this.legalizedCtrl,
+      name : new FormControl('',[Validators.required,MyValidators.existOrganization]),
+      foundation_date : new FormControl('',[Validators.required]),
+      sector: new FormControl('',Validators.required),
+      type: new FormControl('',Validators.required),
+      legalized: new FormControl('',Validators.required),
       partners: new FormGroup({
-        mens: this.mensCtrl,
-        womens: this.womensCtrl
+        mens: new FormControl('',[Validators.required,Validators.pattern(new RegExp(/^\d{1,8}$/))]),
+        womens: new FormControl('',[Validators.required,Validators.pattern(new RegExp(/^\d{1,8}$/))])
       }),
-      beneficiaries: this.beneficiariesCtrl,
+      beneficiaries: new FormControl('',[Validators.required,Validators.pattern(new RegExp(/^\d{1,8}$/))]),
       ubication: new FormGroup({
-        canton: this.cantonCtrl,
-        recinto: this.recintoCtrl,
-        parroquia: this.parroquiaCtrl
+        canton: new FormControl('',Validators.required),
+        recinto: new FormControl('',Validators.required),
+        parroquia: new FormControl('',Validators.required)
       })
     });
   }
@@ -73,17 +71,7 @@ export class NewOrganizationComponent implements OnInit {
     organization.created_by = localStorage.getItem('userID');
     organization.isOlder = this.isOlder;
 
-    this._service.createOrganization(organization).subscribe(
-      result => {
-        this._service.updateOrganizationsList(true);
-        this._store.dispatch(fromLoadingActions.stopLoading());
-        this._snackBar.open('La organización se registró correctamente.','ENTENDIDO',{duration: 3000});
-
-      },error => {
-        this._store.dispatch(fromLoadingActions.stopLoading());
-        this._snackBar.open('Ocurrió un error al guardar la organización.','ENTENDIDO',{duration: 3000});
-      }
-    );
+    this._organizationsService.createOrganization(organization);
   }
 
   /**
@@ -99,16 +87,8 @@ export class NewOrganizationComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(sector => {
       if(sector){
-        /**Actualizar Financiadores */
-        this._service.addNewOrganizationPreference({sector}).subscribe(
-          result => {
-            console.log(result);
-            this.Sectors.push(sector);
-            this._service.updatePreferencesList();
-            this._snackBar.open('Se añadió correctamente el sector.','ENTENDIDO',{duration : 3000});
-          },error =>{
-            this._snackBar.open('Ocurrió un error al registrar un nuevo sector.','ENTENDIDO',{duration: 3000});
-          });
+        /**Actualizar Preferencias*/
+        this._preferencesService.addNewOrganizationPreference({sector});
       }
     });
   }
@@ -123,15 +103,8 @@ export class NewOrganizationComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(type => {
       if(type){
-        /**Actualizar Financiadores */
-        this._service.addNewOrganizationPreference({type}).subscribe(
-          result => {
-            console.log(result,type);
-            this.Types.push(type);
-            this._service.updatePreferencesList();
-            this._snackBar.open('Se añadió correctamente el tipo.','ENTENDIDO',{duration : 3000});
-          },error => this._snackBar.open('Ocurrió un error al registrar un nuevo tipo.','ENTENDIDO',{duration: 3000})
-        )
+        /**Actualizar Preferencias */
+        this._preferencesService.addNewOrganizationPreference({type});
       }
     });
   }

@@ -1,6 +1,6 @@
 <app-sub-toolbar
     title="Organizaciones"
-    [addButton]="(this.userRole == 'Técnico' || this.userRole == 'Coordinador' || this.userRole == 'Administrador')"
+    [addButton]="!(this.isFunder | async)"
     [backButton]="false">
 </app-sub-toolbar>
 
@@ -15,42 +15,14 @@
     <div class="full-height" *ngIf="this.Organizations.length; else NoOrganizations">
         <div class="row full-height" *ngIf="this.List.length; else NoList">
             <div class="mb-4 col-sm-4" *ngFor="let organization of this.List">
-                <mat-card>
-                    <mat-card-title class="font-weight-lighter">{{organization.name}}</mat-card-title>
-                    <mat-card-subtitle>{{organization.type}}</mat-card-subtitle>
-                    <mat-divider></mat-divider>
-                    <mat-card-content>
-                        <mat-list>
-                            <li class="pt-2">
-                                <span>
-                                    Sector: <span class="font-weight-lighter">{{organization.sector}}</span>
-                                </span>
-                            </li>
-                            <li class="mt-2">
-                                <span>
-                                    Ubicación: <span class="font-weight-lighter">{{organization.ubication.parroquia}}, {{organization.ubication.canton}}</span>
-                                </span>
-                            </li>
-                            <li class="mt-2">
-                                <span>
-                                    Fecha de constitución: <span class="font-weight-lighter">{{organization.foundation_date | date : 'd/M/yyyy'}}</span>
-                                </span>
-                            </li>
-                        </mat-list>
-                    </mat-card-content>
-                    <div class="flex">
-                        <span class="fill-remaining-space"></span>
-                        <button mat-button [routerLink]="[organization._id,'partners']">SOCIOS</button>
-                        <button mat-button [routerLink]="[organization._id]">DETALLES</button>
-                    </div>
-                </mat-card>
+                <app-organization-card [organization]="organization"></app-organization-card>
             </div>
         </div>
         <ng-template #NoList>
             <div class="full-height full-width flex justify-content-center align-items-center">
                 <div>
                     <h2 class="text-center font-weight-lighter">No se han encontrado coincidencias</h2>
-                    <div class="font-weight-lighter">
+                    <div class="font-weight-lighter text-center">
                         Intenta utilizando otro parámetro de búsqueda.
                     </div>
                 </div>

@@ -3,6 +3,7 @@ import { Location } from '@angular/common';
 import { editModeSetEnabled, editModeSetDisabled } from '../../../reducers/actions/general.actions';
 import { Store } from '@ngrx/store';
 import { State } from 'src/app/reducers';
+import { isEditMode } from '../../../reducers/selectors/general.selector';
 
 @Component({
   selector: 'app-sub-toolbar',
@@ -16,17 +17,19 @@ export class SubToolbarComponent implements OnInit{
   @Input() addButton : boolean;
   @Input() editButton;
   @Input() buttons : ToolbarButton[];
-  @Input() importantBack : boolean;
   @Input() deleteButton : () => void;
 
   personalizedButtons : ToolbarButton[];
 
+  isEdit : boolean;
+
   constructor(private _location : Location,
               private _store : Store<State>){
+    this._store.select(isEditMode).subscribe(value => this.isEdit = value);
   }
   
   back(){
-    if(this.importantBack){
+    if(this.isEdit){
       if(confirm('Todos los cambios no guardados se perderán.\n\n¿Desea continuar?')) {
         this._store.dispatch(editModeSetDisabled());
         this._location.back();
