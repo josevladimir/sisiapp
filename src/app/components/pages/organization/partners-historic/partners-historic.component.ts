@@ -7,6 +7,7 @@ import {MatTableDataSource} from '@angular/material/table';
 
 import { SisiDatewarehouseService } from '../../../../services/sisi-datewarehouseç.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { OrganizationsServiceService } from '../../../../services/organizations-service.service';
 
 @Component({
   selector: 'app-partners-historic',
@@ -22,12 +23,14 @@ export class PartnersHistoricComponent implements OnInit {
   dataSource : MatTableDataSource<Registry>;
 
   constructor(private _ActivatedRoute : ActivatedRoute,
-              private _Service : SisiCoreService,
+              private _organizationsService : OrganizationsServiceService,
               private _Datawarehouse : SisiDatewarehouseService,
               private _snackbar : MatSnackBar) { 
 
     this._ActivatedRoute.params.subscribe(
-      (params : Params) => this.Organization = this._Service.getOrganization(params.id)
+      (params : Params) => this._organizationsService.getOrganizationsLocal().subscribe(organizations => {
+        this.Organization = organizations.filter(organization => organization._id == params.id)[0];
+      })
     );
 
     this._Datawarehouse.getPartnersHistoryData(this.Organization._id)

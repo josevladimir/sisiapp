@@ -25,12 +25,12 @@
                 </div>
             </div>
             <mat-divider></mat-divider>
-            <div class="pt-2 flex">
+            <div class="pt-2 flex"> 
                 <mat-card-title class="font-weight-lighter">Socios Actuales</mat-card-title>
                 <span class="fill-remaining-space"></span>
-                <button mat-button *ngIf="this.userRole == 'Administrador' && !this.editLastMode" (click)="editLast()"><mat-icon>edit</mat-icon>Editar entrada</button>
+                <button mat-button *ngIf="(this.isAdmin | async) && !(this.editLastMode | async)" (click)="editLast()"><mat-icon>edit</mat-icon>Editar entrada</button>
             </div>
-            <div class="row" *ngIf="!this.editLastMode">
+            <div class="row" *ngIf="!(this.editLastMode | async)">
                 <div class="col-md-4">
                     <small class="label full-width">Socios Hombres</small>
                     <div>{{this.ActualPartners.mens}}</div>
@@ -44,7 +44,7 @@
                     <div>{{this.ActualPartners.mens + this.ActualPartners.womens}}</div>
                 </div>
             </div>
-            <form *ngIf="this.editLastMode" [formGroup]="this.LastPartnersForm">
+            <form *ngIf="(this.editLastMode | async)" [formGroup]="this.LastPartnersForm">
                 <div class="row">
                     <div class="col-md-4">
                         <mat-form-field class="full-width">
@@ -73,18 +73,18 @@
                     <div class="col-md-4">
                         <mat-form-field class="full-width">
                             <input matInput type="number" formControlName="mens" placeholder="Socios Hombres">
-                            <mat-error *ngIf="this.mensCtrl.errors?.required">Este campo es obligatorio</mat-error>
+                            <mat-error *ngIf="this.PartnerForm.get('mens').errors?.required">Este campo es obligatorio</mat-error>
                         </mat-form-field>
                     </div>
                     <div class="col-md-4">
                         <mat-form-field class="full-width">
                             <input matInput type="number" formControlName="womens" placeholder="Socios Mujeres">
-                            <mat-error *ngIf="this.womensCtrl.errors?.required">Este campo es obligatorio</mat-error>
+                            <mat-error *ngIf="this.PartnerForm.get('womens').errors?.required">Este campo es obligatorio</mat-error>
                         </mat-form-field>
                     </div>
                     <div class="col-md-4">
                         <small class="label full-width">Total Socios</small>    
-                        <div>{{this.mensCtrl.value + this.womensCtrl.value}}</div>
+                        <div>{{this.PartnerForm.get('mens').value + this.PartnerForm.get('womens').value}}</div>
                     </div>
                 </div>
                 <app-form-buttons (cancel)="this.cancel()" [formGroup]="this.PartnerForm"></app-form-buttons>

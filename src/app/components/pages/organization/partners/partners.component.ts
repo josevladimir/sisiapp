@@ -7,6 +7,12 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Store } from '@ngrx/store';
 import { State } from 'src/app/reducers';
 import * as fromLoadingActions from '../../../../reducers/actions/loading.actions';
+import { OrganizationsServiceService } from '../../../../services/organizations-service.service';
+import { Observable } from 'rxjs';
+import { isAdmin } from '../../../../reducers/selectors/session.selector';
+import { SocketioService } from '../../../../services/socketio.service';
+import { isEditMode } from '../../../../reducers/selectors/general.selector';
+import { editModeSetEnabled, editModeSetDisabled } from '../../../../reducers/actions/general.actions';
 
 @Component({
   selector: 'app-partners',
@@ -15,63 +21,61 @@ import * as fromLoadingActions from '../../../../reducers/actions/loading.action
 export class PartnersComponent {
 
   PartnerForm : FormGroup;
-
-  Organization : any;
-
-  ActualPartners : any;
-
-  buttons : ToolbarButton[];
-
-  mensCtrl : FormControl = new FormControl(null,[Validators.required]);
-  womensCtrl : FormControl = new FormControl(null,[Validators.required]);
-
   LastPartnersForm : FormGroup;
 
-  userRole : string = localStorage.getItem('userRole');
+  Organization : any;
+  ActualPartners : any;
 
-  editLastMode : boolean = false;
+  isAdmin : Observable<boolean>;
+  editLastMode : Observable<boolean>;
+  
+  buttons : ToolbarButton[];
 
   constructor(private _ActivedRoute : ActivatedRoute,
-              private _service : SisiCoreService,
-              private _snackBar : MatSnackBar,
+              private _organizationsService : OrganizationsServiceService,
               private _Router : Router,
               private _store : Store<State>) { 
     
-    this._ActivedRoute.params.subscribe(  
-      (params: Params) => this.Organization = this._service.getOrganization(params.id)
-    );
+    this.isAdmin = this._store.select(isAdmin);
 
-    this.PartnerForm = new FormGroup({
-      mens: this.mensCtrl,
-      womens: this.womensCtrl
-    });
-    if(this.Organization.historyPartners.length) {
-      this.ActualPartners = {
-        mens: this.Organization.historyPartners[this.Organization.historyPartners.length - 1].mens,
-        womens: this.Organization.historyPartners[this.Organization.historyPartners.length - 1].womens,
-        total: this.Organization.historyPartners[this.Organization.historyPartners.length - 1].mens + this.Organization.historyPartners[this.Organization.historyPartners.length - 1].womens
-      }
-    }else {
-      this.ActualPartners = {
-        mens: this.Organization.partners.mens,
-        womens: this.Organization.partners.womens,
-        total: this.Organization.partners.mens + this.Organization.partners.womens
-      }
-    }
+    this.editLastMode = this._store.select(isEditMode);
+    
+    this._ActivedRoute.params.subscribe(  
+      (params: Params) => this._organizationsService.getOrganizationsLocal().subscribe(organizations => {
+        this.Organization = organizations.filter(organization => organization._id == params.id)[0];
+        if(this.Organization.historyPartners.length) {
+          this.ActualPartners = {
+            mens: this.Organization.historyPartners[this.Organization.historyPartners.length - 1].mens,
+            womens: this.Organization.historyPartners[this.Organization.historyPartners.length - 1].womens,
+            total: this.Organization.historyPartners[this.Organization.historyPartners.length - 1].mens + this.Organization.historyPartners[this.Organization.historyPartners.length - 1].womens
+          }
+        }else {
+          this.ActualPartners = {
+            mens: this.Organization.partners.mens,
+            womens: this.Organization.partners.womens,
+            total: this.Organization.partners.mens + this.Organization.partners.womens
+          }
+        }
+      })
+      );
+      
+      this.PartnerForm = new FormGroup({
+        mens: new FormControl(null,[Validators.required]),
+        womens: new FormControl(null,[Validators.required])
+      });
+
     this.buttons = [
       {
         message: 'HISTÓRICO',
         hasIcon: true,
         icon: 'timeline',
-        handler: () => {
-          this._Router.navigate(['organizations',this.Organization._id,'partners','historic'])
-        }
+        handler: () => this._Router.navigateByUrl(`/main/organizations/${this.Organization._id}/partners/historic`)
       }
     ];
   }
 
   editLast(){
-    this.editLastMode = true;
+    this._store.dispatch(editModeSetEnabled());
     this.LastPartnersForm = new FormGroup({
       mens: new FormControl(this.ActualPartners.mens,Validators.required),
       womens: new FormControl(this.ActualPartners.womens,Validators.required)
@@ -79,7 +83,7 @@ export class PartnersComponent {
   }
 
   cancelLastPartners(){
-    this.editLastMode = false;
+    this._store.dispatch(editModeSetDisabled());
     this.LastPartnersForm = null;
   }
 
@@ -91,26 +95,15 @@ export class PartnersComponent {
     registry.mens = this.LastPartnersForm.value.mens;
     registry.womens = this.LastPartnersForm.value.womens;
     history.push(registry);
-    this._service.updateOrganization({historyPartners: history},this.Organization._id).subscribe(
-      result => {
-        this.Organization = result.organization;
-        this.editLastMode = false;
-        this.LastPartnersForm = null;
-        this.ActualPartners.mens = registry.mens;
-        this.ActualPartners.womens = registry.womens;
-        this._store.dispatch(fromLoadingActions.stopLoading());
-        this._service.updateOrganizationsList(null);
-        this._snackBar.open('Se ha actualizado los socios correctamente.','ENTENDIDO',{duration: 3000});
-      },
-      error => {
-        this._store.dispatch(fromLoadingActions.stopLoading());
-        this._snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
-      }
-    )
+    this._organizationsService
+        .updateOrganization({historyPartners: history},this.Organization._id);
   }
 
   cancel(){
-    this.PartnerForm.reset();
+    this.PartnerForm.reset({
+      mens: 0,
+      womens: 0
+    });
   }
 
   toNumber ( number : string ) : number {
@@ -124,19 +117,11 @@ export class PartnersComponent {
     registry.period = new Date(); 
     history = this.Organization.historyPartners;
     history.push(registry);
-    this._service.updateOrganization({historyPartners: history},this.Organization._id).subscribe(
-      result => {
-        this.ActualPartners.mens = this.mensCtrl.value;
-        this.ActualPartners.womens = this.womensCtrl.value;
-        this._store.dispatch(fromLoadingActions.stopLoading());
-        this._service.updateOrganizationsList(null);
-        this.PartnerForm.reset();
-        this._snackBar.open('Se ha actualizado los socios correctamente.','ENTENDIDO',{duration: 3000});
-      },error => {
-        this._store.dispatch(fromLoadingActions.stopLoading());
-        this._snackBar.open('Ha ocurrido un error al actualizar los socios.','ENTENDIDO',{duration: 3000});
-      }
-    );
+    this._organizationsService.updateOrganization({historyPartners: history},this.Organization._id);
+    this.PartnerForm.reset({
+      mens: 0,
+      womens: 0
+    });
   }
 
 }

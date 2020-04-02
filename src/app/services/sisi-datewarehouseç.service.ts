@@ -1,21 +1,19 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { HeadersGenerator } from './headersGenerator.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SisiDatewarehouseService {
 
-  URL : string = environment.baseUrl;
-
-  headers : HttpHeaders = new HttpHeaders({'Authorization':`Bearer ${localStorage.token}`})
-
-  constructor(private _httpClient : HttpClient) {  }
+  constructor(private http : HttpClient,
+              private headersGenerator : HeadersGenerator) {  }
 
   getPartnersHistoryData (id : string) : Observable<any> {
-    return this._httpClient.get(`${this.URL}/Datawarehouse/partners/${id}`,{headers: this.headers});
+    return this.http.get(`${environment.baseUrl}/Datawarehouse/partners/${id}`,{headers: this.headersGenerator.generateAuthHeader()});
   }
 
 }
