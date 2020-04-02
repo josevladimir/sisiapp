@@ -1,7 +1,5 @@
 import { Component, ViewChild, OnInit, ɵConsole } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
-import { SisiCoreService } from '../../../../services/sisi-core.service';
-import { NgxChartsModule } from '@swimlane/ngx-charts';
 import {MatPaginator} from '@angular/material/paginator';
 import {MatTableDataSource} from '@angular/material/table';
 

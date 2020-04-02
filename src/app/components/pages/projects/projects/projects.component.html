@@ -1,6 +1,6 @@
 <app-sub-toolbar
     title="Proyectos"
-    [addButton]="this.userRole == 'Administrador' || this.userRole == 'Coordinador'"
+    [addButton]="(this.Authorization.isAdmin | async) || (this.Authorization.isCoordinator | async)"
     [backButton]="false">
 </app-sub-toolbar> 
 
@@ -16,35 +16,7 @@
         <div class="row full-height" *ngIf="this.List.length; else NoList">
 
             <div class="col-sm-4 mb-4" *ngFor="let project of this.List">
-                <mat-card>
-                    <mat-card-title class="font-weight-lighter">{{project.name}}</mat-card-title>
-                    <mat-divider></mat-divider>
-                    <mat-card-content>
-                        <mat-list>
-                            <li class="pt-2">
-                                <span>
-                                    Fecha de Inicio: <span class="font-weight-lighter">{{project.start_date | date : 'd/M/yyyy'}}</span>
-                                </span>
-                            </li>
-                            <li class="mt-2">
-                                <span>
-                                    Ubicación: <span class="font-weight-lighter">{{project.ubication}}</span>
-                                </span>
-                            </li>
-                            <li class="mt-2">
-                                <span>
-                                    Duración: <span class="font-weight-lighter">{{project.duration}} meses</span>
-                                </span>
-                            </li>
-                        </mat-list>
-                    </mat-card-content>
-                    <mat-card-actions>
-                        <div class="flex">
-                            <span class="fill-remaining-space"></span>
-                            <a mat-button [routerLink]="[project._id]">DETALLES</a>
-                        </div>
-                    </mat-card-actions>
-                </mat-card>
+                <app-project-card [project]="project"></app-project-card>
             </div>
         </div>
         <ng-template #NoList>

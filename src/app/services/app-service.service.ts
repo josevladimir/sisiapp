@@ -66,6 +66,7 @@ export class AppServiceService {
     this.socket.listen('funderWasCreated').subscribe((funder :Funder) => this.fundersService.addToStorage(funder,true));
     this.socket.listen('funderWasUpdated').subscribe(() => this.fundersService.updateFundersOnStorage(true));
     this.socket.listen('funderWasDeleted').subscribe((id : string) => this.fundersService.removeFromStorage(id,true));
+    this.socket.listen('projectWasCreated').subscribe((project :any) => this.projectsService.addToStorage(project,true));
     this.socket.listen('indicatorWasCreated').subscribe((indicator :any) => this.indicatorsService.addToStorage(indicator,true));
     this.socket.listen('indicatorWasUpdated').subscribe(() => this.indicatorsService.updateIndicatorsOnStorage(true));
     this.socket.listen('indicatorWasDeleted').subscribe((id : string) => this.indicatorsService.removeFromStorage(id,true));

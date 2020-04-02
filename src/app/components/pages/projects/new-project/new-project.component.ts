@@ -1,16 +1,19 @@
 import { Component } from '@angular/core';
 import { FormGroup, FormControl, Validators, FormArray } from '@angular/forms';
-import { SisiCoreService } from '../../../../services/sisi-core.service';
 import { MatSelectionList } from '@angular/material/list';
 
 import { convertSize, getTypeFromExt } from '../../../shared/upload-box/upload-box.component';
 
-import * as Moment from 'moment'
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { Observable } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { State } from '../../../../reducers/index';
+import * as Moment from 'moment'
+import { Observable } from 'rxjs';
+import { MyValidators } from '../../../../models/Validators';
 import * as fromLoadingActions from '../../../../reducers/actions/loading.actions';
+import { FundersServiceService } from '../../../../services/funders-service.service';
+import { ProjectsServiceService } from '../../../../services/projects-service.service';
+import { IndicatorsServiceService } from '../../../../services/indicators-service.service';
+import { OrganizationsServiceService } from '../../../../services/organizations-service.service';
 
 @Component({
   selector: 'app-new-project',
@@ -18,9 +21,9 @@ import * as fromLoadingActions from '../../../../reducers/actions/loading.action
 })
 export class NewProjectComponent{
 
-  Organizations : any[] = this._service.getOrganizationsOff();
-  Funders : any[] = this._service.getFundersOff();
-  Indicators : any[] = this._service.getIndicatorsOff(); 
+  Funders : any[];
+  Indicators : any[]; 
+  Organizations : any[];
   
   GeneralFormGroup : FormGroup;
 
@@ -31,44 +34,43 @@ export class NewProjectComponent{
 
   File : any; //Variable para la subida de la lista de usuarios
 
-  constructor(private _service : SisiCoreService,
-              private _snackbar : MatSnackBar,
+  constructor(private _fundersService : FundersServiceService,
+              private _projectsService : ProjectsServiceService,
+              private _indicatorsService : IndicatorsServiceService,
+              private _organizationsService : OrganizationsServiceService,
               private _store : Store<State>){
+
+    this._fundersService.getFundersLocal().subscribe(funders => this.Funders = funders);
+    this._indicatorsService.getIndicatorsLocal().subscribe(indicators => this.Indicators = indicators);
+    this._organizationsService.getOrganizationsLocal().subscribe(organizations => this.Organizations = organizations);
+
     this.GeneralFormGroup = new FormGroup({
-      name: new FormControl('',[Validators.required,this._service.existProject,this._service.isBlank]),
-      start_date: new FormControl('',[Validators.required,Validators.pattern(new RegExp(/^(0?[1-9]|[12][0-9]|3[01])[\/](0?[1-9]|1[012])[/\\/](19|20)\d{2}$/))]),
-      duration: new FormControl('',[Validators.required,Validators.pattern(new RegExp(/^\d{1,8}$/)),this._service.isBlank]),
+      name: new FormControl('',[Validators.required,MyValidators.existProject,MyValidators.isBlank]),
+      start_date: new FormControl('',[Validators.required]),
+      duration: new FormControl('',[Validators.required]),
       budgets: new FormGroup({
-        total_inicial: new FormControl('',[Validators.required,Validators.pattern(new RegExp(/^\d{1,10}$/))])
+        total_inicial: new FormControl('',[Validators.required])
       }),
-      ubication: new FormControl('',[Validators.required,this._service.isBlank]),
+      ubication: new FormControl('',[Validators.required,MyValidators.isBlank]),
       beneficiaries: new FormGroup({
         number: new FormControl('',[Validators.required])
       }),
-      gen_objective: new FormControl('',[Validators.required,this._service.isBlank]),
-      esp_objectives: new FormArray([new FormControl('',[Validators.required,this._service.isBlank])]),
-      results: new FormArray([new FormControl('',[Validators.required,this._service.isBlank])]),
+      gen_objective: new FormControl('',[Validators.required,MyValidators.isBlank]),
+      esp_objectives: new FormArray([new FormControl('',[Validators.required,MyValidators.isBlank])]),
+      results: new FormArray([new FormControl('',[Validators.required,MyValidators.isBlank])]),
       full_schema: new FormArray([]),
       organizations_diff: new FormArray([]),
       funders: new FormArray([])
     });
   }
 
-  addObjective(){
-    (<FormArray> this.GeneralFormGroup.get('esp_objectives')).push(new FormControl('',[Validators.required,this._service.isBlank]));
-  }
+  addObjective = () => (<FormArray> this.GeneralFormGroup.get('esp_objectives')).push(new FormControl('',[Validators.required,MyValidators.isBlank]));
 
-  addResult(){
-    (<FormArray> this.GeneralFormGroup.get('results')).push(new FormControl('',[Validators.required,this._service.isBlank]));
-  }
+  addResult = () => (<FormArray> this.GeneralFormGroup.get('results')).push(new FormControl('',[Validators.required,MyValidators.isBlank]));
 
-  deleteObjective(index : number){
-    if(confirm('¿Está seguro de que quiere eliminar este objetivo?')) (<FormArray> this.GeneralFormGroup.get('objEspeCtrl')).removeAt(index);
-  }
+  deleteObjective = (index : number) => { if(confirm('¿Está seguro de que quiere eliminar este objetivo?')) (<FormArray> this.GeneralFormGroup.get('objEspeCtrl')).removeAt(index); }
 
-  deleteResult(index : number){
-    if(confirm('¿Está seguro de que quiere eliminar este resultado?')) (<FormArray> this.GeneralFormGroup.get('results')).removeAt(index);
-  }
+  deleteResult = (index : number) => { if(confirm('¿Está seguro de que quiere eliminar este resultado?')) (<FormArray> this.GeneralFormGroup.get('results')).removeAt(index); }
 
 /**
  * -------------------------------------------------------------------------------------------
@@ -76,6 +78,7 @@ export class NewProjectComponent{
  * -------------------------------------------------------------------------------------------
  */
 
+ show(){(console.log(this.GeneralFormGroup))}
   /*Listeners para las listas de Selección de Funders, Indicators y Organizations*/
   OnIndicatorsListChange(id : string, list : MatSelectionList){
     let ready : boolean = false;
@@ -207,29 +210,7 @@ export class NewProjectComponent{
     for(let i = 0; i < project.goals[0].organizations.length; i++){
       project.organizations.push(project.goals[0].organizations[i].id);
     }
-    this._service.createProject(project).subscribe(
-      result => {
-        if(result.message == 'CREATED') {
-          this.uploadBeneficiariesList(result.project._id).subscribe(
-            result => {
-              if(result.message =="CREATED"){
-                this._service.updateOrganizationsList(null);
-                this._service.updateFundersList(null);
-                this._service.updateProjectsList(true);
-                this._store.dispatch(fromLoadingActions.stopLoading());
-                this._snackbar.open('Proyecto Registrado correctamente.','ENTENDIDO',{duration: 3000});
-              }
-            },error => {
-              this._store.dispatch(fromLoadingActions.stopLoading());
-              this._snackbar.open('Ha ocurrido un error al subir el archivo de Beneficiarios.','ENTENDIDO',{duration: 3000})
-            }
-          );
-        }
-      },error => {
-        this._store.dispatch(fromLoadingActions.stopLoading());
-        this._snackbar.open('Ocurrió un error al guardar el nuevo proyecto.','ENTENDIDO',{duration: 3000})
-      }
-    )
+    this._projectsService.createProject(project);
   }
 
   prepareBeneficiariesList(event){
@@ -266,7 +247,8 @@ export class NewProjectComponent{
     filesForm.append('details',JSON.stringify(details));
     filesForm.append('entity','Project');
     filesForm.append('id',id);
-    return this._service.uploadFile(filesForm);
+    return null;
+    /*return this._service.uploadFile(filesForm);*/
   }
 
 }

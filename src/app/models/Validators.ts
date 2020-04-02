@@ -26,4 +26,13 @@ export abstract class MyValidators {
       return null;
     }
 
+    static existProject( control: FormControl ) : {[s:string]:boolean} {
+      if(localStorage.getItem('projects')) {
+        let projects = JSON.parse(localStorage.getItem('projects'));
+        let result = projects.filter(project => project.name.toLowerCase() == control.value.toLowerCase());
+        if(result.length) return {exist: true};
+      }
+      return null;
+    }
+
 }

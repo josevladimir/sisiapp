@@ -1,8 +1,7 @@
 <app-sub-toolbar
     title="Nuevo Proyecto"
     [addButton]="false"
-    [backButton]="true"
-    [importantBack]="true">
+    [backButton]="true">
 </app-sub-toolbar>
 
 <div class="page-content">
@@ -19,15 +18,19 @@
                 </div>
                 <div class="col-sm-4">
                     <mat-form-field class="full-width">
-                        <input matInput type="text" formControlName="start_date" placeholder="Fecha de Inicio">
+                        <mat-label>Fecha de Inicio</mat-label>
+                        <input matInput [matDatepicker]="picker" formControlName="start_date" (keyup)="show()">
+                        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                        <mat-datepicker #picker></mat-datepicker>
                         <mat-hint>Ingrese la fecha en formato: <b>01/01/2019</b></mat-hint>
                         <mat-error *ngIf="this.GeneralFormGroup.get('start_date').errors?.required">Este campo es obligatorio</mat-error>
-                        <mat-error *ngIf="this.GeneralFormGroup.get('start_date').errors?.pattern">Ingrese una fecha válida</mat-error>
-                    </mat-form-field>
+                        <mat-error *ngIf="!this.GeneralFormGroup.get('start_date').errors?.required && this.GeneralFormGroup.get('start_date').errors?.pattern">Ingrese una fecha válida</mat-error>
+                      </mat-form-field>
+                      
                 </div>
                 <div class="col-sm-4">
                     <mat-form-field class="full-width">
-                        <input matInput type="text" formControlName="duration" placeholder="Duración">
+                        <input matInput type="number" formControlName="duration" placeholder="Duración">
                         <mat-hint>Ingrese la duración del proyecto en meses.</mat-hint>
                         <mat-error *ngIf="this.GeneralFormGroup.get('duration').errors?.required">Este campo es obligatorio.</mat-error>
                         <mat-error *ngIf="this.GeneralFormGroup.get('duration').errors?.pattern">Debe ingresar una cantidad numérica.</mat-error>
@@ -42,7 +45,7 @@
                 <div class="col-sm-4">
                     <div formGroupName="budgets">
                         <mat-form-field class="full-width">
-                            <input matInput type="text" formControlName="total_inicial" placeholder="Presupuesto Total Inicial">
+                            <input matInput type="number" formControlName="total_inicial" placeholder="Presupuesto Total Inicial">
                             <mat-error *ngIf="this.GeneralFormGroup.get('budgets').get('total_inicial').errors?.required">Este campo es obligatorio.</mat-error>
                         <mat-error *ngIf="this.GeneralFormGroup.get('budgets').get('total_inicial').errors?.pattern">Debe ingresar una cantidad numérica.</mat-error>
                         </mat-form-field>
@@ -58,7 +61,7 @@
                 <div class="col-sm-4">
                     <div formGroupName="beneficiaries">
                         <mat-form-field class="full-width">
-                            <input matInput type="text" formControlName="number" placeholder="Número de Beneficiarios">
+                            <input matInput type="number" formControlName="number" placeholder="Número de Beneficiarios">
                             <mat-error *ngIf="this.GeneralFormGroup.get('beneficiaries').get('number').errors?.required">Este campo es obligatorio.</mat-error>
                         </mat-form-field>
                     </div>
@@ -157,9 +160,9 @@
                         <!--Cuadro por indicador-->
                         <div class="mb-3">
                             <div formArrayName="full_schema" *ngFor="let indicadorGroup of this.GeneralFormGroup.get('full_schema')['controls']; let i = index">
-                                <div [formGroupName]="i" class="table-container">
+                                <div [formGroupName]="i" class="table-container full-width">
                                     <div class="text-center">{{indicadorGroup.get('indicator').value}}</div><!--Titulo-->
-                                    <table class="baseline-table">
+                                    <table class="baseline-table full-width">
                                         <tr>
                                             <th class="sticky"></th>
                                             <th *ngFor="let parametro of this.indicatorsSelected[i].parameters">{{parametro.name}}</th>
@@ -264,4 +267,4 @@
         <app-button-group (cancel)="true" (save)="createProject()" [formStatus]="false"></app-button-group>
                    
     </form>
-</div>
+</div> 

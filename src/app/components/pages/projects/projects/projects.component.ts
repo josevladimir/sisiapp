@@ -1,5 +1,8 @@
 import { Component } from '@angular/core';
 import { ProjectsServiceService } from '../../../../services/projects-service.service';
+import { isCoordinator, isAdmin } from '../../../../reducers/selectors/session.selector';
+import { Store } from '@ngrx/store';
+import { State } from '../../../../reducers/index';
 
 @Component({
   selector: 'app-projects',
@@ -7,13 +10,25 @@ import { ProjectsServiceService } from '../../../../services/projects-service.se
 })
 export class ProjectsComponent{
 
-  userRole : string = localStorage.getItem('userRole');
+  //userRole : string = localStorage.getItem('userRole');
   
+  Authorization : any = {
+    isAdmin: false,
+    isCoordinator: false
+  }
+
   projects : any[] = [];
 
   List : any[] = [];
 
-  constructor (private projectsService : ProjectsServiceService) { 
+  constructor(private projectsService : ProjectsServiceService,
+              private store : Store<State>) { 
+
+    this.Authorization = {
+      isAdmin: this.store.select(isAdmin),
+      isCoordinator: this.store.select(isCoordinator)
+    }
+    
     /*if(this.userRole == 'Financiador'){
       let normalProjects : any[] = this._service.getProjectsOff();
       let userProjects = JSON.parse(localStorage.getItem('user')).funder.projects;
@@ -24,9 +39,9 @@ export class ProjectsComponent{
       });
     }else this.projects  = this._service.getProjectsOff();
     this.List = this.projects;*/
-    this.projectsService.getProjectsLocal().subscribe((data : any) => {
-      this.projects = data.projects;
-      this.List = data.projects;
+    this.projectsService.getProjectsLocal().subscribe((projects : any[]) => {
+      this.projects = projects;
+      this.List = projects;
     });
   }
 
