@@ -27,4 +27,16 @@ export class DocumentsServiceService {
     return this.storage.watch('documents');
   }
 
+  uploadBeneficiaries (form : any) : Observable<any>{
+    return this.http.post(`${environment.baseUrl}/files/beneficiaries`,form,{headers: this.headersGenerator.generateJsonHeader()});
+  }
+
+  uploadFile (form : any) : Observable<any>{
+    return this.http.post(`${environment.baseUrl}/files/upload`,form,{headers: this.headersGenerator.generateAuthHeader()});
+  }
+ 
+  getBeneficiariesFile (id : string) : Observable<any> {
+    return this.http.get(`${environment.baseUrl}/files/beneficiaries/${id}`,{headers: this.headersGenerator.generateAuthHeader()});
+  }
+
 }

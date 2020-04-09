@@ -23,7 +23,7 @@
     </mat-card-content>
     <div class="flex">
         <span class="fill-remaining-space"></span>
-        <button mat-button [routerLink]="[organization._id,'partners']">SOCIOS</button>
-        <button mat-button [routerLink]="[organization._id]">DETALLES</button>
+        <button mat-button routerLink="/main/organizations/{{organization._id}}/partners">SOCIOS</button>
+        <button mat-button routerLink="/main/organizations/{{organization._id}}">DETALLES</button>
     </div>
 </mat-card>

@@ -8,10 +8,14 @@ import { Store } from '@ngrx/store';
 import { State } from '../../../../reducers/index';
 import * as Moment from 'moment'
 import { Observable } from 'rxjs';
+import { stopLoading } from '../../../../reducers/actions/loading.actions';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MyValidators } from '../../../../models/Validators';
+import { SocketioService } from '../../../../services/socketio.service';
 import * as fromLoadingActions from '../../../../reducers/actions/loading.actions';
 import { FundersServiceService } from '../../../../services/funders-service.service';
 import { ProjectsServiceService } from '../../../../services/projects-service.service';
+import { DocumentsServiceService } from '../../../../services/documents-service.service';
 import { IndicatorsServiceService } from '../../../../services/indicators-service.service';
 import { OrganizationsServiceService } from '../../../../services/organizations-service.service';
 
@@ -32,13 +36,20 @@ export class NewProjectComponent{
   organizationsSelected : any = [];
   indicatorsSelected : any = [];
 
+  projectDuration : number;
+
   File : any; //Variable para la subida de la lista de usuarios
 
-  constructor(private _fundersService : FundersServiceService,
+  constructor(private _snackBar : MatSnackBar,
+              private _fundersService : FundersServiceService,
               private _projectsService : ProjectsServiceService,
+              private _documentsService : DocumentsServiceService,
+              private _sockets : SocketioService,
               private _indicatorsService : IndicatorsServiceService,
               private _organizationsService : OrganizationsServiceService,
               private _store : Store<State>){
+
+    this.projectDuration = 12;
 
     this._fundersService.getFundersLocal().subscribe(funders => this.Funders = funders);
     this._indicatorsService.getIndicatorsLocal().subscribe(indicators => this.Indicators = indicators);
@@ -47,7 +58,7 @@ export class NewProjectComponent{
     this.GeneralFormGroup = new FormGroup({
       name: new FormControl('',[Validators.required,MyValidators.existProject,MyValidators.isBlank]),
       start_date: new FormControl('',[Validators.required]),
-      duration: new FormControl('',[Validators.required]),
+      duration: new FormControl('',[Validators.required,MyValidators.isDurationValid]),
       budgets: new FormGroup({
         total_inicial: new FormControl('',[Validators.required])
       }),
@@ -68,9 +79,59 @@ export class NewProjectComponent{
 
   addResult = () => (<FormArray> this.GeneralFormGroup.get('results')).push(new FormControl('',[Validators.required,MyValidators.isBlank]));
 
-  deleteObjective = (index : number) => { if(confirm('¿Está seguro de que quiere eliminar este objetivo?')) (<FormArray> this.GeneralFormGroup.get('objEspeCtrl')).removeAt(index); }
+  deleteObjective = (index : number) => { if(confirm('¿Está seguro de que quiere eliminar este objetivo?')) (<FormArray> this.GeneralFormGroup.get('esp_objectives')).removeAt(index); }
 
   deleteResult = (index : number) => { if(confirm('¿Está seguro de que quiere eliminar este resultado?')) (<FormArray> this.GeneralFormGroup.get('results')).removeAt(index); }
+
+  setDuration () {
+    
+    let duration_diff : number = (this.projectDuration/12) - (this.GeneralFormGroup.get('duration').value/12); //si es positivo hay que disminuir; si es negativo hay que aumentar.
+
+    this.projectDuration = this.GeneralFormGroup.get('duration').value;
+
+    for(let i = 0; i < this.indicatorsSelected.length; i++){
+      console.log(Math.abs(duration_diff));
+
+      for(let a = 0; a < Math.abs(duration_diff); a++){
+
+        if(duration_diff < 0){ //Hay que aumentar
+  
+          let goalCtrl : FormGroup = new FormGroup({
+            year: new FormControl(`${(<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('goal')).length + 1}º año`),
+            parameters: new FormArray([])
+          });
+  
+          for(let j = 0; j < this.indicatorsSelected[i].parameters.length; j++){
+            if(this.indicatorsSelected[i].antiquity_diff) (<FormArray> goalCtrl.get('parameters')).push(new FormGroup({
+              name: new FormControl(this.indicatorsSelected[i].parameters[j].name),
+              id: new FormControl(this.indicatorsSelected[i].parameters[j]._id),
+              goals: new FormGroup({
+                newer: new FormControl('', Validators.required),
+                older: new FormControl('', Validators.required)
+              })
+            }));
+            else (<FormArray> goalCtrl.get('parameters')).push(new FormGroup({
+              name: new FormControl(this.indicatorsSelected[i].parameters[j].name),
+              id: new FormControl(this.indicatorsSelected[i].parameters[j]._id),
+              goals: new FormGroup({
+                goal: new FormControl('', Validators.required)
+              })
+            }));
+          }
+  
+          (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('goal')).push(goalCtrl);
+          
+        }else{ //Hay que disminuir
+          (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('goal'))
+          .removeAt((<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('goal')).length - 1);
+        }
+  
+      }
+      
+    }
+
+
+  }
 
 /**
  * -------------------------------------------------------------------------------------------
@@ -78,7 +139,6 @@ export class NewProjectComponent{
  * -------------------------------------------------------------------------------------------
  */
 
- show(){(console.log(this.GeneralFormGroup))}
   /*Listeners para las listas de Selección de Funders, Indicators y Organizations*/
   OnIndicatorsListChange(id : string, list : MatSelectionList){
     let ready : boolean = false;
@@ -109,31 +169,51 @@ export class NewProjectComponent{
         }));
         for(let j = 0; j < indicator.parameters_schema.length; j++){
           (<FormArray> baselineCtrl.controls[i].get('parameters')).push(new FormGroup({
-            name: new FormControl(indicator.parameters_schema[i]['name']),
+            name: new FormControl(indicator.parameters_schema[j]['name']),
             baseline: new FormControl('')
           }));
         }
       }
+
+      let goalCtrl : FormArray = new FormArray([]);
+
+      console.log(this.projectDuration);
+
+      for(let i = 0; i < this.projectDuration/12; i++){
+
+        (<FormArray> goalCtrl).push(new FormGroup({
+          year: new FormControl(`${i+1}º año`),
+          parameters: new FormArray([])
+        }));
+
+        for(let j = 0; j < indicator.parameters_schema.length; j++){
+          
+          if(indicator.antiquity_diff) (<FormArray> goalCtrl.controls[i].get('parameters')).push(new FormGroup({
+            name: new FormControl(indicator.parameters_schema[j].name),
+            id: new FormControl(indicator.parameters_schema[j]._id),
+            goals: new FormGroup({
+              newer: new FormControl('',Validators.required),
+              older: new FormControl('',Validators.required)
+            })
+          }));
+          else (<FormArray> goalCtrl.controls[i].get('parameters')).push(new FormGroup({
+            name: new FormControl(indicator.parameters_schema[j].name),
+            id: new FormControl(indicator.parameters_schema[j]._id),
+            goals: new FormGroup({
+              goal: new FormControl('',Validators.required)
+            })
+          }));
+        }
       
-      if(indicator.antiquity_diff) (<FormArray> this.GeneralFormGroup.get('full_schema')).push(new FormGroup({
+      }
+
+        (<FormArray> this.GeneralFormGroup.get('full_schema')).push(new FormGroup({
           indicator: new FormControl(indicator.name),
           id: new FormControl(indicator._id),
-          goal: new FormGroup({
-            older: new FormControl('',Validators.required),
-            newer: new FormControl('',Validators.required)
-          }),
+          goal: goalCtrl,
           baseline: baselineCtrl,
           antiquity_diff: new FormControl(indicator.antiquity_diff)
         }));
-      else (<FormArray> this.GeneralFormGroup.get('full_schema')).push(new FormGroup({
-        indicator: new FormControl(indicator.name),
-        id: new FormControl(indicator._id),
-        goal: new FormGroup({
-          goal: new FormControl('',Validators.required)
-        }),
-        baseline: baselineCtrl,
-        antiquity_diff: new FormControl(indicator.antiquity_diff)
-      }));
     }
   } 
   
@@ -166,8 +246,8 @@ export class NewProjectComponent{
       for(let i = 0; i < (<FormArray>this.GeneralFormGroup.get('full_schema')).length; i++){
 
         let baselineCtrl : FormGroup = new FormGroup({
-          organization: new FormControl(this.organizationsSelected[i].name),
-          id: new FormControl(this.organizationsSelected[i].id),
+          organization: new FormControl(organization.name),
+          id: new FormControl(organization._id),
           parameters: new FormArray([])
         });
 
@@ -189,6 +269,7 @@ export class NewProjectComponent{
       if(this.GeneralFormGroup.get('full_schema')['controls'][i].get('organization')) (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('organization')).removeAt(index);
       (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('baseline')).removeAt(index);
     }
+    (<FormArray> this.GeneralFormGroup.get('organizations_diff')).removeAt(index);
   }
 
   OnFundersListChange(id : string){
@@ -204,13 +285,24 @@ export class NewProjectComponent{
     let project : any = this.GeneralFormGroup.value;
     project.indicators = [];
     project.organizations = [];
-    for(let i = 0; i < project.goals.length; i++){
-      project.indicators.push(project.goals[i].id);
+    for(let i = 0; i < this.indicatorsSelected.length; i++){
+      project.indicators.push(this.indicatorsSelected[i].id);
     }
-    for(let i = 0; i < project.goals[0].organizations.length; i++){
-      project.organizations.push(project.goals[0].organizations[i].id);
+    for(let i = 0; i < this.organizationsSelected.length; i++){
+      project.organizations.push(this.organizationsSelected[i].id);
     }
-    this._projectsService.createProject(project);
+    this._projectsService.createProject(project).subscribe(projectResponse =>
+      this.uploadBeneficiariesList(projectResponse.project._id).subscribe(docResponse => {
+        this._sockets.emit('projectWasCreated',docResponse.project);
+        this._projectsService.addToStorage(docResponse.project);
+      },error =>{
+        this._store.dispatch(stopLoading());
+        this._snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
+      }),
+    error => {
+      this._store.dispatch(stopLoading());
+      this._snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
+    });
   }
 
   prepareBeneficiariesList(event){
@@ -237,7 +329,7 @@ export class NewProjectComponent{
         filesForm.append('multi-files',this.File.fileObj,name);
         details.push({
           name: this.File.name,
-          folder: id,
+          project: id,
           type: this.File.type,
           file: name,
           ext: this.File.ext,
@@ -247,8 +339,8 @@ export class NewProjectComponent{
     filesForm.append('details',JSON.stringify(details));
     filesForm.append('entity','Project');
     filesForm.append('id',id);
-    return null;
-    /*return this._service.uploadFile(filesForm);*/
+    console.log(filesForm);
+    return this._documentsService.uploadFile(filesForm);
   }
 
 }

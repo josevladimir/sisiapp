@@ -19,7 +19,7 @@
                 <div class="col-sm-4">
                     <mat-form-field class="full-width">
                         <mat-label>Fecha de Inicio</mat-label>
-                        <input matInput [matDatepicker]="picker" formControlName="start_date" (keyup)="show()">
+                        <input matInput [matDatepicker]="picker" formControlName="start_date">
                         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                         <mat-datepicker #picker></mat-datepicker>
                         <mat-hint>Ingrese la fecha en formato: <b>01/01/2019</b></mat-hint>
@@ -30,10 +30,11 @@
                 </div>
                 <div class="col-sm-4">
                     <mat-form-field class="full-width">
-                        <input matInput type="number" formControlName="duration" placeholder="Duración">
+                        <input matInput type="number" formControlName="duration" placeholder="Duración" (blur)="setDuration()">
                         <mat-hint>Ingrese la duración del proyecto en meses.</mat-hint>
                         <mat-error *ngIf="this.GeneralFormGroup.get('duration').errors?.required">Este campo es obligatorio.</mat-error>
                         <mat-error *ngIf="this.GeneralFormGroup.get('duration').errors?.pattern">Debe ingresar una cantidad numérica.</mat-error>
+                        <mat-error *ngIf="this.GeneralFormGroup.get('duration').errors?.isInvalid">Debe ingresar una cantidad válida.</mat-error>
                     </mat-form-field>
                 </div>
             </div>
@@ -161,18 +162,18 @@
                         <div class="mb-3">
                             <div formArrayName="full_schema" *ngFor="let indicadorGroup of this.GeneralFormGroup.get('full_schema')['controls']; let i = index">
                                 <div [formGroupName]="i" class="table-container full-width">
-                                    <div class="text-center">{{indicadorGroup.get('indicator').value}}</div><!--Titulo-->
+                                    <div class="text-center table-title">{{indicadorGroup.get('indicator').value}}</div><!--Titulo-->
                                     <table class="baseline-table full-width">
                                         <tr>
-                                            <th class="sticky"></th>
-                                            <th *ngFor="let parametro of this.indicatorsSelected[i].parameters">{{parametro.name}}</th>
+                                            <th class="sticky main-row"></th>
+                                            <th class="main-row" *ngFor="let parametro of this.indicatorsSelected[i].parameters">{{parametro.name}}</th>
                                         </tr>
-                                        <tbody formArrayName="baseline" *ngFor="let organizationGroup of indicadorGroup.get('baseline').controls; let j = index">
+                                        <tbody class="table-cebra" formArrayName="baseline" *ngFor="let organizationGroup of indicadorGroup.get('baseline').controls; let j = index">
                                             <tr [formGroupName]="j">
-                                                <td class="sticky">{{organizationGroup.get('organization').value}}</td>
-                                                <td formArrayName="parameters" class="table-box" *ngFor="let parameter of organizationGroup.get('parameters').controls; let k = index">
+                                                <td class="sticky main-col">{{organizationGroup.get('organization').value}}</td>
+                                                <td formArrayName="parameters" class="table-box main-col" *ngFor="let parameter of organizationGroup.get('parameters').controls; let k = index">
                                                     <div [formGroupName]="k">
-                                                        <input type="text" class="full-width font-weight-lighter" formControlName="baseline" placeholder="Línea Base">
+                                                        <input type="number" class="full-width font-weight-lighter" formControlName="baseline" placeholder="Línea Base">
                                                     </div>
                                                 </td>
                                             </tr>
@@ -187,36 +188,32 @@
                         <div class="pt-3 row mb-3">
                             <div class="col-sm-12">
                                 <mat-card-title class="font-weight-lighter">Metas</mat-card-title>
-                                <div class="table-container">
-                                    <table class="baseline-table">
-                                        <thead>
+                                <div formArrayName="full_schema" *ngFor="let indicadorGroup of this.GeneralFormGroup.get('full_schema')['controls']; let i = index">
+                                    <div [formGroupName]="i" class="table-container full-width">
+                                        <div class="text-center table-title">{{indicadorGroup.get('indicator').value}}</div><!--Titulo-->
+                                        <table class="baseline-table full-width">
                                             <tr>
-                                                <th>Indicador</th>
-                                                <th>Meta única</th>
-                                                <th>Antigua</th>
-                                                <th>Nueva</th>
+                                                <th class="sticky main-row"></th>
+                                                <th class="main-row" *ngFor="let parametro of this.indicatorsSelected[i].parameters; let j = index">{{parametro.name}}</th>
                                             </tr>
-                                        </thead>
-                                        <tbody formArrayName="full_schema" *ngFor="let indicatorGroup of this.GeneralFormGroup.get('full_schema')['controls']; let i = index">
-                                            <tr [formGroupName]="i">
-                                                <td>{{indicatorGroup.get('indicator').value}}</td>
-                                                <td *ngIf="indicatorGroup.get('antiquity_diff').value">
-                                                    <input type="text" disabled>
-                                                </td>
-                                                <td *ngIf="indicatorGroup.get('antiquity_diff').value" formGroupName="goal">
-                                                    <input type="text" class="font-weight-lighter" placeholder="Meta" formControlName="older">
-                                                </td>
-                                                <td *ngIf="indicatorGroup.get('antiquity_diff').value" formGroupName="goal">
-                                                    <input type="text" class="font-weight-lighter" placeholder="Meta" formControlName="newer">
-                                                </td>
-                                                <td *ngIf="!indicatorGroup.get('antiquity_diff').value" formGroupName="goal">
-                                                    <input type="text" class="font-weight-lighter" placeholder="Meta" formControlName="goal">
-                                                </td>
-                                                <td *ngIf="!indicatorGroup.get('antiquity_diff').value"></td>
-                                                <td *ngIf="!indicatorGroup.get('antiquity_diff').value"></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                            <tbody formArrayName="goal" *ngFor="let parameterGroup of indicadorGroup.get('goal').controls; let j = index">
+                                                <tr [formGroupName]="j">
+                                                    <td class="sticky main-col">{{parameterGroup.get('year').value}}</td>
+                                                    <td formArrayName="parameters" class="table-box main-col" *ngFor="let parameter of parameterGroup.get('parameters').controls; let k = index">
+                                                        <div [formGroupName]="k">
+                                                            <div formGroupName="goals" class="flex ml-2 mr-2" *ngIf="indicadorGroup.get('antiquity_diff').value">
+                                                                <input type="number" class="full-width font-weight-lighter" formControlName="newer" placeholder="Nueva">
+                                                                <input type="number" class="full-width font-weight-lighter" formControlName="older" placeholder="Antigua">
+                                                            </div>
+                                                            <div formGroupName="goals" *ngIf="!indicadorGroup.get('antiquity_diff').value">
+                                                                <input type="number" class="full-width font-weight-lighter" formControlName="goal" placeholder="Meta">
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>

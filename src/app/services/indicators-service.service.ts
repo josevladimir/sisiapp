@@ -80,7 +80,7 @@ export class IndicatorsServiceService {
     if(!out) {
       this.store.dispatch(editModeSetDisabled());
       this.store.dispatch(fromLoadingActions.stopLoading());
-      this.snackBar.open('Se han guardado los cambios en el Financiador.','ENTENDIDO',{duration: 3000});
+      this.snackBar.open('Se han guardado los cambios en el Indicador.','ENTENDIDO',{duration: 3000});
     }
   }
 

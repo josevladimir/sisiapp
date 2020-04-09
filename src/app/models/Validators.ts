@@ -7,6 +7,11 @@ export abstract class MyValidators {
       return null;
     }
 
+    static isDurationValid( control: FormControl ) : {[s:string]:boolean} {
+      if((control.value%12)) return {isInvalid: true};
+      return null;
+    }
+
     static existFunder( control: FormControl ) : {[s:string]:boolean} {
       if(!control.value) return null;
       if(localStorage.getItem('funders')) {

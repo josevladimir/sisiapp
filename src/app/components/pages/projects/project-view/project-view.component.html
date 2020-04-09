@@ -1,21 +1,22 @@
-<app-sub-toolbar *ngIf="this.userRole == 'Administrador'"
+<app-sub-toolbar *ngIf="this.isAdmin | async"
     [title]="this.Project.name"
     [backButton]="true"
-    [buttons]="[this.DeleteBtn]"
+    [deleteButton]="this.DeleteBtn"
+    [editButton]="!(isEditMode | async)"
     [addButton]="false">
 </app-sub-toolbar>
 
-<app-sub-toolbar *ngIf="this.userRole != 'Administrador'"
+<app-sub-toolbar *ngIf="!(this.isAdmin | async)"
     [title]="this.Project.name"
     [backButton]="true"
     [addButton]="false">
 </app-sub-toolbar>
 
-<div class="full-height">
+<div class="page-content-without-padding">
     <mat-tab-group mat-stretch-tabs class="full-height"> 
         <mat-tab label="Infomación General">
-            <div class="container pb-3 pt-3 border-box">
-                <mat-card>
+            <div class="container pb-4 pt-3 border-box" *ngIf="!(this.isEditMode | async);else Editmode">
+                <mat-card class="mb-4">
                     <mat-card-title class="font-weight-lighter">Generales</mat-card-title>
                     <mat-divider></mat-divider>
                     <div class="mt-3 mb-3 row">
@@ -62,9 +63,9 @@
                         </div>
                         <div class="col-sm-4">
                             <small class="d-block full-width">Listado de Beneficiarios:</small>
-                            <div *ngIf="this.File == undefined; else IfThereFile">
-                                <img src="../../../../../assets/images/logo-sisi-only.svg" width="50px">
-                                Cargando...
+                            <div class="flex pt-1" *ngIf="this.File == undefined; else IfThereFile">
+                                <img class="rotar mr-2" src="../../../../../assets/images/logo-sisi-only.svg" width="25px">
+                                <small class="font-weight-lighter">Cargando...</small>
                             </div>
                             <ng-template #IfThereFile>
                                 <a [href]="this.URL + '/' + this.File.file" target="blank" [download]="this.File.name+this.File.ext" mat-raised-button color="primary" class="font-weight-lighter">DESCARGAR</a>
@@ -77,6 +78,107 @@
                     </div>
                 </mat-card>
             </div>
+            <!--Formulario de Edición-->
+            <ng-template #Editmode>
+                <form [formGroup]="GeneralFormGroup" class="p-3" (ngSubmit)="updateProject()">
+                    <mat-card>
+                        <mat-card-title class="font-weight-lighter">Datos Generales</mat-card-title> 
+                        <div class="row pb-1">
+                            <div class="col-sm-4">
+                                <mat-form-field class="full-width">
+                                    <input matInput type="text" formControlName="name" placeholder="Nombre del Proyecto">
+                                    <mat-error *ngIf="this.GeneralFormGroup.get('name').errors?.required">Este campo es obligatorio</mat-error>
+                                    <mat-error *ngIf="this.GeneralFormGroup.get('name').errors?.exist">Ya existe un proyecto con ese nombre</mat-error>
+                                </mat-form-field>
+                            </div>
+                            <div class="col-sm-4">
+                                <mat-form-field class="full-width">
+                                    <mat-label>Fecha de Inicio</mat-label>
+                                    <input matInput [matDatepicker]="picker" formControlName="start_date">
+                                    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                                    <mat-datepicker #picker></mat-datepicker>
+                                    <mat-hint>Ingrese la fecha en formato: <b>01/01/2019</b></mat-hint>
+                                    <mat-error *ngIf="this.GeneralFormGroup.get('start_date').errors?.required">Este campo es obligatorio</mat-error>
+                                    <mat-error *ngIf="!this.GeneralFormGroup.get('start_date').errors?.required && this.GeneralFormGroup.get('start_date').errors?.pattern">Ingrese una fecha válida</mat-error>
+                                  </mat-form-field>
+                                  
+                            </div>
+                            <div class="col-sm-4">
+                                <mat-form-field class="full-width">
+                                    <input matInput type="number" formControlName="duration" placeholder="Duración">
+                                    <mat-hint>Ingrese la duración del proyecto en meses.</mat-hint>
+                                    <mat-error *ngIf="this.GeneralFormGroup.get('duration').errors?.required">Este campo es obligatorio.</mat-error>
+                                    <mat-error *ngIf="this.GeneralFormGroup.get('duration').errors?.pattern">Debe ingresar una cantidad numérica.</mat-error>
+                                    <mat-error *ngIf="this.GeneralFormGroup.get('duration').errors?.isInvalid">Debe ingresar una cantidad válida.</mat-error>
+                                </mat-form-field>
+                            </div>
+                        </div>
+                    </mat-card>                    
+                    
+                    <mat-card class="mt-4">
+                        <mat-card-title class="font-weight-lighter">Localidad y Beneficiarios</mat-card-title>
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <mat-form-field class="full-width">
+                                    <input matInput type="text" formControlName="ubication" placeholder="Ubicación (Cantón)">
+                                    <mat-error *ngIf="this.GeneralFormGroup.get('ubication').errors?.required">Este campo es obligatorio.</mat-error>
+                                    <mat-error *ngIf="!this.GeneralFormGroup.get('ubication').errors?.required && this.GeneralFormGroup.get('ubication').errors?.isBlank">Este campo no puede quedar en blanco.</mat-error>
+                                </mat-form-field>
+                            </div>
+                            <div class="col-sm-4">
+                                <div formGroupName="beneficiaries">
+                                    <mat-form-field class="full-width">
+                                        <input matInput type="number" formControlName="number" placeholder="Número de Beneficiarios">
+                                        <mat-error *ngIf="this.GeneralFormGroup.get('beneficiaries').get('number').errors?.required">Este campo es obligatorio.</mat-error>
+                                    </mat-form-field>
+                                </div>
+                            </div>
+                        </div>
+                    </mat-card>
+                    
+                    <mat-card class="mt-4 mb-4">
+                        <mat-card-title class="font-weight-lighter">Objetivos y Resultados</mat-card-title>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <mat-form-field class="full-width">
+                                    <textarea matInput type="text" formControlName="gen_objective" placeholder="Objetivo General"></textarea>
+                                    <mat-error *ngIf="this.GeneralFormGroup.get('gen_objective').errors?.required">El Objetivo General es obligatorio.</mat-error>
+                                    <mat-error *ngIf="!this.GeneralFormGroup.get('gen_objective').errors?.required && this.GeneralFormGroup.get('gen_objective').errors?.isBlank">Este campo no puede quedar en blanco.</mat-error>
+                                </mat-form-field>
+                            </div>
+                            <div class="col-sm-6">
+                                <mat-form-field class="full-width" formArrayName="esp_objectives" *ngFor="let objetivo of this.GeneralFormGroup.get('esp_objectives')['controls']; let i = index">
+                                    <div *ngIf="i != 0" class="form-control-equis">
+                                        <mat-icon (click)="this.deleteObjective(i)">clear</mat-icon>
+                                    </div>
+                                    <textarea matInput type="text" [formControlName]="i" placeholder="Objetivo Específico"></textarea>
+                                    <mat-error *ngIf="this.GeneralFormGroup.get('esp_objectives')['controls'][i].errors?.required">Este campo es obligatorio.</mat-error>
+                                    <mat-error *ngIf="!this.GeneralFormGroup.get('esp_objectives')['controls'][i].errors?.required && this.GeneralFormGroup.get('esp_objectives')['controls'][i].errors?.isBlank">Este campo no puede quedar en blanco.</mat-error>
+                                </mat-form-field>
+                                <div class="flex">
+                                    <span class="fill-remaining-space"></span>
+                                    <button mat-raised-button color="primary" type="button" (click)="this.addObjective()">Añadir Objetivo</button>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <mat-form-field class="full-width" formArrayName="results" *ngFor="let resultado of this.GeneralFormGroup.get('results')['controls']; let i = index">
+                                    <div *ngIf="i != 0" class="form-control-equis">
+                                        <mat-icon (click)="this.deleteResult(i)">clear</mat-icon>
+                                    </div>
+                                    <textarea matInput type="text" [formControlName]="i" placeholder="Resultado"></textarea>
+                                    <mat-error *ngIf="this.GeneralFormGroup.get('results')['controls'][i].errors?.required">Este campo es obligatorio.</mat-error>
+                                    <mat-error *ngIf="!this.GeneralFormGroup.get('results')['controls'][i].errors?.required && this.GeneralFormGroup.get('results')['controls'][i].errors?.isBlank">Este campo no puede quedar en blanco.</mat-error>
+                                </mat-form-field>
+                                <div class="flex">
+                                    <span class="fill-remaining-space"></span>
+                                    <button mat-raised-button color="primary" type="button" (click)="this.addResult()">Añadir Resultado</button>
+                                </div>
+                            </div>
+                        </div>
+                    </mat-card>
+                    <app-form-buttons [isEditMode]="true" [formGroup]="this.GeneralFormGroup"></app-form-buttons>
+                </form>            
+            </ng-template>
         </mat-tab>
         <!--Pestaña Presupuesto-->
         <mat-tab label="Presupuesto">
@@ -98,7 +200,7 @@
                             <span class="font-weight-lighter">{{this.executed_budget.value | currency}}</span>
                         </div>
                     </div>
-                    <div class="mt-3 flex" *ngIf="this.userRole == 'Administrador'">
+                    <div class="mt-3 flex" *ngIf="this.isAdmin | async">
                         <div class="fill-remaining-space"></div>
                         <button mat-raised-button color="primary" class="font-weight-lighter mr-2" (click)="this.updateBudget()">Registrar cambio en presupuesto</button>
                         <button mat-raised-button color="primary" class="font-weight-lighter" (click)="this.updateExecuted()">Actualizar presupuesto ejecutado</button>
@@ -158,14 +260,13 @@
                             <div class="flex flex-align-vertical">
                                 <mat-card-title class="font-weight-lighter">Financiadores Vinculados</mat-card-title>
                                 <span class="fill-remaining-space"></span>
-                                <button *ngIf="this.userRole == 'Administrador'" mat-raised-button color="primary" type="button" (click)="this.linkFunders()">Vincular Financiador</button>
+                                <button *ngIf="this.isAdmin | async" mat-raised-button color="primary" type="button" (click)="this.linkFunders()">Vincular Financiador</button>
                             </div>
                             <mat-divider></mat-divider>
                             <mat-card-content class="full-height">
                                 <div class="pt-3 full-height">
                                     <mat-list class="scroll-list-view full-height bordered-list">
-                                        <a mat-button *ngFor="let funder of this.Project.funders" [routerLink]="['/funders',funder._id]" class="full-width text-left font-weight-lighter">{{funder.name}} - {{funder.place}}</a>
-                                        <mat-divider></mat-divider>
+                                        <li *ngFor="let funder of this.Project.funders" class="full-width flex flex-align-vertical font-weight-lighter"><a routerLink="/main/funders/{{funder._id}}" class="ml-3">{{funder.name}} - {{funder.place}}</a><span class="fill-remaining-space"></span><button mat-icon-button matTooltip="Desvincular Financiador" (click)="delinkFunder(funder._id)"><mat-icon>close</mat-icon></button></li>
                                     </mat-list>
                                 </div>
                             </mat-card-content>
@@ -177,12 +278,307 @@
                         <div class="col-sm-12">
                             <h3 class="full-width font-weight-lighter mt-5 text-center">No hay Financiadores Vinculados con este proyecto.</h3>
                             <div class="flex flex-center">
-                                <button *ngIf="this.userRole == 'Administrador'" mat-raised-button color="primary" type="button" (click)="this.linkFunders()">Vincular Financiador</button>
+                                <button *ngIf="this.isAdmin | async" mat-raised-button color="primary" type="button" (click)="this.linkFunders()">Vincular Financiador</button>
                             </div>
                         </div>
                     </div>
                 </ng-template>
             </div>
+        </mat-tab>
+        <!--Pestaña Esquema de Fichas-->
+        <mat-tab label="Esquema de las Fichas" class="full-height">
+            <div *ngIf="(this.isEditMode | async); else SchemaView" class="p-4"> <!--Formulario de Esquema-->
+
+                <mat-card>
+    
+                    <mat-card-title class="font-weight-lighter">Indicadores y Organizaciones</mat-card-title>
+                    <div class="row mt-3">
+                        <div class="col-sm-6">
+                            <div>
+                                <div class="project-list-title">
+                                    Indicadores
+                                </div>
+                                <mat-selection-list class="projects-selection-list" #IndicatorsList>
+                                    <mat-list-option class="font-weight-lighter" *ngFor="let indicator of this.Indicators" [selected]="true" [value]="indicator._id" (click)="OnIndicatorsListChange(indicator._id,IndicatorsList)">{{indicator.name}}</mat-list-option>  
+                                </mat-selection-list>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div>
+                                <div class="project-list-title">
+                                    Organizaciones
+                                </div>
+                                <mat-selection-list class="projects-selection-list"  #OrganizationsList>
+                                    <mat-list-option class="font-weight-lighter flex" *ngFor="let organization of this.Organizations" [selected]="true" [value]="organization._id" (click)="OnOrganizationsListChange(organization._id,OrganizationsList)">
+                                        {{organization.name}}
+                                    </mat-list-option>
+                                </mat-selection-list>
+                            </div>
+                        </div>
+                    </div>
+                </mat-card>
+                        
+                <mat-card class="mt-4">
+                    <mat-card-title class="font-weight-lighter">Línea Base</mat-card-title>
+                    <mat-card-content>
+                        <div *ngIf="!this.SchemaFormGroup.get('full_schema')['controls'].length; else LineaBaseSchema" class="col-sm-12 mt-3 mb-3 font-weight-lighter text-center">No ha seleccionado ningún Indicador ni Organización</div>
+                        <ng-template #LineaBaseSchema>
+                            <form [formGroup]="SchemaFormGroup">
+                                <div class="mt-3 mb-3 full-width font-weight-lighter">
+                                    <!--Cuadro por indicador-->
+                                    <div class="mb-3">
+                                        <div formArrayName="full_schema" *ngFor="let indicadorGroup of this.SchemaFormGroup.get('full_schema')['controls']; let i = index">
+                                            <div [formGroupName]="i" class="table-container full-width">
+                                                <div class="text-center table-title">{{indicadorGroup.get('indicator').value}}</div><!--Titulo-->
+                                                <table class="baseline-table full-width">
+                                                    <tr>
+                                                        <th class="sticky main-row"></th>
+                                                        <th class="main-row" *ngFor="let parametro of this.indicatorsSelected[i].parameters">{{parametro.name}}</th>
+                                                    </tr>
+                                                    <tbody class="table-cebra" formArrayName="baseline" *ngFor="let organizationGroup of indicadorGroup.get('baseline').controls; let j = index">
+                                                        <tr [formGroupName]="j">
+                                                            <td class="sticky main-col">{{organizationGroup.get('organization').value}}</td>
+                                                            <td formArrayName="parameters" class="table-box main-col" *ngFor="let parameter of organizationGroup.get('parameters').controls; let k = index">
+                                                                <div [formGroupName]="k">
+                                                                    <input type="number" class="full-width font-weight-lighter" formControlName="baseline" placeholder="Línea Base">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+            
+                                    <mat-divider></mat-divider>
+                                    
+                                    <div class="pt-3 row mb-3">
+                                        <div class="col-sm-12">
+                                            <mat-card-title class="font-weight-lighter">Metas</mat-card-title>
+                                            <div formArrayName="full_schema" *ngFor="let indicadorGroup of this.SchemaFormGroup.get('full_schema')['controls']; let i = index">
+                                                <div [formGroupName]="i" class="table-container full-width">
+                                                    <div class="text-center table-title">{{indicadorGroup.get('indicator').value}}</div><!--Titulo-->
+                                                    <table class="baseline-table full-width">
+                                                        <tr>
+                                                            <th class="sticky main-row"></th>
+                                                            <th class="main-row" *ngFor="let parametro of this.indicatorsSelected[i].parameters; let j = index">{{parametro.name}}</th>
+                                                        </tr>
+                                                        <tbody formArrayName="goal" *ngFor="let parameterGroup of indicadorGroup.get('goal').controls; let j = index">
+                                                            <tr [formGroupName]="j">
+                                                                <td class="sticky main-col">{{parameterGroup.get('year').value}}</td>
+                                                                <td formArrayName="parameters" class="table-box main-col" *ngFor="let parameter of parameterGroup.get('parameters').controls; let k = index">
+                                                                    <div [formGroupName]="k">
+                                                                        <div formGroupName="goals" class="flex ml-2 mr-2" *ngIf="indicadorGroup.get('antiquity_diff').value">
+                                                                            <input type="number" class="full-width font-weight-lighter mr-1" formControlName="newer" placeholder="Nueva">
+                                                                            <input type="number" class="full-width font-weight-lighter ml-1" formControlName="older" placeholder="Antigua">
+                                                                        </div>
+                                                                        <div formGroupName="goals" *ngIf="!indicadorGroup.get('antiquity_diff').value">
+                                                                            <input type="number" class="full-width font-weight-lighter" formControlName="goal" placeholder="Meta">
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                            <tr *ngIf="indicadorGroup.get('antiquity_diff').value">
+                                                                <td></td>
+                                                                <td *ngFor="let parameter of parameterGroup.get('parameters').controls;">
+                                                                    <div>
+                                                                        <div class="flex ml-2 mr-2">
+                                                                            <small class="full-width font-weight-lighter text-center">Nueva</small>
+                                                                            <small class="full-width font-weight-lighter text-center">Antigua</small>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+            
+                                    <mat-divider></mat-divider>
+            
+                                    <div class="pt-3 row">
+                                        <div class="col-sm-12">
+                                            <mat-card-title class="font-weight-lighter">Clasificación de las Organizaciones</mat-card-title>
+                                            <div>
+                                                <table class="baseline-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Organización</th>
+                                                            <th>Clasificación</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody formArrayName="organizations_diff" *ngFor="let organizationGroup of this.SchemaFormGroup.get('organizations_diff')['controls']; let i = index">
+                                                        <tr [formGroupName]="i">
+                                                            <td>{{organizationGroup.get('organization').value}}</td>
+                                                            <td>
+                                                                <select formControlName="isOlder" class="full-width">
+                                                                    <option value="newer">Nueva</option>
+                                                                    <option value="older">Antigua</option>
+                                                                </select>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+            
+                                </div>
+                            </form>
+                        </ng-template>
+                    </mat-card-content>
+                </mat-card>
+            </div>
+
+            <ng-template #SchemaView>
+                <div class="p-4">
+
+                    <mat-card>
+                        <mat-card-title class="font-weight-lighter">Indicadores y Organizaciones</mat-card-title>
+                        <div class="row mt-3">
+                            <div class="col-sm-6">
+                                <div>
+                                    <div class="project-list-title">
+                                        Indicadores
+                                    </div>
+                                    <mat-list class="projects-selection-list" #IndicatorsList>
+                                        <mat-list-item class="font-weight-lighter" *ngFor="let indicator of this.Project.indicators">{{indicator.name}}</mat-list-item>  
+                                    </mat-list>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div>
+                                    <div class="project-list-title">
+                                        Organizaciones
+                                    </div>
+                                    <mat-list class="projects-selection-list"  #OrganizationsList>
+                                        <mat-list-item class="font-weight-lighter flex" *ngFor="let organization of this.Project.organizations">
+                                            {{organization.name}}
+                                        </mat-list-item>
+                                    </mat-list>
+                                </div>
+                            </div>
+                        </div>
+                    </mat-card>
+                            
+                    <mat-card class="mt-4">
+                        <mat-card-title class="font-weight-lighter">Línea Base</mat-card-title>
+                        <mat-card-content>
+                            <div *ngIf="!this.Project.full_schema.length; else LineaBaseSchemaVisor" class="col-sm-12 mt-3 mb-3 font-weight-lighter text-center">No ha seleccionado ningún Indicador ni Organización</div>
+                            <ng-template #LineaBaseSchemaVisor>
+                                    <div class="mt-3 mb-3 full-width font-weight-lighter">
+                                        <!--Cuadro por indicador-->
+                                        <div class="mb-3">
+                                            <div *ngFor="let indicadorGroup of this.Project.full_schema; let i = index">
+                                                <div class="table-container full-width">
+                                                    <div class="text-center table-title">{{indicadorGroup.indicator}}</div><!--Titulo-->
+                                                    <table class="baseline-table full-width">
+                                                        <tr>
+                                                            <th class="sticky main-row"></th>
+                                                            <th class="main-row" *ngFor="let parametro of this.indicatorsSelected[i].parameters">{{parametro.name}}</th>
+                                                        </tr>
+                                                        <tbody class="table-cebra" *ngFor="let organizationGroup of indicadorGroup.baseline; let j = index">
+                                                            <tr>
+                                                                <td class="sticky main-col">{{organizationGroup.organization}}</td>
+                                                                <td class="table-box main-col" *ngFor="let parameter of organizationGroup.parameters; let k = index">
+                                                                    <div *ngIf="parameter.baseline; else NoBaseline" class="text-center font-weight-lighter">
+                                                                        {{parameter.baseline}}
+                                                                    </div>
+                                                                    <ng-template #NoBaseline>
+                                                                        <div class="text-center font-weight-lighter">N/A</div>
+                                                                    </ng-template>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                
+                                        <mat-divider></mat-divider>
+                                        
+                                        <div class="pt-3 row mb-3">
+                                            <div class="col-sm-12">
+                                                <mat-card-title class="font-weight-lighter">Metas</mat-card-title>
+                                                <div *ngFor="let indicadorGroup of this.Project.full_schema; let i = index">
+                                                    <div class="table-container full-width">
+                                                        <div class="text-center table-title">{{indicadorGroup.indicator}}</div><!--Titulo-->
+                                                        <table class="baseline-table full-width">
+                                                            <tr>
+                                                                <th class="sticky main-row"></th>
+                                                                <th class="main-row" *ngFor="let parametro of this.indicatorsSelected[i].parameters; let j = index">{{parametro.name}}</th>
+                                                            </tr>
+                                                            <tbody *ngFor="let parameterGroup of indicadorGroup.goal; let j = index">
+                                                                <tr>
+                                                                    <td class="sticky main-col">{{parameterGroup.year}}</td>
+                                                                    <td class="table-box main-col" *ngFor="let parameter of parameterGroup.parameters; let k = index">
+                                                                        <div>
+                                                                            <div class="flex ml-2 mr-2" *ngIf="indicadorGroup.antiquity_diff">
+                                                                                <div class="table-box2 text-center font-weight-lighter full-width">{{parameter.goals.newer}}</div>
+                                                                                <div class="table-box2 text-center font-weight-lighter full-width">{{parameter.goals.older}}</div>
+                                                                            </div>
+                                                                            <div *ngIf="!indicadorGroup.antiquity_diff" class=" full-width font-weight-lighter text-center table-box">
+                                                                                {{parameter.goals.goal}}
+                                                                            </div>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr *ngIf="indicadorGroup.antiquity_diff">
+                                                                    <td class="sticky"></td>
+                                                                    <td *ngFor="let parameter of parameterGroup.parameters">
+                                                                        <div>
+                                                                            <div class="flex ml-2 mr-2">
+                                                                                <small class="full-width font-weight-lighter text-center">Nueva</small>
+                                                                                <small class="full-width font-weight-lighter text-center">Antigua</small>
+                                                                            </div>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                
+                                        <mat-divider></mat-divider>
+                
+                                        <div class="pt-3 row">
+                                            <div class="col-sm-12">
+                                                <mat-card-title class="font-weight-lighter">Clasificación de las Organizaciones</mat-card-title>
+                                                <div class="flex flex-center full-width">
+                                                    <div>
+                                                        <table class="baseline-table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Organización</th>
+                                                                    <th>Clasificación</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody *ngFor="let organizationGroup of this.Project.organizations_diff; let i = index">
+                                                                <tr>
+                                                                    <td>{{organizationGroup.organization}}</td>
+                                                                    <td class="text-center font-weight-lighter">
+                                                                        {{this.Project.organizations_diff[i].isOlder == 'older' ? 'Antigua' : 'Nueva'}}
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                
+                                    </div>
+                            </ng-template>
+                        </mat-card-content>
+                    </mat-card>
+                </div>
+
+            </ng-template>
+
         </mat-tab>
     </mat-tab-group>
 </div>

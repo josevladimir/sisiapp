@@ -66,7 +66,8 @@ export class AppServiceService {
     this.socket.listen('funderWasCreated').subscribe((funder :Funder) => this.fundersService.addToStorage(funder,true));
     this.socket.listen('funderWasUpdated').subscribe(() => this.fundersService.updateFundersOnStorage(true));
     this.socket.listen('funderWasDeleted').subscribe((id : string) => this.fundersService.removeFromStorage(id,true));
-    this.socket.listen('projectWasCreated').subscribe((project :any) => this.projectsService.addToStorage(project,true));
+    this.socket.listen('projectWasUpdated').subscribe(() => this.projectsService.updateProjectOnStorage(true));
+    this.socket.listen('projectWasDeleted').subscribe((id : string) => this.projectsService.removeFromStorage(id,true));
     this.socket.listen('indicatorWasCreated').subscribe((indicator :any) => this.indicatorsService.addToStorage(indicator,true));
     this.socket.listen('indicatorWasUpdated').subscribe(() => this.indicatorsService.updateIndicatorsOnStorage(true));
     this.socket.listen('indicatorWasDeleted').subscribe((id : string) => this.indicatorsService.removeFromStorage(id,true));
@@ -74,6 +75,14 @@ export class AppServiceService {
     this.socket.listen('organizationWasCreated').subscribe((organization :any) => this.organizationsService.addToStorage(organization,true));
     this.socket.listen('organizationWasUpdated').subscribe(() => this.organizationsService.updateOrganizationsOnStorage(true));
     this.socket.listen('organizationWasDeleted').subscribe((id : string) => this.organizationsService.removeFromStorage(id,true));
+
+    this.socket.listen('projectWasCreated').subscribe((project :any) => {
+      this.fundersService.getFunders();
+      this.documentsService.getDocuments();
+      this.organizationsService.getOrganizations();
+      this.projectsService.addToStorage(project,true);
+    });
+
   }
 
 }

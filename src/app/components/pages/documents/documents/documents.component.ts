@@ -57,6 +57,7 @@ export class DocumentsComponent implements OnDestroy {
       this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
       
       this.subscription = this.documentsService.getDocumentsLocal().subscribe((data : any) => {
+        console.log(data);
         this.files = data.documents;
         this.dataSource.data = this.formatFilesData();
       });
@@ -84,7 +85,7 @@ export class DocumentsComponent implements OnDestroy {
       ];
       
       let orgFiles : any[] = this.files.filter(file => file.entity == 'Organizaciones');
-      let orgFolders : any[] = orgFiles.map(org => org.folder.name);
+      let orgFolders : any[] = orgFiles.map(org => org.organization.name);
       let projectsFiles : any[] = this.files.filter(file => file.entity == 'Proyectos');
 
       orgFolders.forEach(folder => file_structure[0].children.push({

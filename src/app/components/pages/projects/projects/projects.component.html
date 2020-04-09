@@ -12,9 +12,8 @@
 
 <div class="page-content with-filter-box">
 
-    <div class="row full-height" *ngIf="this.projects.length; else NoProjects">
-        <div class="row full-height" *ngIf="this.List.length; else NoList">
-
+    <div class="full-width full-height" *ngIf="this.projects.length; else NoProjects">
+        <div class="row full-width full-height" *ngIf="this.List.length; else NoList">
             <div class="col-sm-4 mb-4" *ngFor="let project of this.List">
                 <app-project-card [project]="project"></app-project-card>
             </div>

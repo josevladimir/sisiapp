@@ -102,7 +102,7 @@ export class UploadBoxComponent implements OnInit{
         this.filesForm.append('multi-files',file.fileObj,name);
         details.push({
           name: file.name,
-          folder: this.organization_id,
+          organization: this.organization_id,
           type: file.type,
           file: name,
           ext: file.ext,
