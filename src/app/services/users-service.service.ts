@@ -27,4 +27,8 @@ export class UsersServiceService {
     return this.storage.watch('users');
   }
 
+  getUser () : Observable<any>{
+    return this.storage.get('users');
+  }
+
 }

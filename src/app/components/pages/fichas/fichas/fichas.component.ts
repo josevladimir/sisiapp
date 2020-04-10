@@ -1,7 +1,9 @@
 import { Component } from '@angular/core';
-import { SisiCoreService } from '../../../../services/sisi-core.service';
 import { FormGroup, FormControl, Validators, FormArray } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { ProjectsServiceService } from '../../../../services/projects-service.service';
+import { UsersServiceService } from '../../../../services/users-service.service';
+import { IndicatorsServiceService } from '../../../../services/indicators-service.service';
 
 @Component({
   selector: 'app-fichas',
@@ -30,9 +32,13 @@ export class FichasComponent {
 
   Status : string = 'none';
 
-  constructor(public _service : SisiCoreService,
+  constructor(public _projectsService : ProjectsServiceService,
+              private _usersService : UsersServiceService,
+              private _indicatorsService : IndicatorsServiceService,
               private _snackBar : MatSnackBar) { 
-    this.Projects = this._service.getProjectsOff().map(project => this.formatProjects(project));
+    
+    this._projectsService.getProjectsLocal().subscribe(projects => this.Projects = projects);
+
   }
 
   formatProjects(project : any){
@@ -55,8 +61,11 @@ export class FichasComponent {
         let record_date = new Date(this.ProjectRecords[i].period);
         if(this.ProjectRecords[i].records.indicator == this.selectedIndicator && now.getMonth() == record_date.getMonth() && now.getFullYear() == record_date.getFullYear()){
           this.SchemaForm = this.ProjectRecords[i];
-          let user = this._service.getUser(this.SchemaForm.created_by);
-          this.UserResponsable = `${user.name} ${user.last_names} - ${user.position}`
+          let user : any;
+          this._usersService.getUser().subscribe(users => {
+            user = users.filter(user => user._id == this.SchemaForm.created_by)[0];
+            this.UserResponsable = `${user.name} ${user.last_names} - ${user.position}`;
+          });
           this.Status = 'already-filled';
           break;
         }else{
@@ -100,16 +109,18 @@ export class FichasComponent {
   }
 
   onProjectSelect(ev){
-    let project = this._service.getProject(ev);
-    this.ProjectRecords = project.records;
-    this.ProjectName = project.name;
-    this.Indicators = project.indicators;
-    this.Organizations = project.organizations;
-    this.Status = 'none';
+    this._projectsService.getProjectsLocal().subscribe(projects => {
+      let project = projects.filter(project => ev == project._id)[0];
+      this.ProjectRecords = project.records;
+      this.ProjectName = project.name;
+      this.Indicators = project.indicators;
+      this.Organizations = project.organizations;
+      this.Status = 'none';
+    });
   }
 
   onIndicatorSelect(ev){
-    this.Indicator = this._service.getIndicator(ev);
+    this.Indicator = this._indicatorsService.getIndicatorsLocal().subscribe(indicators => this.Indicator = indicators.filter(indicator => indicator._id == ev)[0]);
     this.Status = 'none';
   }
 
@@ -128,10 +139,10 @@ export class FichasComponent {
     }
     if(false) return alert('La Ficha debe estar llena completamente.');
     else{
-      this._service.updateProject({records: this.SchemaForm},this.selectedProject).subscribe(
+      this._projectsService.updateProject({records: this.SchemaForm},this.selectedProject).subscribe(
         result => {
           if(result.message == 'UPDATED'){
-            this._service.updateProjectsList(null);
+            //this._service.updateProjectsList(null);
             this.Status = 'none';
 
             this.ProjectRecords = result.project.records;
