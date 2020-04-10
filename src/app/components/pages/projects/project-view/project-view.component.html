@@ -290,7 +290,6 @@
             <div *ngIf="(this.isEditMode | async); else SchemaView" class="p-4"> <!--Formulario de Esquema-->
 
                 <mat-card>
-    
                     <mat-card-title class="font-weight-lighter">Indicadores y Organizaciones</mat-card-title>
                     <div class="row mt-3">
                         <div class="col-sm-6">
@@ -299,7 +298,7 @@
                                     Indicadores
                                 </div>
                                 <mat-selection-list class="projects-selection-list" #IndicatorsList>
-                                    <mat-list-option class="font-weight-lighter" *ngFor="let indicator of this.Indicators" [selected]="true" [value]="indicator._id" (click)="OnIndicatorsListChange(indicator._id,IndicatorsList)">{{indicator.name}}</mat-list-option>  
+                                    <mat-list-option class="font-weight-lighter" *ngFor="let indicator of this.Indicators" [selected]="this.isSelected(indicator._id,'Indicators')" [value]="indicator._id" (click)="OnIndicatorsListChange(indicator._id,IndicatorsList)">{{indicator.name}}</mat-list-option>  
                                 </mat-selection-list>
                             </div>
                         </div>
@@ -309,7 +308,7 @@
                                     Organizaciones
                                 </div>
                                 <mat-selection-list class="projects-selection-list"  #OrganizationsList>
-                                    <mat-list-option class="font-weight-lighter flex" *ngFor="let organization of this.Organizations" [selected]="true" [value]="organization._id" (click)="OnOrganizationsListChange(organization._id,OrganizationsList)">
+                                    <mat-list-option class="font-weight-lighter flex" *ngFor="let organization of this.Organizations" [selected]="this.isSelected(organization._id,'Organizations')" [value]="organization._id" (click)="OnOrganizationsListChange(organization._id,OrganizationsList)">
                                         {{organization.name}}
                                     </mat-list-option>
                                 </mat-selection-list>
@@ -430,6 +429,13 @@
                         </ng-template>
                     </mat-card-content>
                 </mat-card>
+
+                <div class="full-width flex mt-4">
+                    <span class="fill-remaining-space"></span>
+                    <button mat-button (click)="cancel()" class="mr-2">CANCELAR</button>
+                    <button mat-raised-button color="primary" [disabled]="this.SchemaFormGroup.pristine || this.SchemaFormGroup.invalid" (click)="updateSchema()">GUARDAR</button>
+                </div>
+    
             </div>
 
             <ng-template #SchemaView>

@@ -52,6 +52,16 @@ export class ProjectViewComponent {
 
   projectDuration : number;
 
+  organizationsList : any = {
+    toAdd: [],
+    toRemove: []
+  }
+
+  indicatorsList : any = {
+    toAdd: [],
+    toRemove: []
+  }
+
   DeleteBtn : () => void = () =>{
       if(confirm('¿Está seguro que desea eliminar este Proyecto?\n\nEsta acción no se puede deshacer.')){
         this._store.dispatch(fromLoadingActions.initLoading({message: 'Eliminando el proyecto...'}));
@@ -102,6 +112,26 @@ export class ProjectViewComponent {
   }
 
   getFormFromProject(){
+    this.organizationsSelected = [];
+    this.indicatorsSelected = [];
+    
+    this.organizationsList = {
+      toAdd: [],
+      toRemove: []
+    }
+  
+    this.indicatorsList = {
+      toAdd: [],
+      toRemove: []
+    }
+
+    this.Project.organizations.forEach(organization => {
+      this.organizationsSelected.push({
+        name: organization.name,
+        id: organization._id
+      });
+    })
+
     this.GeneralFormGroup = new FormGroup({
       name: new FormControl(this.Project.name,[Validators.required,MyValidators.existProject]),
       start_date: new FormControl(this.Project.start_date,[Validators.required]),
@@ -128,22 +158,20 @@ export class ProjectViewComponent {
       organizations_diff: new FormArray([])
     });
 
+    for(let i = 0; i < this.Project.organizations_diff.length; i++){
+      (<FormArray> this.SchemaFormGroup.get('organizations_diff')).push(new FormGroup({
+        organization: new FormControl(this.Project.organizations_diff[i].organization),
+        id: new FormControl(this.Project.organizations_diff[i].id),
+        isOlder: new FormControl(this.Project.organizations_diff[i].isOlder,Validators.required)
+      }));
+    }
+
     for(let i = 0; i < this.Project.full_schema.length; i++){
       let baselineCtrl : FormArray = new FormArray([]);
 
       let indicator = {id: this.Project.full_schema[i].id,antiquity_diff: this.Project.full_schema[i].antiquity_diff,parameters: []};
       
       for(let j = 0; j < this.Project.full_schema[i].baseline.length; j++){
-        (<FormArray> this.SchemaFormGroup.get('organizations_diff')).push(new FormGroup({
-          organization: new FormControl(this.Project.organizations_diff[j].organization,Validators.required),
-          id: new FormControl(this.Project.organizations_diff[j].id,Validators.required),
-          isOlder: new FormControl(this.Project.organizations_diff[j].isOlder,Validators.required)
-        }));
-
-        this.organizationsSelected.push({
-          name: this.Project.full_schema[i].baseline[j].organization,
-          id: this.Project.full_schema[i].baseline[j].id
-        });
 
         (<FormArray> baselineCtrl).push(new FormGroup({
           organization: new FormControl(this.Project.full_schema[i].baseline[j].organization),
@@ -214,8 +242,12 @@ export class ProjectViewComponent {
 
   deleteResult = (index : number) => { if(confirm('¿Está seguro de que quiere eliminar este resultado?')) (<FormArray> this.GeneralFormGroup.get('results')).removeAt(index); }
 
-  isSelected(id : string) {
-    return this.Project.organizations.filter(org => org._id == id).length;
+  isSelected(id : string, type : string) {
+    let longitud : number;
+    if(type == 'Organizations') longitud = this.Project.organizations.filter(org => org._id == id).length;
+    else longitud = this.Project.indicators.filter(indicator => indicator._id == id).length;
+    if(longitud) return true;
+    return false;
   }
 
   updateProject(){
@@ -228,8 +260,39 @@ export class ProjectViewComponent {
       this._store.dispatch(editModeSetDisabled());
       this._store.dispatch(fromLoadingActions.stopLoading());
       this._snackBar.open('Se han guardado los cambios.','ENTENDIDO',{duration: 3000});
-    },error => this._snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000}));
+    },error => {
+      this._store.dispatch(fromLoadingActions.stopLoading());
+      this._snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
+    });
   }
+
+  updateSchema(){
+    this._store.dispatch(fromLoadingActions.initLoading({message: 'Guardando los Cambios'}));
+    let body : any;
+    body = {
+      schema: this.SchemaFormGroup.value,
+      organizationsList: this.organizationsList,
+      indicatorsList: this.indicatorsList
+    }
+    this._projectsService.updateSchema(this.Project._id,body).subscribe(response => {
+      this.Project.full_schema = response.project.full_schema;
+      this.Project.organizations_diff = response.project.organizations_diff;
+      this.Project.indicators = response.project.indicators;
+      this.Project.organizations = response.project.organizations;
+      if(this.organizationsList.toAdd.length || this.organizationsList.toRemove.length) this._sockets.emit('organizationWasUpdated',{});
+      this.getFormFromProject();
+      this._sockets.emit('projectWasUpdated',{});
+      this._store.dispatch(editModeSetDisabled());
+      this._store.dispatch(fromLoadingActions.stopLoading());
+      this._projectsService.updateProjectOnStorage(true);
+      this._snackBar.open('Se han guardado los cambios.','ENTENDIDO',{duration: 3000});
+    },error => {
+      this._store.dispatch(fromLoadingActions.stopLoading());
+      this._snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
+    });
+  }
+
+  cancel : () => void = () => this._store.dispatch(editModeSetDisabled());
 
   /**
    * Funders Update Modal
@@ -252,6 +315,7 @@ export class ProjectViewComponent {
             this._snackBar.open('Se ha vinculado el Financiador.','ENTENDIDO',{duration: 3000});
             this._sockets.emit('funderWasUpdated',{});
             this._sockets.emit('projectWasUpdated',{});
+            this._projectsService.updateProjectOnStorage(true);
           },error => {
             this._store.dispatch(fromLoadingActions.stopLoading());
             this._snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000})
@@ -320,6 +384,7 @@ export class ProjectViewComponent {
               this.generateChartData();
               this._sockets.emit('projectWasUpdated',{});
               this._store.dispatch(fromLoadingActions.stopLoading());
+              this._projectsService.updateProjectOnStorage(true);
               this._snackBar.open('Cambios guardados correctamente.','ENTENDIDO',{duration: 3000});
           },error => {
             this._store.dispatch(fromLoadingActions.stopLoading());
@@ -350,6 +415,7 @@ export class ProjectViewComponent {
               this._sockets.emit('projectWasUpdated',{});
               this.generateChartData();
               this._store.dispatch(fromLoadingActions.stopLoading());
+              this._projectsService.updateProjectOnStorage(true);
               this._snackBar.open('Cambios guardados correctamente.','ENTENDIDO',{duration: 3000});
           },error => {
             this._store.dispatch(fromLoadingActions.stopLoading());
@@ -457,10 +523,25 @@ export class ProjectViewComponent {
     }
     if(ready){ //Hay que eliminar el indicador
       if(confirm('Esta acción no se puede deshacer.\n\n¿Está seguro que desea descartar este indicador?')){
+
+        if(!(this.indicatorsList.toAdd.filter(_id => _id == id).length)) this.indicatorsList.toRemove.push(id);
+        else{
+          let indice : number;
+          this.indicatorsList.toAdd.forEach((_id,index) => { if(_id ==id) indice = index });
+          this.indicatorsList.toAdd.splice(indice,1);
+        }
+
         (<FormArray> this.SchemaFormGroup.get('full_schema')).removeAt(indice);
         this.indicatorsSelected.splice(indice,1);
       }else list.options.filter(option => option.value == id)[0].selected = true;
     }else{  //Hay que agregar el indicador
+
+      if(!(this.Project.indicators.filter(indicator => indicator._id == id).length)) this.indicatorsList.toAdd.push(id);
+
+      let indice : number;
+      this.indicatorsList.toRemove.forEach((_id,index) => { if(_id == id) indice = index });
+      if(indice != null) this.indicatorsList.toRemove.splice(indice,1);
+
       let indicator : any = this.Indicators.filter(indicator => indicator._id == id)[0];
       this.indicatorsSelected.push({id: indicator._id,parameters: indicator.parameters_schema,antiquity_diff: indicator.antiquity_diff});
       let baselineCtrl : FormArray = new FormArray([]);      //LineaBase 
@@ -473,7 +554,7 @@ export class ProjectViewComponent {
         }));
         for(let j = 0; j < indicator.parameters_schema.length; j++){
           (<FormArray> baselineCtrl.controls[i].get('parameters')).push(new FormGroup({
-            name: new FormControl(indicator.parameters_schema[i]['name']),
+            name: new FormControl(indicator.parameters_schema[j]['name']),
             baseline: new FormControl('')
           }));
         }
@@ -528,7 +609,16 @@ export class ProjectViewComponent {
     this.organizationsSelected.forEach((organization, index) => {
       if(organization.id == id){ //Hay que quitar
         ready = true;
+
         if(confirm('Esta acción no se puede deshacer.\n¿Está seguro que desea descartar esta organización?')){
+        
+          if(!(this.organizationsList.toAdd.filter(_id => _id == id).length)) this.organizationsList.toRemove.push(id);
+          else{
+            let indice : number;
+            this.organizationsList.toAdd.forEach((_id,index) => { if(_id ==id) indice = index });
+            this.organizationsList.toAdd.splice(indice,1);
+          }
+
           this.organizationsSelected.splice(index,1); //Quitar del Array de organizaciones seleccionadas
           //Eliminar del Formulario
           return this.RemoveFromForm(index); 
@@ -537,6 +627,13 @@ export class ProjectViewComponent {
     });
     //Agregar
     if(!ready){
+
+      if(!(this.Project.organizations.filter(organization => organization._id == id).length)) this.organizationsList.toAdd.push(id);
+
+      let indice : number;
+      this.organizationsList.toRemove.forEach((_id,index) => { if(_id ==id) indice = index });
+      if(indice != null) this.organizationsList.toRemove.splice(indice,1);
+
       let organization : any = this.Organizations.filter(organization => organization._id == id)[0];
       this.organizationsSelected.push({
         name: organization.name,
@@ -553,7 +650,7 @@ export class ProjectViewComponent {
 
         let baselineCtrl : FormGroup = new FormGroup({
           organization: new FormControl(organization.name),
-          id: new FormControl(organization.id),
+          id: new FormControl(organization._id),
           parameters: new FormArray([])
         });
 
@@ -575,8 +672,7 @@ export class ProjectViewComponent {
       if(this.SchemaFormGroup.get('full_schema')['controls'][i].get('organization')) (<FormArray> this.SchemaFormGroup.get('full_schema')['controls'][i].get('organization')).removeAt(index);
       (<FormArray> this.SchemaFormGroup.get('full_schema')['controls'][i].get('baseline')).removeAt(index);
     }
-    (<FormArray> this.GeneralFormGroup.get('organizations_diff')).removeAt(index);
+    (<FormArray> this.SchemaFormGroup.get('organizations_diff')).removeAt(index);
   }
 
 }
-
