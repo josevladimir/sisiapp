@@ -3,7 +3,7 @@
 </app-sub-toolbar>
 
 <div class="page-content">
-    <mat-card>
+    <mat-card><!--Selector de Proyectos e Indicadores-->
         <mat-card-title class="font-weight-lighter">Generar Ficha:</mat-card-title>
         <mat-divider></mat-divider>
         <mat-card-content>
@@ -18,17 +18,17 @@
                         </mat-select>
                     </mat-form-field>
                 </div>
-                <div class="col-sm-4">
+                <div class="col-sm-4" *ngIf="this.selectedProject">
                     <mat-form-field class="full-width">
                         <mat-label>Seleccione un indicador</mat-label>
                         <mat-select (valueChange)="onIndicatorSelect($event)" [(ngModel)]="this.selectedIndicator"[disabled]="!this.Indicators" >
-                          <mat-option *ngFor="let indicator of this.Indicators" [value]="indicator._id">
+                          <mat-option *ngFor="let indicator of this.Project.indicators" [value]="indicator._id">
                             {{indicator.name}}
                           </mat-option>
                         </mat-select>
                     </mat-form-field>
                 </div>
-                <div class="col-sm-4">
+                <div class="col-sm-4" *ngIf="this.selectedProject && this.selectedIndicator">
                     <button mat-raised-button color="primary" type="button" [disabled]="!this.selectedIndicator" (click)="generateSchema()">GENERAR</button>
                 </div>
             </div>
@@ -36,7 +36,7 @@
     </mat-card>
 
     <div class="mt-4">
-        <mat-card *ngIf="this.Status == 'loading'">
+        <mat-card *ngIf="this.Status == 'loading'"><!--Tarjeta de Cargando-->
             <div class="loading-box">
                 <div>
                     <img src="../../../../../assets/images/logo-sisi-only.svg" alt="">
@@ -50,24 +50,30 @@
             <mat-card-content>
                 <div>
                     <div class="pt-3 mb-3">
-                        <p>Proyecto: <span class="font-weight-lighter">{{this.ProjectName}}</span></p>
+                        <p>Proyecto: <span class="font-weight-lighter">{{this.Project.name}}</span></p>
                         <p>Indicador: <span class="font-weight-lighter">{{this.Indicator.name}}</span></p>
-                        <p>Periodo: <span class="font-weight-lighter">{{this._service.getMonth(this.Period.getMonth())}} {{this.Period.getFullYear()}}</span></p>
+                        <p>Periodo: <span class="font-weight-lighter">{{this.getMonth(this.Period.getMonth())}} {{this.Period.getFullYear()}}</span></p>
                     </div>
-                    <div class="table-container">
-                        <table class="baseline-table">
-                            <tr>
-                                <th class="sticky">ORGANIZACIÓN</th>
-                                <th *ngFor="let field of this.fieldsSchema">{{field.name}}</th>
-                            </tr>
-                            <tr *ngFor="let organization of this.Organizations; let i = index">
-                                <td class="sticky">{{organization.name}}</td>
-                                <td *ngFor="let field of this.fieldsSchema; let j = index">
-                                    <input type="number" [(ngModel)]="this.SchemaForm.records.rows[i].fields[j].value" class="full-width font-weight-lighter" placeholder="Ingrese un valor">
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
+                    <form [formGroup]="this.SchemaForm">
+                        <div class="table-container full-width">
+                            <table class="baseline-table full-width" formGroupName="records">
+                                <tr>
+                                    <th class="sticky main-row">ORGANIZACIÓN</th>
+                                    <th class="main-row" *ngFor="let field of this.fieldsSchema">{{field.name}}</th>
+                                </tr>
+                                <tbody formArrayName="rows" *ngFor="let row of this.SchemaForm.get('records').get('rows').controls; let i = index">
+                                    <tr [formGroupName]="i">
+                                        <td class="sticky main-col font-weight-lighter">{{row.get('name').value}}</td>
+                                        <td formArrayName="fields" class="main-col" *ngFor="let field of this.fieldsSchema; let j = index">
+                                            <div [formGroupName]="j">
+                                                <input type="number" formControlName="value" class="full-width font-weight-lighter" placeholder="Ingrese un valor">
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </form>
                 </div>
             </mat-card-content>
             <mat-divider></mat-divider>
@@ -75,30 +81,30 @@
                 <div class="flex">
                     <span class="fill-remaining-space"></span>
                     <button mat-button type="button" (click)="this.cancel()">CANCELAR</button>
-                    <button mat-raised-button color="primary" type="button" (click)="this.save()" >GUARDAR</button>
+                    <button mat-raised-button color="primary" type="button" [disabled]="this.SchemaForm.invalid" (click)="this.save()">GUARDAR</button>
                 </div>
             </mat-card-actions>
         </mat-card>
-        <mat-card *ngIf="this.Status == 'already-filled'">
+        <mat-card *ngIf="this.Status == 'already-filled'"><!--Tarjeta Ficha Llena-->
             <mat-card-title class="font-weight-lighter">Esta Ficha ya ha sido llenada</mat-card-title>
             <mat-divider></mat-divider>
             <mat-card-content>
                 <div>
                     <div class="pt-3 mb-3">
-                        <p>Proyecto: <span class="font-weight-lighter">{{this.ProjectName}}</span></p>
+                        <p>Proyecto: <span class="font-weight-lighter">{{this.Project.name}}</span></p>
                         <p>Indicador: <span class="font-weight-lighter">{{this.Indicator.name}}</span></p>
-                        <p>Periodo: <span class="font-weight-lighter">{{this._service.getMonth(this.Period.getMonth())}} {{this.Period.getFullYear()}}</span></p>
+                        <p>Periodo: <span class="font-weight-lighter">{{this.getMonth(this.Period.getMonth())}} {{this.Period.getFullYear()}}</span></p>
                         <p>Técnico Responsable: <span class="font-weight-lighter">{{this.UserResponsable}}</span></p>
                     </div>
-                    <div class="table-container">
-                        <table class="baseline-table">
+                    <div class="table-container full-width">
+                        <table class="baseline-table full-width">
                             <tr>
-                                <th class="sticky">ORGANIZACIÓN</th>
-                                <th *ngFor="let field of this.SchemaForm.records.rows[0].fields">{{field.name}}</th>
+                                <th class="sticky main-row">ORGANIZACIÓN</th>
+                                <th class="main-row" *ngFor="let field of this.SchemaForm.records.rows[0].fields">{{field.name}}</th>
                             </tr>
-                            <tr *ngFor="let organization of this.Organizations; let i = index">
-                                <td class="sticky">{{organization.name}}</td>
-                                <td *ngFor="let field of this.SchemaForm.records.rows[i].fields; let j = index">
+                            <tr *ngFor="let organization of this.Project.organizations; let i = index">
+                                <td class="sticky main-col font-weight-lighter text-center">{{organization.name}}</td>
+                                <td class="main-col" *ngFor="let field of this.SchemaForm.records.rows[i].fields; let j = index">
                                     <div class="full-width font-weight-lighter text-center">{{field.value}}</div>
                                 </td>
                             </tr>
