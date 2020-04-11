@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { SisiCoreService } from '../../../../services/sisi-core.service';
+import { ProjectsServiceService } from '../../../../services/projects-service.service';
+import { IndicatorsServiceService } from '../../../../services/indicators-service.service';
 
 @Component({
   selector: 'app-report',
@@ -10,11 +11,9 @@ export class ReportComponent {
   Project : any;
   Projects : any[] = [];
   Indicator : any;
+  IndicatorSchema: any;
   Indicators : any[];
   AvailablePeriods : any[];
-
-  ProjectRecords : any[];
-  ProjectGoals : any[];
 
   selectedProject : string;
   selectedIndicator : string;
@@ -26,7 +25,7 @@ export class ReportComponent {
 
   Schema : any;
 
-  BaselineSchema : any;
+  ReportSchema : any;
 
   SchemaTable : any;
   ParametersTable : any[];
@@ -34,36 +33,22 @@ export class ReportComponent {
 
   ChartData : any[];
 
-  userRole : string;
-
-  constructor(private _service : SisiCoreService) {
-    this.userRole = localStorage.getItem('userRole');
-    if(this.userRole == 'Financiador'){
-      let normalProjects : any[] = this._service.getProjectsOff();
-      let userProjects = JSON.parse(localStorage.getItem('user')).funder.projects;
-      userProjects.forEach(project => {
-        normalProjects.forEach(projectito => {
-          if(projectito._id == project) this.Projects.push(projectito);
-        });
-      });
-    }else this.Projects  = this._service.getProjectsOff();
+  constructor(private _projectsService : ProjectsServiceService,
+              private _indicatorsService : IndicatorsServiceService) {
+    this._projectsService.getProjectsLocal().subscribe(projects => this.Projects = projects);
+    this._indicatorsService.getIndicatorsLocal().subscribe(indicators => this.Indicators = indicators);
   }
 
-  onProjectSelected(seleccion){
-    this.Project = this.Projects.filter(project => project._id == seleccion)[0];
-    this.Indicators = this.Project.indicators;
-    this.ProjectRecords = this.Project.records;
-    this.ProjectGoals = this.Project.goals;
-  }
+  onProjectSelected : (seleccion : string) => void = (seleccion) => this.Project = this.Projects.filter(project => project._id == seleccion)[0];
 
   onIndicatorSelected(seleccion){
     this.PeriodSelectAvailable = false;
-    this.Indicator = this._service.getIndicator(seleccion);
+    this.Indicator = this.Indicators.filter(indicator => indicator._id == seleccion)[0];
 
     this.AvailablePeriods = [];
 
-    this.ProjectRecords.forEach(record => {
-      if(record.records.indicator == seleccion) this.AvailablePeriods.push(this.formatPeriod(new Date(record.period)));
+    this.Project.records.forEach(record => {
+      if(record.records.indicator == seleccion) this.AvailablePeriods.push(new Date(record.period));
     });
     
     this.PeriodSelectAvailable = true;
@@ -74,15 +59,16 @@ export class ReportComponent {
     /**
      * Generar la información para la gráfica y la Tabla
      */
-    console.log(seleccion);
+    
     if(seleccion == 'none') return null;
 
     this.Status = 'loading';
+    let recordsWithIndicator = this.Project.records.filter(record => record.records.indicator == this.selectedIndicator);
+    this.Schema = recordsWithIndicator.filter(record => new Date(record.period).toString() == new Date(seleccion).toString())[0];
 
-    let recordsWithIndicator = this.ProjectRecords.filter(record => record.records.indicator == this.selectedIndicator);
-    this.Schema = recordsWithIndicator.filter(record => this.formatPeriod(new Date(record.period)) == seleccion)[0];
+    this.IndicatorSchema = this.Project.full_schema.filter(indicator => indicator.id == this.selectedIndicator)[0];
 
-    this.BaselineSchema = this.ProjectGoals.filter(indicator => indicator.id == this.selectedIndicator)[0];
+    this.ReportSchema = this.Project.full_schema.filter(indicator => indicator.id == this.selectedIndicator)[0];
     this.generateTablesAndGraphicsData();
 
     this.Status = 'ready';
@@ -93,19 +79,82 @@ export class ReportComponent {
     this.IndicatorTable = [];
     this.ChartData = [];
 
-    if(this.Indicator.type == 'Simple') true;
-    else {
+    if(this.Indicator.type == 'Simple'){
+
+    }else {
       this.SchemaTable = {
         projectName: this.Project.name,
         technic: this.Schema.created_by,
-        schema: []
+        schema: this.Schema.records.rows
       };
+
+      let parameters : any[] = this.Indicator.parameters_schema;
 
       this.Project.organizations.forEach((organization,i) => {
         
         /**
-         * Ficha Esquema
+         * Tabla de Cálculo de Parámetros
          */
+
+        let parameterItem = {
+          name: organization.name,
+          id: organization._id,
+          parameters: []
+        };
+        
+        parameters.forEach(parameter => {
+          parameterItem.parameters.push({
+            value: this.calculateParameter(parameter.definition,(this.SchemaTable.schema.filter(row => row.organization == organization._id)[0]).fields),
+            definition: this.formatDefinition(parameter.definition),
+            unit: parameter.unit,
+            isAcum: parameter.isAcum,
+            name: parameter.name
+          });
+        });
+        
+        this.ParametersTable.push(parameterItem);
+
+        /**
+         * Tabla del Indicador Calculado
+         */
+
+        let indicadorItem = {
+          name: organization.name,
+          id: organization._id,
+          goals: this.ReportSchema.goal,
+          parameters: [],
+          total_indicator: {
+            value: 0,
+            details: {}
+          }
+        };
+
+        parameters.forEach((parameter,j) => {
+          let goal : any;
+          if(this.Indicator.antiquity_diff) goal = indicadorItem.goals[0].parameters[j].goals;
+          else goal = indicadorItem.goals[0].parameters[j].goals;
+          indicadorItem.parameters.push({
+            ponderacion: this.calculateWeighing(this.ParametersTable[i].parameters[j].value,parameter.weighing,goal,(this.Project.organizations_diff.filter(org => organization._id == org.id)[0]).isOlder,this.Indicator.antiquity_diff)
+          });
+          //Cálculo del Total del Indicador
+          indicadorItem.total_indicator.value += indicadorItem.parameters[j].ponderacion.medido;
+        });
+
+        indicadorItem.total_indicator.details = this.getCalification(indicadorItem.total_indicator.value);
+
+        this.IndicatorTable.push(indicadorItem);
+
+      });
+
+    }
+  }
+
+      /*this.Project.organizations.forEach((organization,i) => {
+        
+        /**
+         * Ficha Esquema
+        *
+
         this.SchemaTable.schema.push({
           name: organization.name,
           fields: []
@@ -114,7 +163,8 @@ export class ReportComponent {
 
         /**
          * Parámetros Esquema
-         */
+         *
+
         let parameters = this.Indicator.parameters_schema;
         
         this.ParametersTable.push({
@@ -135,7 +185,7 @@ export class ReportComponent {
         
         /**
          * Indicador Esquema
-         */
+         *
         this.IndicatorTable.push({
           name: organization.name,
           baseline: [],
@@ -144,9 +194,10 @@ export class ReportComponent {
         });
         parameters.forEach((parameter,j) => {
           //Añadiendo las líneabase y metas
+          console.log(this.IndicatorSchema);
           this.IndicatorTable[i].baseline.push({
-            baseline: this.BaselineSchema.organizations[i].parameters[j].baseline,
-            goal: this.BaselineSchema.organizations[i].parameters[j].goal
+            baseline: this.IndicatorSchema.baseline.organizations[i].parameters[j].baseline,
+            goal: this.IndicatorSchema.baseline.organizations[i].parameters[j].goal
           });
           //Cálculo de % de los parámetros
           this.IndicatorTable[i].parameters.push({
@@ -155,10 +206,12 @@ export class ReportComponent {
           //Cálculo del Total del Indicador
           this.IndicatorTable[i].total_indicator_value += this.IndicatorTable[i].parameters[j].ponderacion.medido;
         });
+      });
+    }
 
         /**
          * Graficos Data
-         */
+         
         this.ChartData.push({
           name: organization.name,
           multi: [],
@@ -195,54 +248,59 @@ export class ReportComponent {
 
       this.ChartData.push(last);
 
-    }
+    }*/
 
-  }
 
-  calculateWeighing(value : string, weighing : any, goal : string, isOlder : boolean, diff : boolean) : any{
+  calculateWeighing(value : string, weighing : any, goal : any, isOlder : string, diff : boolean) : any{
     let calculated : any = {medido: 0, establecido: 0};
     if(diff){    //Se diferencia por Antiguedad
-      if(!isOlder){ //Si la Org es nueva
+      if(isOlder == 'newer'){ //Si la Org es nueva
         calculated.establecido = weighing[0].newer;
-        calculated.medido = parseFloat(value) * weighing[0].newer / parseFloat(goal);
+        calculated.medido = parseFloat(value) * weighing[0].newer / parseFloat(goal.newer);
       }else{       //Si la Org es antigua
         calculated.establecido = weighing[0].older;
-        calculated.medido = parseFloat(value) * weighing[0].older / parseFloat(goal);
+        calculated.medido = parseFloat(value) * weighing[0].older / parseFloat(goal.older);
       }
     }else{       //No se diferencia por Antiguedad
       calculated.establecido = weighing[0].weight;
-      calculated.medido = parseFloat(value) * weighing[0].weight / parseFloat(goal);
+      calculated.medido = parseFloat(value) * weighing[0].weight / parseFloat(goal.goal);
     }
-    calculated.medido = parseFloat(calculated.medido.toFixed(2));
+    calculated.medido = Math.round(calculated.medido);
     return calculated;
   }
 
-  formatDefinition(definition : string[]) : string {
+  formatDefinition(definition : any[]) : string {
     let result = '';
     definition.forEach(operador => {
-      if(operador == '+' || operador == '-' || operador == '*' || operador == '/') result += ` ${operador} `;
-      else result += operador;
+      if(operador.type == 'normal') result += ` ${operador.value} `;
+      else result += operador.value;
     });
     return result;
   }
 
   calculateParameter(definition : string[],fields : any[]) : number {
     let calculated : string = '';
-    definition.forEach(operador => {
-      if(operador == '+' || operador == '-' || operador == '*' || operador == '/' || operador == '(' || operador == ')' || operador == '*100%'){
-        if(operador == '*100%') calculated += '*100';
-        else calculated += operador;
-      }else{
-        calculated += (fields.filter(field => operador == field.name)[0]).value;
+    definition.forEach((operador : any) => {
+      if(operador.type == 'normal'){
+        if(operador.value == '*100%') calculated += '*100';
+        else calculated += operador.value;
+      }else if(operador.type == 'field'){
+        calculated += (fields.filter(field => operador.value == field.name)[0]).value;
       }
     })
-    return eval(calculated).toFixed(2);
+    return Math.round(eval(calculated));
   }
 
-  formatPeriod(fecha : Date) : string{
+  /*formatPeriod(fecha : Date) : string{
     return `${this._service.getMonth(fecha.getMonth())} ${fecha.getFullYear()}`;
+  }*/
+
+  getCalification(Promedio : number){
+    if(Promedio >= 80) return {letter: 'A',message:'Optimo!',description:'Requiere seguimiento periodico'};
+    else if(Promedio < 80 && Promedio >= 60) return {letter: 'B',message:'Bueno!',description:'Requiere seguimiento y apoyo técnico puntual'};
+    else if(Promedio < 60 && Promedio >= 40) return {letter: 'C',message:'Satisfactorio!',description:'Requiere seguimiento y apoyo técnico sistemático (períodico/minimo bimensual)'};
+    else if(Promedio < 40 && Promedio >= 20) return {letter: 'D',message:'Deficiente!',description:'Requiere seguimiento y apoyo técnico cercano y frecuente(mínimo mensual)'};
+    else if(Promedio < 20) return {letter: 'E',message:'Muy deficiente!',description:'En peligro de desaparecer, se debe valorar si se continua apoyo'};
   }
-
-
   
 }

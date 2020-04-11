@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { SisiCoreService } from '../../../../services/sisi-core.service';
+import { UsersServiceService } from '../../../../services/users-service.service';
 
 @Component({
   selector: 'app-table-and-graphic',
@@ -24,30 +25,29 @@ export class TableAndGraphicComponent {
     description: ''
   };
 
-  constructor(public _service : SisiCoreService) { }
+  constructor(public usersService : UsersServiceService) { }
   
   ngOnInit() {
-    this.Technic = this._service.getUser(this.SchemaTable.technic);
+    //this.Technic = 
+    this.usersService.getUsersLocal().subscribe(response => this.Technic = response.users.filter(user => user._id == this.SchemaTable.technic)[0]);
     this.getIndicatorsPromedio();
-  
-    //this.setUpGraphics();
   }
 
   getIndicatorsPromedio() {
-    let totales = this.IndicatorTable.map(organization => organization.total_indicator_value);
+    let totales = this.IndicatorTable.map(organization => organization.total_indicator.value);
     let sumatoria = 0;
     totales.forEach(total => sumatoria += total);
     this.Promedio = sumatoria / totales.length;
-    this.Promedio = parseFloat(this.Promedio.toFixed(2));
-    this.Calificacion = this.getCalification();
+    this.Promedio = Math.round(this.Promedio);
+    this.Calificacion = this.getCalification(this.Promedio);
   }
 
-  getCalification(){
-    if(this.Promedio >= 80) return {letter: 'A',message:'Optimo!',description:'Requiere seguimiento periodico'};
-    else if(this.Promedio < 80 && this.Promedio >= 60) return {letter: 'B',message:'Bueno!',description:'Requiere seguimiento y apoyo técnico puntual'};
-    else if(this.Promedio < 60 && this.Promedio >= 40) return {letter: 'C',message:'Satisfactorio!',description:'Requiere seguimiento y apoyo técnico sistemático (períodico/minimo bimensual)'};
-    else if(this.Promedio < 40 && this.Promedio >= 20) return {letter: 'D',message:'Deficiente!',description:'Requiere seguimiento y apoyo técnico cercano y frecuente(mínimo mensual)'};
-    else if(this.Promedio < 20) return {letter: 'E',message:'Muy deficiente!',description:'En peligro de desaparecer, se debe valorar si se continua apoyo'};
+  getCalification(Promedio : number){
+    if(Promedio >= 80) return {letter: 'A',message:'Optimo!',description:'Requiere seguimiento periodico'};
+    else if(Promedio < 80 && Promedio >= 60) return {letter: 'B',message:'Bueno!',description:'Requiere seguimiento y apoyo técnico puntual'};
+    else if(Promedio < 60 && Promedio >= 40) return {letter: 'C',message:'Satisfactorio!',description:'Requiere seguimiento y apoyo técnico sistemático (períodico/minimo bimensual)'};
+    else if(Promedio < 40 && Promedio >= 20) return {letter: 'D',message:'Deficiente!',description:'Requiere seguimiento y apoyo técnico cercano y frecuente(mínimo mensual)'};
+    else if(Promedio < 20) return {letter: 'E',message:'Muy deficiente!',description:'En peligro de desaparecer, se debe valorar si se continua apoyo'};
   }
 
   /*Graphics*/
