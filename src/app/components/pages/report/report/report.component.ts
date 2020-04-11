@@ -121,6 +121,7 @@ export class ReportComponent {
         let indicadorItem = {
           name: organization.name,
           id: organization._id,
+          isOlder: (this.Project.organizations_diff.filter(org => organization._id == org.id)[0]).isOlder,
           goals: this.ReportSchema.goal,
           parameters: [],
           total_indicator: {
@@ -144,78 +145,15 @@ export class ReportComponent {
 
         this.IndicatorTable.push(indicadorItem);
 
-      });
-
-    }
-  }
-
-      /*this.Project.organizations.forEach((organization,i) => {
-        
-        /**
-         * Ficha Esquema
-        *
-
-        this.SchemaTable.schema.push({
-          name: organization.name,
-          fields: []
-        });
-        this.Schema.records.rows[i].fields.forEach(field => this.SchemaTable.schema[i].fields.push(field));
-
-        /**
-         * Parámetros Esquema
-         *
-
-        let parameters = this.Indicator.parameters_schema;
-        
-        this.ParametersTable.push({
-          name: organization.name,
-          parameters:[]
-        });
-
-        parameters.forEach((parameter,j) => {
-          //Cálculo de los parámetros
-          this.ParametersTable[i].parameters.push({
-            value: this.calculateParameter(parameter.definition,this.SchemaTable.schema[i].fields),
-            definition: this.formatDefinition(parameter.definition),
-            unit: parameter.unit,
-            isAcum: parameter.isAcum,
-            name: parameter.name
-          });
-        });
-        
-        /**
-         * Indicador Esquema
-         *
-        this.IndicatorTable.push({
-          name: organization.name,
-          baseline: [],
-          parameters: [],
-          total_indicator_value: 0
-        });
-        parameters.forEach((parameter,j) => {
-          //Añadiendo las líneabase y metas
-          console.log(this.IndicatorSchema);
-          this.IndicatorTable[i].baseline.push({
-            baseline: this.IndicatorSchema.baseline.organizations[i].parameters[j].baseline,
-            goal: this.IndicatorSchema.baseline.organizations[i].parameters[j].goal
-          });
-          //Cálculo de % de los parámetros
-          this.IndicatorTable[i].parameters.push({
-            ponderacion: this.calculateWeighing(this.ParametersTable[i].parameters[j].value,parameter.weighing,this.IndicatorTable[i].baseline[j].goal,organization.isOlder,this.Indicator.antiquity_diff)
-          });
-          //Cálculo del Total del Indicador
-          this.IndicatorTable[i].total_indicator_value += this.IndicatorTable[i].parameters[j].ponderacion.medido;
-        });
-      });
-    }
 
         /**
          * Graficos Data
-         
+         */
         this.ChartData.push({
           name: organization.name,
           multi: [],
         });
+
         parameters.forEach((parameter,j) => {
           console.log(this.ChartData);
           this.ChartData[i].multi.push({
@@ -242,13 +180,15 @@ export class ReportComponent {
       this.Project.organizations.forEach((organization,i) => {
         last.single.push({
           name: organization.name,
-          value: this.IndicatorTable[i].total_indicator_value
+          value: this.IndicatorTable[i].total_indicator.value
         });
       });
 
       this.ChartData.push(last);
-
-    }*/
+    
+    }
+  
+  }
 
 
   calculateWeighing(value : string, weighing : any, goal : any, isOlder : string, diff : boolean) : any{

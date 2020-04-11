@@ -87,6 +87,7 @@ import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { environment } from '../environments/environment';
 import { reducers } from './reducers/index';
 import { StorageModule } from '@ngx-pwa/local-storage';
+import { CalificationCircleComponent } from './components/shared/calification-circle/calification-circle.component';
 
 @NgModule({
   declarations: [
@@ -129,7 +130,8 @@ import { StorageModule } from '@ngx-pwa/local-storage';
     OrganizationCardComponent,
     OrganizationViewComponent,
     PartnersHistoricComponent,
-    NewOrganizationPreferenceComponent
+    NewOrganizationPreferenceComponent,
+    CalificationCircleComponent
   ],
   imports: [
     FormsModule,

@@ -1,0 +1,73 @@
+<div *ngIf="this.DetailsPosition == 'below'; else Bottom">
+    <div *ngIf="this.Promedio >= 80">
+        <div class="flex flex-center full-width">
+            <div class="circulo mb-2 green flex flex-align-vertical flex-center">
+                <span class="calification-letter">{{this.Calificacion.letter}}</span>
+            </div>
+        </div>
+        <div class="full-width">
+            <div class="full-width text-center">{{this.Calificacion.message}}</div>
+            <div class="font-weight-lighter full-width text-center">{{this.Calificacion.description}}</div>
+        </div>
+    </div>
+    <div *ngIf="this.Promedio < 80 && this.Promedio >= 50">
+        <div class="flex flex-center full-width">
+            <div class="circulo mb-2 yellow flex flex-align-vertical flex-center">
+                <span class="calification-letter">{{this.Calificacion.letter}}</span>
+            </div>
+        </div>
+        <div class="full-width">
+            <div class="full-width text-center">{{this.Calificacion.message}}</div>
+            <div class="font-weight-lighter full-width text-center">{{this.Calificacion.description}}</div>
+        </div>
+    </div>
+    <div *ngIf="this.Promedio < 50">
+        <div class="flex flex-center full-width">
+            <div class="circulo mb-2 red flex flex-align-vertical flex-center">
+                <span class="calification-letter">{{this.Calificacion.letter}}</span>
+            </div>
+        </div>
+        <div class="full-width">
+            <div class="full-width text-center">{{this.Calificacion.message}}</div>
+            <div class="font-weight-lighter full-width text-center">{{this.Calificacion.description}}</div>
+        </div>
+    </div>
+</div>
+
+<ng-template #Bottom>
+    <div>
+        <div *ngIf="this.Promedio >= 80" class="calification-detail">
+            <div class="circulo green flex flex-align-vertical flex-center">
+                <span class="calification-letter">{{this.Calificacion.letter}}</span>
+            </div>
+            <div class="flex flex-align-vertical ml-1">
+                <div>
+                    <span>{{this.Calificacion.message}}</span><br/>
+                    <span class="font-weight-lighter">{{this.Calificacion.description}}</span>
+                </div>
+            </div>
+        </div>
+        <div *ngIf="this.Promedio < 80 && this.Promedio >= 50" class="calification-detail">
+            <div class="circulo yellow flex flex-align-vertical flex-center">
+                <span class="calification-letter">{{this.Calificacion.letter}}</span>
+            </div>
+            <div class="flex flex-align-vertical margin-left-10">
+                <div>
+                    <span>{{this.Calificacion.message}}</span><br/>
+                    <span class="font-weight-lighter">{{this.Calificacion.description}}</span>
+                </div>
+            </div>
+        </div>
+        <div *ngIf="this.Promedio < 50" class="calification-detail">
+            <div class="circulo red flex flex-align-vertical flex-center">
+                <span class="calification-letter">{{this.Calificacion.letter}}</span>
+            </div>
+            <div class="flex flex-align-vertical margin-left-10">
+                <div>
+                    <span>{{this.Calificacion.message}}</span><br/>
+                    <span class="font-weight-lighter">{{this.Calificacion.description}}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-template>

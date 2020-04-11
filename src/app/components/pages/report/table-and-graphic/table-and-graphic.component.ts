@@ -25,12 +25,38 @@ export class TableAndGraphicComponent {
     description: ''
   };
 
-  constructor(public usersService : UsersServiceService) { }
+  PromediosDiferenciados : any = {
+    older: {
+      value: 0,
+      calification: {}
+    },
+    newer: {
+      value: 0,
+      calification: {}
+    }
+  }
+
+  constructor(public usersService : UsersServiceService) { 
+    this.usersService.getUsersLocal().subscribe(response => this.Technic = response.users.filter(user => user._id == this.SchemaTable.technic)[0]);
+  }
   
   ngOnInit() {
-    //this.Technic = 
-    this.usersService.getUsersLocal().subscribe(response => this.Technic = response.users.filter(user => user._id == this.SchemaTable.technic)[0]);
+    if(this.Indicator.antiquity_diff) this.getPromediosDiferenciados();
     this.getIndicatorsPromedio();
+  }
+
+  getPromediosDiferenciados(){
+    console.log(this.IndicatorTable);
+    let olders = this.IndicatorTable.filter(row => row.isOlder == 'older');
+    let newers = this.IndicatorTable.filter(row => row.isOlder == 'newer');
+    olders.forEach(older => this.PromediosDiferenciados.older.value += parseInt(older.total_indicator.value));
+    newers.forEach(newer => this.PromediosDiferenciados.newer.value += parseInt(newer.total_indicator.value));
+
+    this.PromediosDiferenciados.older.value /= olders.length;
+    this.PromediosDiferenciados.newer.value /= newers.length;
+    this.PromediosDiferenciados.older.calification = this.getCalification(this.PromediosDiferenciados.older.value);
+    this.PromediosDiferenciados.newer.calification = this.getCalification(this.PromediosDiferenciados.newer.value);
+    console.log(this.PromediosDiferenciados);
   }
 
   getIndicatorsPromedio() {

@@ -92,46 +92,34 @@
                 <mat-card-title class="font-weight-lighter">Resultados Indicador</mat-card-title>
                 <mat-divider></mat-divider>
                 <mat-card-content>
-                    <div class="columns-2 pt-3 pb-2">
+                    <div class="columns-2 pt-3 pb-2" *ngIf="!this.Indicator.antiquity_diff; else ConDiferenciacion">
                         <div class="flex flex-align-vertical">
                             <span>Valor Promedio del Indicador: <span class="font-weight-lighter">{{this.Promedio}}%</span></span>
                         </div>
                         <div class="flex flex-center flex-align-vertical">
-                            <div *ngIf="this.Promedio >= 80" class="calification-detail">
-                                <div class="circulo green flex flex-align-vertical flex-center">
-                                    <span class="calification-letter">{{this.Calificacion.letter}}</span>
-                                </div>
-                                <div class="flex flex-align-vertical ml-1">
-                                    <div>
-                                        <span>{{this.Calificacion.message}}</span><br/>
-                                        <span class="font-weight-lighter">{{this.Calificacion.description}}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div *ngIf="this.Promedio < 80 && this.Promedio >= 50" class="calification-detail">
-                                <div class="circulo yellow flex flex-align-vertical flex-center">
-                                    <span class="calification-letter">{{this.Calificacion.letter}}</span>
-                                </div>
-                                <div class="flex flex-align-vertical margin-left-10">
-                                    <div>
-                                        <span>{{this.Calificacion.message}}</span><br/>
-                                        <span class="font-weight-lighter">{{this.Calificacion.description}}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div *ngIf="this.Promedio < 50" class="calification-detail">
-                                <div class="circulo red flex flex-align-vertical flex-center">
-                                    <span class="calification-letter">{{this.Calificacion.letter}}</span>
-                                </div>
-                                <div class="flex flex-align-vertical margin-left-10">
-                                    <div>
-                                        <span>{{this.Calificacion.message}}</span><br/>
-                                        <span class="font-weight-lighter">{{this.Calificacion.description}}</span>
-                                    </div>
-                                </div>
-                            </div>
+                            <app-calification-circle [Promedio]="this.Promedio" DetailsPosition='bottom' [Calificacion]="this.Calificacion"></app-calification-circle>
                         </div>
                     </div>
+                    <ng-template #ConDiferenciacion>
+                        <div class="row pt-4">
+                            <div class="col-sm-4">
+                                <div class="full-width text-center">Valor Promedio del Indicador en Antiguas:</div>
+                                <h3 class="font-weight-lighter text-center full-width">{{this.PromediosDiferenciados.older.value}}%</h3>
+                                <app-calification-circle [Promedio]="this.PromediosDiferenciados.older.value" DetailsPosition='below' [Calificacion]="this.PromediosDiferenciados.older.calification"></app-calification-circle>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="full-width text-center">Valor Promedio del Indicador en Nuevas:</div> 
+                                <h3 class="font-weight-lighter text-center full-width">{{this.PromediosDiferenciados.newer.value}}%</h3>
+                                <app-calification-circle [Promedio]="this.PromediosDiferenciados.newer.value" DetailsPosition='below' [Calificacion]="this.PromediosDiferenciados.newer.calification"></app-calification-circle>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="full-width text-center">Valor Promedio del Indicador: </div>
+                                <h3 class="font-weight-lighter text-center full-width">{{this.Promedio}}%</h3>
+                                <app-calification-circle [Promedio]="this.Promedio" DetailsPosition='below' [Calificacion]="this.Calificacion"></app-calification-circle>
+                            </div>
+                        </div>
+                    </ng-template>
+                    
                 </mat-card-content>
             </mat-card>
         </mat-tab>
