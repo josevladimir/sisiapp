@@ -8,6 +8,12 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Store } from '@ngrx/store';
 import { State } from '../../../../reducers/index';
 import * as fromLoadingActions from '../../../../reducers/actions/loading.actions';
+import { Observable } from 'rxjs';
+import { isEditMode } from '../../../../reducers/selectors/general.selector';
+import { editModeSetDisabled } from '../../../../reducers/actions/general.actions';
+import { UsersServiceService } from '../../../../services/users-service.service';
+import { FundersServiceService } from '../../../../services/funders-service.service';
+import { MyValidators } from '../../../../models/Validators';
 
 @Component({
   selector: 'app-users-view',
@@ -19,20 +25,27 @@ export class UsersViewComponent {
 
   UserForm : FormGroup;
 
-  EditMode : boolean = false;
+  isEditMode : Observable<boolean>;
 
-  Funders : any[] = this._service.getFundersOff();
+  Funders : any[];
 
-  constructor(private _service : SisiCoreService,
+  constructor(private _userService : UsersServiceService,
+              private _fundersService : FundersServiceService,
               private _ActivatedRoute : ActivatedRoute,
               private _snackBar : MatSnackBar,
               private dialog : MatDialog,
               private _store: Store<State>) {
 
+    this.isEditMode = this._store.select(isEditMode);
+
+    this._fundersService.getFundersOff().subscribe(funders => this.Funders = funders);
+
     this._ActivatedRoute.params.subscribe(
       (params : Params) => {
-        this.User = this._service.getUser(params.id);
-        this.getFormFromUser();
+        this.User = this._userService.getUser().subscribe(users => {
+          this.User =  users.filter(user => user._id == params.id)[0];
+          this.getFormFromUser();
+        });
       }
     );
     
@@ -44,16 +57,15 @@ export class UsersViewComponent {
     let body = this.UserForm.value;
     if(body.role == 'Financiador' && !body.funder) return alert('Es necesario que indique a que financiador representa este usuario.');
     else if(body.role != 'Financiador') delete body.funder;
-    this._service.updateUser(body,this.User._id).subscribe(
+    this._userService.updateOnlyUser(body,this.User._id).subscribe(
       result => {
         if(result.message == 'UPDATED'){
           this.User = result.user;
           this.getFormFromUser();
-          this.EditMode = false;
-          this.UserForm.disable();
+          this._store.dispatch(editModeSetDisabled());
           this._store.dispatch(fromLoadingActions.stopLoading());
           this._snackBar.open('Usuario actualizado correctamente.','ENTENDIDO',{duration: 3000});
-          this._service.updateUsersList(null);
+          //this._service.updateUsersList(null);
         }
       },error => {
         this._store.dispatch(fromLoadingActions.stopLoading());
@@ -64,29 +76,23 @@ export class UsersViewComponent {
 
   cancel(){
     if(confirm('Los cambios que no se han guardados se perderán.\n\n¿Desea continua?')) {
-      this.EditMode = false;
+      this._store.dispatch(editModeSetDisabled());
       this.getFormFromUser();
-      this.UserForm.disable();
     }
   }
 
   getFormFromUser(){
     let funder : string = '';
-    if(this.User.role == 'Financiador') funder = this.User.funder._id;
+    if(this.User.funder) funder = this.User.funder._id;
     this.UserForm = new FormGroup({
-      username: new FormControl({value: this.User.username, disabled: true},[Validators.required,this._service.isBlank]),
-      name: new FormControl({value: this.User.name, disabled: true},[Validators.required,this._service.isBlank]),
-      last_names: new FormControl({value: this.User.last_names, disabled: true},[Validators.required,this._service.isBlank]),
-      email: new FormControl({value: this.User.email, disabled: true},[Validators.required,this._service.isBlank,Validators.pattern(new RegExp(/^[_a-z0-9-]+(.[_a-z0-9-]+)*@[a-z0-9-]+(.[a-z0-9-]+)*(.[a-z]{2,4})$/))]),
-      position: new FormControl({value: this.User.position, disabled: true},[Validators.required,this._service.isBlank]),
-      role:new FormControl({value: this.User.role, disabled: true},[Validators.required]),
-      funder: new FormControl({value: funder, disabled: true}),
+      username: new FormControl(this.User.username,[Validators.required,MyValidators.isBlank]),
+      name: new FormControl(this.User.name,[Validators.required,MyValidators.isBlank]),
+      last_names: new FormControl(this.User.last_names,[Validators.required,MyValidators.isBlank]),
+      email: new FormControl(this.User.email,[Validators.required,MyValidators.isBlank,Validators.pattern(new RegExp(/^[_a-z0-9-]+(.[_a-z0-9-]+)*@[a-z0-9-]+(.[a-z0-9-]+)*(.[a-z]{2,4})$/))]),
+      position: new FormControl(this.User.position,[Validators.required,MyValidators.isBlank]),
+      role:new FormControl(this.User.role,[Validators.required]),
+      funder: new FormControl(funder)
     });
-  }
-
-  turnToEditMode(){
-    this.EditMode = true;
-    this.UserForm.enable();
   }
 
   generateNewPassword(){
@@ -99,15 +105,7 @@ export class UsersViewComponent {
       if(passwords){
         /**Actualizar Contraseña */
         this._store.dispatch(fromLoadingActions.initLoading({message: 'Guardando los cambios...'}));
-        this._service.updateUser({password: passwords.password},this.User._id).subscribe(
-          result => {
-            this._store.dispatch(fromLoadingActions.stopLoading());
-            this._snackBar.open('Se generó la contraseña correctamente.','ENTENDIDO',{duration: 3000});
-          },error => {
-            this._store.dispatch(fromLoadingActions.stopLoading());
-            this._snackBar.open('Ocurrió un error al generar la contraseña.','ENTENDIDO',{duration: 3000});
-          }
-        )
+        this._userService.updateUser({password: passwords.password},this.User._id);
       }
     });
   }

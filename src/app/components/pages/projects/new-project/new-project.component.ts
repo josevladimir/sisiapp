@@ -294,7 +294,11 @@ export class NewProjectComponent{
     this._projectsService.createProject(project).subscribe(projectResponse =>
       this.uploadBeneficiariesList(projectResponse.project._id).subscribe(docResponse => {
         this._sockets.emit('projectWasCreated',docResponse.project);
+        this._sockets.emit('funderWasUpdated',{});
+        this._sockets.emit('organizationWasUpdated',{});
         this._projectsService.addToStorage(docResponse.project);
+        this._fundersService.getFunders(true);
+        this._organizationsService.getOrganizations(true);
       },error =>{
         this._store.dispatch(stopLoading());
         this._snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});

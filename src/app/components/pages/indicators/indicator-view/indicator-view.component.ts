@@ -58,7 +58,8 @@ export class IndicatorViewComponent{
         type : new FormControl(this.Indicator.type,Validators.required),
         antiquity_diff: new FormControl(this.Indicator.antiquity_diff),
         parameters_schema: new FormArray([]),
-        description: new FormControl(description,[Validators.required,MyValidators.isBlank])
+        description: new FormControl(description,[Validators.required,MyValidators.isBlank]),
+        frequency: new FormControl(this.Indicator.frequency)
       });
     }else{
       this.IndicatorForm = new FormGroup({
@@ -66,12 +67,12 @@ export class IndicatorViewComponent{
         type : new FormControl(this.Indicator.type,Validators.required),
         antiquity_diff: new FormControl(this.Indicator.antiquity_diff),
         record_schema: new FormArray([]),
-        parameters_schema: new FormArray([])
+        parameters_schema: new FormArray([]),
+        frequency: new FormControl(this.Indicator.frequency)
       });
       this.Indicator.record_schema.forEach(field => {
         (<FormArray> this.IndicatorForm.controls.record_schema).push(new FormGroup({
           name: new FormControl(field.name,[Validators.required,MyValidators.isBlank]),
-          frequency: new FormControl(field.frequency,[Validators.required]),
           unit: new FormControl(field.unit,[Validators.required])
         }));
       });
@@ -96,10 +97,12 @@ export class IndicatorViewComponent{
           isAcum: new FormControl(parameter.isAcum,Validators.required),
           unit: new FormControl(parameter.unit,Validators.required),
           definition: new FormArray([]),
-          frequency: new FormControl('')
         }));
         parameter.definition.forEach(operator => {
-          (<FormArray> this.IndicatorForm.controls.parameters_schema['controls'][i].controls.definition).push(new FormControl(operator,Validators.required))
+          (<FormArray> this.IndicatorForm.controls.parameters_schema['controls'][i].controls.definition).push(new FormGroup({
+            type: new FormControl(operator.type,Validators.required),
+            value: new FormControl(operator.value,Validators.required)
+          }));
         });
     });
 
@@ -177,7 +180,6 @@ export class IndicatorViewComponent{
   addField(){
     (<FormArray>this.IndicatorForm.controls.record_schema).push(new FormGroup({
       name: new FormControl('',[Validators.required,MyValidators.isBlank]),
-      frequency: new FormControl('',[Validators.required]),
       unit: new FormControl('',[Validators.required])
     }));
   }

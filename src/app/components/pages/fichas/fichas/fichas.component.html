@@ -44,6 +44,14 @@
                 </div>
             </div>
         </mat-card>
+        <mat-card *ngIf="this.Status == 'noPeriod'"><!--Tarjeta de Fuera de Tiempo-->
+            <div>
+                <div class="p-4">
+                    <h3 class="text-center font-weight-lighter">Esta ficha se llena {{this.periodText}}</h3>
+                    <p class="text-center font-weight-lighter">La ficha estará disponible cuando sea la fecha adecuada y se le notificará por e-mail.</p>
+                </div>
+            </div>
+        </mat-card>
         <mat-card *ngIf="this.Status == 'ready'">
             <mat-card-title class="font-weight-lighter">Ficha</mat-card-title>
             <mat-divider></mat-divider>
@@ -52,7 +60,7 @@
                     <div class="pt-3 mb-3">
                         <p>Proyecto: <span class="font-weight-lighter">{{this.Project.name}}</span></p>
                         <p>Indicador: <span class="font-weight-lighter">{{this.Indicator.name}}</span></p>
-                        <p>Periodo: <span class="font-weight-lighter">{{this.getMonth(this.Period.getMonth())}} {{this.Period.getFullYear()}}</span></p>
+                        <p>Periodo: <span class="font-weight-lighter">{{this.Period.date.from | date : 'dd MMMM yyyy'}} - {{this.Period.date.to |date : 'dd MMMM yyyy'}} ({{this.Period.period}})</span></p>
                     </div>
                     <form [formGroup]="this.SchemaForm">
                         <div class="table-container full-width">
@@ -93,7 +101,7 @@
                     <div class="pt-3 mb-3">
                         <p>Proyecto: <span class="font-weight-lighter">{{this.Project.name}}</span></p>
                         <p>Indicador: <span class="font-weight-lighter">{{this.Indicator.name}}</span></p>
-                        <p>Periodo: <span class="font-weight-lighter">{{this.getMonth(this.Period.getMonth())}} {{this.Period.getFullYear()}}</span></p>
+                        <p>Periodo: <span class="font-weight-lighter">{{this.Period.date.from | date : 'dd MMMM yyyy'}} - {{this.Period.date.to |date : 'dd MMMM yyyy'}} ({{this.Period.period}})</span></p>
                         <p>Técnico Responsable: <span class="font-weight-lighter">{{this.UserResponsable}}</span></p>
                     </div>
                     <div class="table-container full-width">
@@ -112,6 +120,14 @@
                     </div>
                 </div>
             </mat-card-content>
+        </mat-card>
+        <mat-card *ngIf="this.Status == 'outDateProject'"><!--Tarjeta Ficha Fuera de Periodo-->
+            <div>
+                <div class="p-4">
+                    <h3 class="text-center font-weight-lighter">Este proyecto ya ha finalizado</h3>
+                    <p class="text-center font-weight-lighter">El proyecto inició en {{this.Project.start_date | date : "MMMM, d \'del\' yyyy"}} con una duración de {{this.Project.duration}} meses.</p>
+                </div>
+            </div>
         </mat-card>
     </div>
 

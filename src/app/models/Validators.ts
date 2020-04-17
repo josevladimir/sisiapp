@@ -40,4 +40,51 @@ export abstract class MyValidators {
       return null;
     }
 
+    static getMonth(month : number){
+      let period : string;
+      switch(month){
+        case 0:
+          period = 'Enero'
+          break;
+        case 1:
+          period = 'Febrero'
+          break;
+        case 2:
+          period = 'Marzo'
+          break;
+        case 3:
+          period = 'Abril'
+          break;
+        case 4:
+          period = 'Mayo'
+          break;
+        case 5:
+          period = 'Junio'
+          break;
+        case 6:
+          period = 'Julio'
+          break;
+        case 7:
+          period = 'Agosto'
+          break;
+        case 8:
+          period = 'Septiembre'
+          break;
+        case 9:
+          period = 'Octubre'
+          break;
+        case 10:
+          period = 'Noviembre'
+          break;
+        case 11:
+          period = 'Diciembre'
+          break;
+        default:
+          break;
+      }
+  
+      return period;
+    }
+  
+
 }

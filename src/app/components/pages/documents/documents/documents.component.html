@@ -9,9 +9,10 @@
       <mat-icon class="type-icon" [attr.aria-label]="node.type + 'icon'">
         {{ node.type === 'file' ? 'description' : 'folder' }}
       </mat-icon>
-      {{node.name}}
+      <span *ngIf="!node.project">{{node.name}}</span>
+      <span *ngIf="node.project">{{'Lista del Proyecto: ' + node.project}}</span>
       <span class="fill-remaining-space"></span>
-      <a mat-icon-button [href]="this.URL + '/' + node.url" target="blank" matTooltip="Descargar Archivo" [download]="node.url" *ngIf="node.type === 'file'" class="type-icon" [attr.aria-label]="node.type + 'icon'">
+      <a mat-icon-button class="mr-4" [href]="this.URL + '/' + node.url" target="blank" matTooltip="Descargar Archivo" [download]="node.url" *ngIf="node.type === 'file'" class="type-icon" [attr.aria-label]="node.type + 'icon'">
         <mat-icon>get_app</mat-icon>
       </a>
     </mat-tree-node>
@@ -26,9 +27,10 @@
       <mat-icon class="type-icon" [attr.aria-label]="node.type + 'icon'">
         {{ node.type ==='file' ? 'description' : 'folder' }}
       </mat-icon>
-      {{node.name}}
+      <span *ngIf="!node.project">{{node.name}}</span>
+      <span *ngIf="node.project">{{'Lista del Proyecto: ' + node.project}}</span>
       <span class="fill-remaining-space"></span>
-      <a mat-icon-button [href]="this.URL + '/' + node.url" target="blank" matTooltip="Descargar Archivo" [download]="node.url" *ngIf="node.type === 'file'" class="type-icon" [attr.aria-label]="node.type + 'icon'">
+      <a mat-icon-button class="mr-4" [href]="this.URL + '/' + node.url" target="blank" matTooltip="Descargar Archivo" [download]="node.url" *ngIf="node.type === 'file'" class="type-icon" [attr.aria-label]="node.type + 'icon'">
         <mat-icon>get_app</mat-icon>
       </a>
     </mat-tree-node>

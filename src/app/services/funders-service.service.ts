@@ -11,6 +11,7 @@ import { HeadersGenerator } from './headersGenerator.service';
 import { SocketioService } from './socketio.service';
 import * as fromLoadingActions from '../reducers/actions/loading.actions';
 import { editModeSetDisabled } from '../reducers/actions/general.actions';
+import { ProjectsServiceService } from './projects-service.service';
 
 @Injectable({
   providedIn: 'root'
@@ -22,6 +23,7 @@ export class FundersServiceService implements OnInit{
   constructor(private http : HttpClient,
               private store : Store<State>,
               private location : Location,
+              private projectsService : ProjectsServiceService,
               private storage : StorageMap,
               private snackBar : MatSnackBar,
               private sockets : SocketioService,
@@ -38,7 +40,11 @@ export class FundersServiceService implements OnInit{
   }
     
   getFundersLocal () : Observable<any> {
-    return this.storage.watch('funders');
+    return this.storage.watch('funders'); 
+  }
+
+  getFundersOff () : Observable<any> {
+    return this.storage.get('funders');
   }
     
   createFunder (funder : any) : void {
@@ -91,6 +97,7 @@ export class FundersServiceService implements OnInit{
         .delete(`${environment.baseUrl}/Funder/${id}`,{headers: this.headersGenerator.generateAuthHeader()})
         .subscribe((response : any) => {
           this.sockets.emit('funderWasDeleted',response.funder._id);
+          this.projectsService.getProjects(false,true);
           this.removeFromStorage(response.funder._id);
         },
         error => {
@@ -102,7 +109,7 @@ export class FundersServiceService implements OnInit{
 
   removeFromStorage(_id : string, out? : boolean) : void {
     this.storage.get('funders').subscribe((funders : Funder[]) => {
-      console.log(funders);
+      this.sockets.emit('projectWasUpdated',{});
       let index : number;
       funders.forEach((funder : Funder, i : number) => {
         if(funder._id == _id) return index = i;

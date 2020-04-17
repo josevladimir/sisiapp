@@ -20,7 +20,6 @@ export class NewIndicatorComponent{
   
   fields : FormGroup = new FormGroup({
     name: new FormControl('',Validators.required),
-    frequency: new FormControl('',Validators.required),
     isAcum: new FormControl(false,Validators.required),
     unit: new FormControl('',Validators.required)
   });
@@ -42,13 +41,11 @@ export class NewIndicatorComponent{
   record_schemaCtrl : FormArray = new FormArray([
     new FormGroup({
       name: new FormControl('',[Validators.required,MyValidators.isBlank]),
-      frequency: new FormControl('',[Validators.required]),
       unit: new FormControl('',Validators.required)
     })
   ]);
 
   constructor(private _indicatorsService : IndicatorsServiceService,
-              private _snackBar : MatSnackBar,
               private _Router : Router,
               private _store : Store<State>) { 
                 
@@ -57,7 +54,8 @@ export class NewIndicatorComponent{
         name: new FormControl('',[Validators.required,MyValidators.isBlank]),
         type: new FormControl('Simple',Validators.required),
         parameters_schema: this.fields,
-        description: new FormControl('',[Validators.required,MyValidators.isBlank])
+        description: new FormControl('',[Validators.required,MyValidators.isBlank]),
+        frequency: new FormControl('',[Validators.required])
       });
   }
 
@@ -87,7 +85,6 @@ export class NewIndicatorComponent{
   addField(){
     (<FormArray>this.record_schemaCtrl).push(new FormGroup({
       name: new FormControl('',[Validators.required,MyValidators.isBlank]),
-      frequency: new FormControl('',[Validators.required]),
       unit: new FormControl('',[Validators.required])
     }));
   }
@@ -102,7 +99,8 @@ export class NewIndicatorComponent{
         name: new FormControl('',[Validators.required,MyValidators.isBlank]),
         type: new FormControl('Simple',Validators.required),
         parameters_schema: this.fields,
-        description: new FormControl('',[Validators.required,MyValidators.isBlank])
+        description: new FormControl('',[Validators.required,MyValidators.isBlank]),
+        frequency: new FormControl('',Validators.required)
       });
     }else{
       this.indicatorForm = new FormGroup({
@@ -110,7 +108,8 @@ export class NewIndicatorComponent{
         type: new FormControl('Compuesto',Validators.required),
         record_schema: this.record_schemaCtrl,
         parameters_schema: this.parameterCompuesto,
-        antiquity_diff: new FormControl(false)
+        antiquity_diff: new FormControl(false),
+        frequency: new FormControl('',Validators.required)
       });
     }
   }
@@ -123,7 +122,6 @@ export class NewIndicatorComponent{
         body = this.indicatorForm.value;
         body.parameters_schema = [{
           name: this.fields.controls.name.value,
-          frequency: this.fields.controls.frequency.value,
           isAcum: this.fields.controls.isAcum.value,
           unit: this.fields.controls.unit.value,
           definition: this.indicatorForm.get('description').value,

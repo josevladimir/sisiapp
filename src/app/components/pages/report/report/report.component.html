@@ -32,13 +32,13 @@
                                     <mat-label>Período</mat-label>
                                     <mat-select [disabled]="!this.PeriodSelectAvailable" [(ngModel)]="this.selectedPeriod" (valueChange)="onPeriodSelected($event)" matNativeControl>
                                         <mat-option *ngIf="this.AvailablePeriods && !this.AvailablePeriods.length" value="none">No existen registros</mat-option>
-                                        <mat-option *ngFor="let periodo of this.AvailablePeriods" [value]="periodo">{{periodo | date : 'MMMM yyyy'}}</mat-option>
+                                        <mat-option *ngFor="let periodo of this.AvailablePeriods" [value]="periodo.period">{{periodo.date.from | date : 'MMMM yyyy'}} - {{periodo.date.to | date : 'MMMM yyyy'}}</mat-option>
                                     </mat-select>
                                 </mat-form-field>
                             </div>
                         </div>
                     </mat-card-content>
-                </mat-card>
+                </mat-card> 
         
                 <mat-card class="mt-4" *ngIf="this.Status == 'loading'">
                     <div class="loading-box">
@@ -49,7 +49,15 @@
                     </div>
                 </mat-card>
                 
-                <app-table-and-graphic *ngIf="this.SchemaTable" [IndicatorTable]="this.IndicatorTable" [ChartData]="this.ChartData" [Project]="this.Project" [Period]="this.selectedPeriod" [ParametersTable]="this.ParametersTable" [SchemaTable]="this.SchemaTable" [Indicator]="this.Indicator"></app-table-and-graphic>
+                <app-table-and-graphic *ngIf="this.ReportSchema"
+                    [Indicator]="this.Indicator"
+                    [Project]="this.Project"
+                    [Period]="this.Period"
+                    [ReportSchema]="this.ReportSchema"
+                    [Schema]="this.Schema"
+                    (setReady)="setReady()">
+                </app-table-and-graphic>
+
             </div>
         </mat-tab>
         <mat-tab label="Reportes: LRC">

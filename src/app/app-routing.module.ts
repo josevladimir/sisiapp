@@ -26,7 +26,7 @@ import { DocumentsComponent } from './components/pages/documents/documents/docum
 import { ProfileComponent } from './components/pages/profile/profile.component';
 import { LoginComponent } from './components/pages/login/login.component';
 import { MainComponent } from './components/pages/main/main.component';
-import { GuardService } from './services/guard.service';
+import { GuardService, GuardServiceChild } from './services/guard.service';
 
 const routes: Routes = [
   {path: '', pathMatch: 'full', redirectTo: 'main'},
@@ -35,6 +35,7 @@ const routes: Routes = [
     path: 'main', 
     component: MainComponent,
     canActivate: [GuardService],
+    canActivateChild: [GuardServiceChild],
     children: [
       {path: 'dashboard', component: DashboardComponent},
       {path: 'funders', component: FundersComponent},

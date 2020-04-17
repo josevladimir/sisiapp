@@ -17,9 +17,9 @@ export class UsersComponent implements OnDestroy {
   filteredList : any[] = [];
 
   constructor(private userService : UsersServiceService) {
-    this.subscription = this.userService.getUsersLocal().subscribe(data => {
-      this.Users = data.users;
-      this.filteredList = data.users;
+    this.subscription = this.userService.getUsersLocal().subscribe(users => {
+      this.Users = users;
+      this.filteredList = users;
     });
   }
 

@@ -32,7 +32,9 @@
                 <div class="col-md-3">
                     <div class="full-width">
                         <small class="label full-width font-weight-lighter">Sitio Web</small>
-                        <a [href]="'https://' + Funder.website" target="_blank">{{Funder.website}}</a>
+                        <div>
+                            <a class="full-width" [href]="Funder.website" target="_blank">{{Funder.website}}</a>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-3">

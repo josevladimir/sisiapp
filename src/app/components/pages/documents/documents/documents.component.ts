@@ -10,6 +10,7 @@ export interface FileNode {
   name: string;
   type: string;
   children?: FileNode[];
+  project?: string,
   url?: string;
 }
 
@@ -21,6 +22,7 @@ export interface FlatTreeNode {
   name: string;
   type: string;
   url?: string;
+  project?: string, 
   level: number;
   expandable: boolean;
 }
@@ -57,9 +59,9 @@ export class DocumentsComponent implements OnDestroy {
       this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
       
       this.subscription = this.documentsService.getDocumentsLocal().subscribe((data : any) => {
-        console.log(data);
         this.files = data.documents;
         this.dataSource.data = this.formatFilesData();
+        console.log(this.dataSource);
       });
   }
 
@@ -88,6 +90,8 @@ export class DocumentsComponent implements OnDestroy {
       let orgFolders : any[] = orgFiles.map(org => org.organization.name);
       let projectsFiles : any[] = this.files.filter(file => file.entity == 'Proyectos');
 
+      console.log(projectsFiles);
+
       orgFolders.forEach(folder => file_structure[0].children.push({
         name: folder,
         type: 'folder',
@@ -98,19 +102,35 @@ export class DocumentsComponent implements OnDestroy {
         file_structure[1].children[0].children.push({
           name: file.name,
           type: 'file',
-          url: file.file
+          url: file.file,
+          project: file.project.name
         })
       });
       
       file_structure[0].children.forEach(folder => {
-        folder.children = orgFiles.filter(file => file.folder.name == folder.name).map(file => this.formatOrgFile(file));
+        folder.children = orgFiles.filter(file => file.organization.name == folder.name).map(file => this.formatOrgFile(file));
       });
 
       console.log(file_structure);
       return file_structure;
     }
-
-    return [];
+  
+    return [
+      {
+        name: 'Organizaciones',
+        type: 'folder',
+        children: []
+      },
+      {
+        name: 'Proyectos',
+        type: 'folder',
+        children: [{
+          name: 'Listas de Beneficiarios',
+          type: 'folder',
+          children: []
+        }]
+      }
+    ];
   }
 
   formatOrgFile(file) : any {
@@ -128,6 +148,7 @@ export class DocumentsComponent implements OnDestroy {
       type: node.type,
       level: level,
       url: node.url,
+      project: node.project,
       expandable: !!node.children
     };
   }

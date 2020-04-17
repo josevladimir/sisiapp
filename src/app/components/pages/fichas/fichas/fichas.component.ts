@@ -1,13 +1,16 @@
-import { Component } from '@angular/core';
-import { FormGroup, FormControl, Validators, FormArray } from '@angular/forms';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { ProjectsServiceService } from '../../../../services/projects-service.service';
-import { UsersServiceService } from '../../../../services/users-service.service';
-import { IndicatorsServiceService } from '../../../../services/indicators-service.service';
 import { Store } from '@ngrx/store';
 import { State } from '../../../../reducers/index';
-import { initLoading, stopLoading } from '../../../../reducers/actions/loading.actions';
+import * as moment from 'moment';
+import { Component } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { SocketioService } from '../../../../services/socketio.service';
+import { UsersServiceService } from '../../../../services/users-service.service';
+import { ProjectsServiceService } from '../../../../services/projects-service.service';
+import { IndicatorsServiceService } from '../../../../services/indicators-service.service';
+import { initLoading, stopLoading } from '../../../../reducers/actions/loading.actions';
+import { FormGroup, FormControl, Validators, FormArray } from '@angular/forms';
+import { Observable } from 'rxjs';
+import { getDaysOfLapse } from '../../../../reducers/selectors/general.selector';
 
 @Component({
   selector: 'app-fichas',
@@ -29,9 +32,13 @@ export class FichasComponent {
 
   SchemaForm : any; 
 
-  Period : Date = new Date();
+  Period : any;
+
+  periodText : string;
 
   Status : string = 'none';
+
+  daysOfLapse : number;
 
   constructor(public _projectsService : ProjectsServiceService,
               private _usersService : UsersServiceService,
@@ -42,6 +49,7 @@ export class FichasComponent {
     
     this._projectsService.getProjectsLocal().subscribe(projects => this.Projects = projects);
     this._indicatorsService.getIndicatorsLocal().subscribe(indicators => this.Indicators = indicators);
+    this._store.select(getDaysOfLapse).subscribe((days : number) => this.daysOfLapse = days);
 
   }
 
@@ -49,6 +57,8 @@ export class FichasComponent {
     return {
       name: project.name,
       _id: project._id,
+      duration: project.duration,
+      start_date: project.start_date,
       indicators: project.indicators,
       organizations: project.organizations,
       records: project.records
@@ -61,13 +71,84 @@ export class FichasComponent {
   }
 
   makeSchema(){
-    console.log(this.Projects,this.Indicators);
+    if(moment(new Date()).isAfter(moment(moment(this.Project.start_date).add(this.Project.duration,'months').add(this.daysOfLapse,'days').format()))) return this.Status = 'outDateProject';
     this.SchemaForm = null;
+    let startDate = moment(this.Project.start_date);
+    let diferencia = moment(new Date()).diff(startDate,'months');
+    if(this.Indicator.frequency == 'Mensual'){
+      this.Period = {
+        period: `${Math.trunc(diferencia)}º Mes`,
+        date: {
+          to: new Date(startDate.add(diferencia,'months').format()),
+          from: new Date(startDate.subtract(1,'months').format())
+        }
+      }
+      let fechaLimite = moment(startDate.add(diferencia,'months').add(this.daysOfLapse,'days').format());
+      if(moment(new Date).isSameOrBefore(fechaLimite)) this.comprobarDisponibilidad();
+      else{ 
+        this.Status = 'noPeriod';
+        this.periodText = 'Mensual';
+      }
+    }else{
+      if(this.Indicator.frequency == 'Trimestral'){
+        if(!(diferencia % 3)){
+          this.Period = {
+            period: `${Math.trunc(diferencia / 3)}º Trimestre`,
+            date: {
+              to: new Date(startDate.add(diferencia,'months').format()),
+              from: new Date(startDate.subtract(3,'months').format())
+            }
+          }
+          this.comprobarDentroDelPlazo(startDate,diferencia,'Trimestralmente');
+        }else{
+          this.Status = 'noPeriod';
+          this.periodText = 'Trimestralmente';
+        }
+      }else if(this.Indicator.frequency == 'Semestral'){
+        if(!(diferencia % 6)){
+          this.Period = {
+            period: `${Math.trunc(diferencia / 6)}º Semestre`,
+            date: {
+              to: new Date(startDate.add(diferencia,'months').format()),
+              from: new Date(startDate.subtract(6,'months').format())
+            }
+          }
+          this.comprobarDentroDelPlazo(startDate,diferencia,'Semestralmente');
+        }else{
+          this.Status = 'noPeriod';
+          this.periodText = 'Semestralmente';
+        }
+      }else if(this.Indicator.frequency == 'Anual'){
+        if(!(diferencia % 12)){
+          this.Period = {
+            period: `${diferencia / 12}º Año`,
+            date: {
+              to: new Date(startDate.add(diferencia,'months').format()),
+              from: new Date(startDate.subtract(12,'months').format())
+            }
+          }
+          this.comprobarDentroDelPlazo(startDate,diferencia,'Anualmente');
+        }else{
+          this.Status = 'noPeriod';
+          this.periodText = 'Anualmente';   
+        }
+      }
+    }
+  }
+
+  comprobarDentroDelPlazo(startDate, diferencia, periodText) : void{
+    let fechaLimite = moment(startDate.add(diferencia,'months').add(this.daysOfLapse,'days').format());
+    if(moment(new Date).isSameOrBefore(fechaLimite)) this.comprobarDisponibilidad();
+    else{ 
+      this.Status = 'noPeriod';
+      this.periodText = periodText;
+    }
+  }
+
+  comprobarDisponibilidad(){
     if(this.Project.records.length){
-      let now = new Date();
       for(let i = 0; i < this.Project.records.length; i++){
-        let record_date = new Date(this.Project.records[i].period);
-        if(this.Project.records[i].records.indicator == this.selectedIndicator && now.getMonth() == record_date.getMonth() && now.getFullYear() == record_date.getFullYear()){
+        if(this.Project.records[i].records.indicator == this.selectedIndicator && this.Period.period == this.Project.records[i].period.period){
           this.SchemaForm = this.Project.records[i];
           let user : any;
           this._usersService.getUser().subscribe(users => {
@@ -88,36 +169,38 @@ export class FichasComponent {
   }
 
   makeSchemaForm(){
-    console.log('Indicador',this.Indicator);
     if(this.Indicator.type == 'Simple'){
       this.fieldsSchema = this.Indicator.parameters_schema;
     }else{
       this.fieldsSchema = this.Indicator.record_schema;
     }
-
-    console.log(this);
-
     this.SchemaForm = new FormGroup({
-      period: new FormControl(this.Period),
+      period: new FormGroup({
+        date: new FormGroup({
+          to: new FormControl(this.Period.date.to),
+          from: new FormControl(this.Period.date.from)
+        }),
+        period: new FormControl(this.Period.period)
+      }),
       records: new FormGroup({
         indicator: new FormControl(this.selectedIndicator),
         rows: new FormArray([])
       })
     });
 
-    this.Project.organizations.forEach((organization,index) => {
-      let fieldsCtrl : FormGroup = new FormGroup({
-        organization: new FormControl(organization._id),
-        name: new FormControl(organization.name),
-        fields: new FormArray([])
-      });
-      this.fieldsSchema.forEach(field => {
-        (<FormArray> fieldsCtrl.get('fields')).push(new FormGroup({
-          name: new FormControl(field.name),
-          value: new FormControl('',Validators.required)
-        }));
-      });
-      (<FormArray> this.SchemaForm.get('records').get('rows')).push(fieldsCtrl);
+    this.Project.organizations.forEach((organization) => {
+        let fieldsCtrl : FormGroup = new FormGroup({
+          organization: new FormControl(organization._id),
+          name: new FormControl(organization.name),
+          fields: new FormArray([])
+        });
+        this.fieldsSchema.forEach(field => {
+          (<FormArray> fieldsCtrl.get('fields')).push(new FormGroup({
+            name: new FormControl(field.name),
+            value: new FormControl('',Validators.required)
+          }));
+        });
+        (<FormArray> this.SchemaForm.get('records').get('rows')).push(fieldsCtrl);
     });
 
   }
@@ -153,54 +236,7 @@ export class FichasComponent {
       },error =>{
         this._store.dispatch(stopLoading());
         this._snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
-      }
+      } 
     )
   }
-
-  getMonth(month : number){
-    let period : string;
-    switch(month){
-      case 0:
-        period = 'Enero'
-        break;
-      case 1:
-        period = 'Febrero'
-        break;
-      case 2:
-        period = 'Marzo'
-        break;
-      case 3:
-        period = 'Abril'
-        break;
-      case 4:
-        period = 'Mayo'
-        break;
-      case 5:
-        period = 'Junio'
-        break;
-      case 6:
-        period = 'Julio'
-        break;
-      case 7:
-        period = 'Agosto'
-        break;
-      case 8:
-        period = 'Septiembre'
-        break;
-      case 9:
-        period = 'Octubre'
-        break;
-      case 10:
-        period = 'Noviembre'
-        break;
-      case 11:
-        period = 'Diciembre'
-        break;
-      default:
-        break;
-    }
-
-    return period;
-  }
-
 }

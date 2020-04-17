@@ -39,8 +39,8 @@ export class AppServiceService {
     let userData : User;
     this.store.select(getUserData).subscribe((user : User) => userData = user);
     this.socket.globalConnect();
-    this.socket.emit('subscribeUser',userData);
-    this.setUpSocketEventsListener();
+    this.setUpSocketEventsListener(userData.role == 'Administrador');
+    this.socket.listen('pleaseSubscribe').subscribe(() => this.socket.emit('subscribeUser',userData));
     this.store.dispatch(fromLoading.initLoading({message: 'Inicializando el Sistema...'}));
     if(userData.role != 'Financiador') this.fundersService.getFunders();
     this.organizationsService.getOrganizations();
@@ -62,7 +62,7 @@ export class AppServiceService {
     this.Router.navigateByUrl('/login');
   }
 
-  setUpSocketEventsListener(){
+  setUpSocketEventsListener(isAdmin : boolean){
     this.socket.listen('funderWasCreated').subscribe((funder :Funder) => this.fundersService.addToStorage(funder,true));
     this.socket.listen('funderWasUpdated').subscribe(() => this.fundersService.updateFundersOnStorage(true));
     this.socket.listen('funderWasDeleted').subscribe((id : string) => this.fundersService.removeFromStorage(id,true));
@@ -82,6 +82,12 @@ export class AppServiceService {
       this.organizationsService.getOrganizations();
       this.projectsService.addToStorage(project,true);
     });
+
+    if(isAdmin){
+      this.socket.listen('userWasCreated').subscribe((user :any) => this.usersService.addToStorage(user,true));
+      this.socket.listen('usersListChanged').subscribe((user : any) => this.usersService.updateOnlineUsersList(user));
+      this.socket.listen('initializateUsers').subscribe((usersOnlineList : any[]) => this.usersService.initializateOnlineUsersList(usersOnlineList));
+    }
 
   }
 

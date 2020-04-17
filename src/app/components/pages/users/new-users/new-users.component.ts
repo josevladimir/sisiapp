@@ -1,10 +1,12 @@
 import { Component } from '@angular/core';
 import { FormGroup, FormControl, Validators, AbstractControl, ValidatorFn } from '@angular/forms';
-import { SisiCoreService } from '../../../../services/sisi-core.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Store } from '@ngrx/store';
 import { State } from 'src/app/reducers';
 import * as fromLoadingActions from '../../../../reducers/actions/loading.actions';
+import { UsersServiceService } from '../../../../services/users-service.service';
+import { MyValidators } from '../../../../models/Validators';
+import { FundersServiceService } from '../../../../services/funders-service.service';
 
 @Component({
   selector: 'app-new-users',
@@ -17,22 +19,23 @@ export class NewUsersComponent {
   
   Funders : any[];
 
-  constructor(private _service : SisiCoreService,
+  constructor(private _usersService : UsersServiceService,
+              private _fundersService : FundersServiceService,
               private _snackBar : MatSnackBar,
               private _store : Store<State>) { 
     this.UserForm = new FormGroup({
-      username: new FormControl('',[Validators.required,this._service.isBlank,this._service.existUser]),
-      name: new FormControl('',[Validators.required,this._service.isBlank]),
-      last_names: new FormControl('',[Validators.required,this._service.isBlank]),
-      email: new FormControl('',[Validators.required,this._service.isBlank,Validators.pattern(new RegExp(/^[_a-z0-9-]+(.[_a-z0-9-]+)*@[a-z0-9-]+(.[a-z0-9-]+)*(.[a-z]{2,4})$/))]),
-      position: new FormControl('',[Validators.required,this._service.isBlank]),
-      password: new FormControl('',[Validators.required,this._service.isBlank,Validators.minLength(10)]),
+      username: new FormControl('',[Validators.required,MyValidators.isBlank/*,MyValidators.existUser*/]),
+      name: new FormControl('',[Validators.required,MyValidators.isBlank]),
+      last_names: new FormControl('',[Validators.required,MyValidators.isBlank]),
+      email: new FormControl('',[Validators.required,MyValidators.isBlank,Validators.pattern(new RegExp(/^[_a-z0-9-]+(.[_a-z0-9-]+)*@[a-z0-9-]+(.[a-z0-9-]+)*(.[a-z]{2,4})$/))]),
+      position: new FormControl('',[Validators.required,MyValidators.isBlank]),
+      password: new FormControl('',[Validators.required,MyValidators.isBlank,Validators.minLength(10)]),
       funder: new FormControl(''),
       repassword: new FormControl(''),
       role:new FormControl('',[Validators.required]) 
     });
-    this.UserForm.get('repassword').setValidators([Validators.required,this._service.isBlank,this.ComparePass(this.UserForm.get('password'))]);
-    this.Funders = this._service.getFundersOff();
+    this.UserForm.get('repassword').setValidators([Validators.required,MyValidators.isBlank,this.ComparePass(this.UserForm.get('password'))]);
+    this._fundersService.getFundersOff().subscribe(funders => this.Funders = funders);
   }
 
   ComparePass(otherControl: AbstractControl): ValidatorFn {
@@ -49,18 +52,7 @@ export class NewUsersComponent {
     delete body.repassword;
     if(body.role == 'Financiador' && !body.funder) return alert('Es necesario que indique a que financiador representa este usuario.');
     else if(body.role != 'Financiador') delete body.funder;
-    this._service.createUser(body).subscribe(
-      result => {
-        if(result.message == 'CREATED'){
-          this._service.updateUsersList(true);
-          this._store.dispatch(fromLoadingActions.stopLoading());
-          this._snackBar.open('Usuario registrado correctamente.','ENTENDIDO',{duration: 3000})
-        }
-      },error => {
-        this._store.dispatch(fromLoadingActions.stopLoading());
-        this._snackBar.open('Ha ocurrido un error al guardar el usuario.','ENTENDIDO',{duration: 3000});
-      }
-    )
+    this._usersService.createUser(body);
   }
 
 }

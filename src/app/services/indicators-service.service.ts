@@ -11,6 +11,7 @@ import { State } from '../reducers';
 import * as fromLoadingActions from '../reducers/actions/loading.actions';
 import { Location } from '@angular/common';
 import { editModeSetDisabled } from '../reducers/actions/general.actions';
+import { ProjectsServiceService } from './projects-service.service';
 
 @Injectable({
   providedIn: 'root'
@@ -21,6 +22,7 @@ export class IndicatorsServiceService {
               private store : Store<State>,
               private storage : StorageMap,
               private sockets : SocketioService,
+              private projectsService : ProjectsServiceService,
               private location : Location,
               private snackBar : MatSnackBar,
               private headersGenerator : HeadersGenerator) { }
@@ -89,6 +91,8 @@ export class IndicatorsServiceService {
         .delete(`${environment.baseUrl}/Indicator/${id}`,{headers: this.headersGenerator.generateAuthHeader()})
         .subscribe((response : any) => {
           this.sockets.emit('indicatorWasDeleted',response.indicator._id);
+          this.sockets.emit('projectWasUpdated',{});
+          this.projectsService.getProjects(false,true);
           this.removeFromStorage(response.indicator._id);
         },
         error => {
