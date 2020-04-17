@@ -1,7 +1,6 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges } from '@angular/core';
 import * as moment from 'moment';
 import { UsersServiceService } from '../../../../services/users-service.service';
-import * as Rx from 'rxjs';
 
 @Component({
   selector: 'app-table-and-graphic',
@@ -191,7 +190,31 @@ export class TableAndGraphicComponent {
           this.IndicatorTable.push(indicadorItem);
   
         });
+
+
+        /**
+         * Graficos Data
+         */
+        let item = {
+          name: this.Indicator.name,
+          multi: []
+        }
   
+        this.Project.organizations.forEach((organization,j) => {
+          
+          item.multi.push({
+            name: organization.name,
+            series: [
+              {
+                name: 'Valor Medido',
+                value: this.IndicatorTable[j].total_indicator.value
+              }
+            ]
+          })
+        });
+
+        this.ChartData.push(item);
+      
       }else{ // Esquema para Indicadores Compuestos
         this.SchemaTable = {
           projectName: this.Project.name,

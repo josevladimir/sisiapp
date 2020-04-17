@@ -162,7 +162,6 @@
                             <table class="baseline-table full-width">
                                 <tr>
                                     <th class="sticky main-row"></th>
-                                    <th class="main-row" *ngFor="let parameter of this.Parameters">{{parameter.name}}</th>
                                     <th class="main-row">Total Indicador</th>
                                 </tr>
                                 <tr *ngFor="let organization of this.IndicatorTable; let i = index">
@@ -245,15 +244,12 @@
                 </mat-card>
             </div>
             <ng-template #SimpleCharts>
-                <!--mat-card class="full-width" *ngFor="let chart of this.ChartData; let i = index">
-                    <mat-card-title *ngIf="i != this.ChartData.length - 1; else LastChartTitle" class="font-weight-lighter">Organización: {{chart.name}}</mat-card-title>
-                    <ng-template #LastChartTitle>
-                        <mat-card-title class="font-weight-lighter">Gráfico comparativo entre Organizaciones</mat-card-title>    
-                    </ng-template>
+                <mat-card class="full-width" *ngFor="let chart of this.ChartData; let i = index">
+                    <mat-card-title class="font-weight-lighter">Indicador: {{chart.name}}</mat-card-title>
                     <mat-divider></mat-divider>
                     <mat-card-content>
                         <div class="pt-3 pb-2">
-                            <ngx-charts-bar-vertical-2d *ngIf="i != this.ChartData.length - 1; else LastChart"
+                            <ngx-charts-bar-vertical-2d
                                 [view]="view"
                                 [scheme]="colorScheme"
                                 [results]="chart.multi"
@@ -261,34 +257,18 @@
                                 [xAxis]="showXAxis"
                                 [yAxis]="showYAxis"
                                 [legend]="showLegend"
-                                [showXAxisLabel]="showXAxisLabel"
+                                [showXAxisLabel]="Organizaciones"
                                 [showYAxisLabel]="showYAxisLabel"
-                                [xAxisLabel]="xAxisLabel"
-                                [yAxisLabel]="yAxisLabel"
+                                [xAxisLabel]="xAxisLabelLast"
+                                [yAxisLabel]="yAxisLabelLast"
                                 [legendTitle]="legendTitle"
                                 (select)="onSelect($event)"
                                 (activate)="onActivate($event)"
                                 (deactivate)="onDeactivate($event)">
                             </ngx-charts-bar-vertical-2d>
-                            <ng-template #LastChart>
-                                <ngx-charts-bar-vertical
-                                    [view]="view"
-                                    [scheme]="colorScheme"
-                                    [results]="chart.single"
-                                    [gradient]="gradient"
-                                    [xAxis]="showXAxis"
-                                    [yAxis]="showYAxis"
-                                    [legend]="showLegend"
-                                    [showXAxisLabel]="showXAxisLabel"
-                                    [showYAxisLabel]="showYAxisLabel"
-                                    [xAxisLabel]="xAxisLabelLast"
-                                    [yAxisLabel]="yAxisLabelLast"
-                                    (select)="onSelect($event)">
-                                </ngx-charts-bar-vertical>
-                            </ng-template>
                         </div>
                     </mat-card-content>
-                </mat-card-->
+                </mat-card>
             </ng-template>
         </mat-tab>
     </mat-tab-group>
