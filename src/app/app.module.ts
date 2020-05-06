@@ -1,13 +1,18 @@
 import { NgModule } from '@angular/core';
+import { StorageModule } from '@ngx-pwa/local-storage';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { HttpClientModule } from '@angular/common/http';
+import { NgxSortableModule } from 'ngx-sortable';
+import { MonacoEditorModule, MONACO_PATH} from '@materia-ui/ngx-monaco-editor';
 import { FormsModule, ReactiveFormsModule} from '@angular/forms';
 import { MAT_DATE_LOCALE, MatNativeDateModule } from '@angular/material/core';
 
 import { AppRoutingModule } from './app-routing.module';
 
 import { AppComponent } from './app.component';
+import { AddComponent } from './components/pages/institutionals/add/add.component';
+import { ViewComponent } from './components/pages/institutionals/view/view.component';
 import { MainComponent } from './components/pages/main/main.component';
 import { UsersComponent } from './components/pages/users/users/users.component';
 import { LoginComponent } from './components/pages/login/login.component';
@@ -21,6 +26,7 @@ import { ProjectsComponent } from './components/pages/projects/projects/projects
 import { PartnersComponent } from './components/pages/organization/partners/partners.component';
 import { SettingsComponent } from './components/pages/settings/settings/settings.component';
 import { NewUsersComponent } from './components/pages/users/new-users/new-users.component';
+import { ReportLRCComponent } from './components/pages/report/report-lrc/report-lrc.component';
 import { DashboardComponent } from './components/pages/dashboard/dashboard.component';
 import { UploadBoxComponent } from './components/shared/upload-box/upload-box.component';
 import { UsersViewComponent } from './components/pages/users/users-view/users-view.component';
@@ -36,6 +42,7 @@ import { LoadingViewComponent } from './components/shared/loading-view/loading-v
 import { NewPasswordComponent } from './components/dialogs/new-password/new-password.component';
 import { ProjectCardComponent } from './components/cards/project-card/project-card.component';
 import { FundersLinkComponent } from './components/dialogs/funders-link/funders-link.component';
+import { NewRegistryComponent } from './components/pages/institutionals/new-registry/new-registry.component';
 import { FormButtonsComponent } from './components/shared/form-buttons/form-buttons.component';
 import { NewIndicatorComponent } from './components/pages/indicators/new-indicator/new-indicator.component';
 import { OrganizationsComponent } from './components/pages/organization/organizations/organizations.component';
@@ -46,6 +53,7 @@ import { NewOrganizationComponent } from './components/pages/organization/new-or
 import { OrganizationViewComponent } from './components/pages/organization/organization-view/organization-view.component';
 import { OrganizationCardComponent } from './components/cards/organization-card/organization-card.component';
 import { PartnersHistoricComponent } from './components/pages/organization/partners-historic/partners-historic.component';
+import { CalificationCircleComponent } from './components/shared/calification-circle/calification-circle.component';
 import { NewOrganizationPreferenceComponent } from './components/dialogs/new-organization-preference/new-organization-preference.component';
 
 /**
@@ -79,19 +87,29 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 //NgRx
-import { StoreModule } from '@ngrx/store';
-import { EffectsModule } from '@ngrx/effects';
-import { AppEffects } from './app.effects';
-import { StoreRouterConnectingModule } from '@ngrx/router-store';
-import { StoreDevtoolsModule } from '@ngrx/store-devtools';
-import { environment } from '../environments/environment';
 import { reducers } from './reducers/index';
-import { StorageModule } from '@ngx-pwa/local-storage';
-import { CalificationCircleComponent } from './components/shared/calification-circle/calification-circle.component';
+import { AppEffects } from './app.effects';
+import { StoreModule } from '@ngrx/store';
+import { environment } from '../environments/environment';
+import { EffectsModule } from '@ngrx/effects';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { StoreRouterConnectingModule } from '@ngrx/router-store'; 
+
+/*const monacoConfig: NgxMonacoEditorConfig = {
+  baseUrl: 'assets', // configure base path for monaco editor default: './assets'
+  defaultOptions: { 
+    minimap: { enabled: false },
+    scrollBeyondLastLine: false,
+    wordWrap: 'on'
+  }, // pass default options to be used
+  onMonacoLoad: () => { console.log((<any>window).monaco); } // here monaco object will be available as window.monaco use this function to extend monaco editor functionalities.
+};*/
 
 @NgModule({
   declarations: [
+    AddComponent,
     AppComponent,
+    ViewComponent,
     MainComponent,
     LoginComponent,
     UsersComponent,
@@ -106,6 +124,7 @@ import { CalificationCircleComponent } from './components/shared/calification-ci
     SettingsComponent,
     NewUsersComponent,
     UsersViewComponent,
+    ReportLRCComponent,
     FilterBoxComponent,
     DocumentsComponent,
     UploadBoxComponent,
@@ -120,6 +139,7 @@ import { CalificationCircleComponent } from './components/shared/calification-ci
     FundersLinkComponent,
     LoadingViewComponent,
     ProjectCardComponent,
+    NewRegistryComponent,
     FormButtonsComponent,
     NewIndicatorComponent,
     OrganizationsComponent,
@@ -130,8 +150,8 @@ import { CalificationCircleComponent } from './components/shared/calification-ci
     OrganizationCardComponent,
     OrganizationViewComponent,
     PartnersHistoricComponent,
-    NewOrganizationPreferenceComponent,
-    CalificationCircleComponent
+    CalificationCircleComponent,
+    NewOrganizationPreferenceComponent
   ],
   imports: [
     FormsModule,
@@ -161,7 +181,9 @@ import { CalificationCircleComponent } from './components/shared/calification-ci
     MatCheckboxModule,
     MatSnackBarModule,
     MatGridListModule,
+    NgxSortableModule,
     MatPaginatorModule,
+    MonacoEditorModule,
     MatDatepickerModule,
     MatNativeDateModule,
     ReactiveFormsModule,
@@ -169,9 +191,9 @@ import { CalificationCircleComponent } from './components/shared/calification-ci
     BrowserAnimationsModule,
     StoreModule.forRoot(reducers),
     EffectsModule.forRoot([AppEffects]),
-    StoreRouterConnectingModule.forRoot(),
+    StorageModule.forRoot({ IDBNoWrap: true }),
     StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: environment.production }),
-    StorageModule.forRoot({ IDBNoWrap: true })
+    StoreRouterConnectingModule.forRoot()
   ],
   entryComponents: [
     NewPasswordComponent,
@@ -180,6 +202,10 @@ import { CalificationCircleComponent } from './components/shared/calification-ci
     NewOrganizationPreferenceComponent
   ],
   providers: [
+    {
+      provide: MONACO_PATH,
+      useValue: 'https://unpkg.com/monaco-editor@0.20.0/min/vs'
+    },
     {provide: MAT_DATE_LOCALE, useValue: 'es-EC'},
     {provide: MAT_DIALOG_DEFAULT_OPTIONS, useValue: {hasBackdrop: false}}
   ],

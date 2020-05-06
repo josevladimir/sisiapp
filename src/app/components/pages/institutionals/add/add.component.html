@@ -1,0 +1,73 @@
+<app-sub-toolbar
+    title="Nuevo Indicador Institucional"
+    [backButton]="true">
+</app-sub-toolbar>
+
+<div class="page-content">
+    <form [formGroup]="this.institutionalForm">
+
+        <mat-card>
+            <mat-card-title class="font-weight-lighter">Datos Generales</mat-card-title>
+            <div class="row">
+                <mat-form-field class="full-width col-sm-6">
+                    <input matInput type="text" formControlName="name" placeholder="Nombre del Indicador">
+                    <mat-error *ngIf="this.institutionalForm.get('name').errors?.required">Este campo es obligatorio</mat-error>
+                </mat-form-field>
+                <mat-form-field class="full-width col-sm-6">
+                    <mat-label>Tipo de Indicador</mat-label>
+                    <mat-select class="full-width" formControlName="type">
+                        <mat-option value="des">Desarrollo económico sostenible</mat-option>
+                        <mat-option value="grn">Gestión de recursos naturales</mat-option>
+                        <mat-option value="dh">Desarrollo Humano</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="this.institutionalForm.get('type').errors?.required">Este capo es obligatorio</mat-error>
+                </mat-form-field>
+            </div>
+        </mat-card>
+
+        <mat-card class="mt-4">
+            <mat-card-title class="font-weight-lighter">Esquema del Indicador</mat-card-title>
+            <div formArrayName="schema" *ngFor="let schemaGroup of this.institutionalForm.get('schema').controls; let i = index">
+                <div class="row" [formGroupName]="i">
+                    <div class="col-sm-4">
+                        <mat-form-field class="full-width">
+                            <input matInput type="text" formControlName="name" placeholder="Nombre del campo">
+                            <mat-error *ngIf="schemaGroup.get('name').errors?.required">Este campo es obligatorio</mat-error>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-sm-4">
+                        <mat-form-field class="full-width">
+                            <mat-label>Tipo de campo</mat-label>
+                            <mat-select class="full-width" formControlName="type">
+                                <mat-option value="text">Texto</mat-option>
+                                <mat-option value="number">Número</mat-option>
+                                <mat-option value="select">Opciones</mat-option>
+                                <mat-option value="textarea">Texto Largo</mat-option>
+                                <mat-option value="file">Archivo</mat-option>
+                            </mat-select>
+                            <mat-error *ngIf="schemaGroup.get('type').errors?.required">Este campo es obligatorio</mat-error>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-sm-4" *ngIf="schemaGroup.get('type').value == 'select'">
+                        <mat-form-field class="full-width">
+                            <input matInput type="text" placeholder="Nombre del campo">
+                        </mat-form-field>
+                        <button matTooltip="Eliminar Parámetro" matTooltipPosition="above" (click)="removeCampo(i)" mat-icon-button color="primary" class="delete-parameter-btn" type="button" *ngIf="i"><mat-icon>close</mat-icon></button>
+                    </div>
+                </div>
+                <mat-divider *ngIf="this.institutionalForm.get('schema').controls.length - 1 != i"></mat-divider>
+            </div>
+            <div class="flex">
+                <span class="fill-remaining-space"></span>
+                <button mat-raised-button color="primary" type="button" (click)="this.addCampo()"><mat-icon>add</mat-icon> Añadir Campo</button>
+            </div>
+        </mat-card>
+
+        <div class="mt-4 flex">
+            <span class="fill-remaining-space"></span>
+            <button mat-button class="mr-3" type="button">CANCELAR</button>
+            <button mat-raised-button color="primary" type="submit" [disabled]="this.institutionalForm.invalid">GUARDAR</button>
+        </div>
+
+    </form>
+</div>

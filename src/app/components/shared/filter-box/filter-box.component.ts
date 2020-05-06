@@ -36,6 +36,10 @@ export class FilterBoxComponent implements OnInit{
       {value: 'canton', text: 'Cantón'},
       {value: 'legalized', text: 'Legalizada'}
     ];
+    else if(this.type == 'institutionals') this.SearchParameters = [
+      {value: 'name', text: 'Nombre'},
+      {value: 'type', text: 'Tipo'}
+    ];
     else this.SearchParameters = [
       {value: 'name', text: 'Nombre'},
       {value: 'ubication', text: 'Ubicación'},
