@@ -78,7 +78,7 @@ export class ReportLRCComponent {
     this.userCode = '';
   }
 
-  prepareQuery : () => void = () => {
+  prepareQuery : (i : number) => void = (index : number) => {
     this.monaco.editor.colorizeElement()
   }
 

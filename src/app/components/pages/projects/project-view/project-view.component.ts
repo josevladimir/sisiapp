@@ -21,12 +21,15 @@ import { IndicatorsServiceService } from '../../../../services/indicators-servic
 import { OrganizationsServiceService } from '../../../../services/organizations-service.service';
 import { MatSelectionList } from '@angular/material/list';
 import { editModeSetDisabled } from '../../../../reducers/actions/general.actions';
+import { StorageMap } from '@ngx-pwa/local-storage';
 
 @Component({
   selector: 'app-project-view',
   templateUrl: './project-view.component.html'
 })
 export class ProjectViewComponent { 
+
+  assetsUrl : string = environment.assetsUrl;
 
   isAdmin : Observable<boolean>;
   isEditMode : Observable<boolean>;
@@ -75,6 +78,7 @@ export class ProjectViewComponent {
               private _indicatorsService : IndicatorsServiceService,
               private _organizationsService : OrganizationsServiceService,
               private _ActivatedRoute : ActivatedRoute,
+              private _storage : StorageMap,
               private _snackBar : MatSnackBar,
               private _sockets : SocketioService, 
               private dialog : MatDialog,
@@ -91,24 +95,26 @@ export class ProjectViewComponent {
           this.executed_budget = this.Project.budgets.ejecutado.pop();
           this.Project.budgets.ejecutado.push(this.executed_budget);
           this.generateChartData();
-          this.getFormFromProject();
           this._documentsService.getBeneficiariesFile(this.Project.beneficiaries.file).subscribe(
             result => {
               if(result.message == 'OK') this.File = result.file
             },error => this._snackBar.open('Error al recuperar la lista de Beneficiarios.','ENTENDIDO',{duration: 3000})
-          );
+            );
+          });
+        }
+        );
+        
+        this._storage.get('indicators').subscribe((indicators : any[]) => {
+          this.Indicators = indicators
+          this.getFormFromProject();
         });
-      }
-      );
-    
-    this._indicatorsService.getIndicatorsLocal().subscribe(indicators => this.Indicators = indicators);
-
-    this._organizationsService.getOrganizationsLocal().subscribe(organizations => this.Organizations = organizations);
-
-    this._fundersService.getFundersLocal().subscribe(funders => {
-      this.FundersList = funders;
-    });
-
+        
+        this._organizationsService.getOrganizationsLocal().subscribe(organizations => this.Organizations = organizations);
+        
+        this._fundersService.getFundersLocal().subscribe(funders => {
+          this.FundersList = funders;
+        });
+        
   }
 
   getFormFromProject(){
@@ -169,7 +175,9 @@ export class ProjectViewComponent {
     for(let i = 0; i < this.Project.full_schema.length; i++){
       let baselineCtrl : FormArray = new FormArray([]);
 
-      let indicator = {id: this.Project.full_schema[i].id,antiquity_diff: this.Project.full_schema[i].antiquity_diff,parameters: []};
+      let indicator = this.Indicators.filter(indicador => indicador._id == this.Project.full_schema[i].id)[0];
+
+      console.log('indicador',indicator);
       
       for(let j = 0; j < this.Project.full_schema[i].baseline.length; j++){
 
@@ -197,7 +205,6 @@ export class ProjectViewComponent {
         }));
 
         for(let k = 0; k < this.Project.full_schema[i].goal[j].parameters.length; k++){
-          indicator.parameters.push({name: this.Project.full_schema[i].goal[j].parameters[k].name});
           if(this.Project.full_schema[i].antiquity_diff) (<FormArray> goalCtrl['controls'][j].get('parameters')).push(new FormGroup({
             name: new FormControl(this.Project.full_schema[i].goal[j].parameters[k].name),
             id: new FormControl(this.Project.full_schema[i].goal[j].parameters[k].id),
@@ -543,7 +550,7 @@ export class ProjectViewComponent {
       if(indice != null) this.indicatorsList.toRemove.splice(indice,1);
 
       let indicator : any = this.Indicators.filter(indicator => indicator._id == id)[0];
-      this.indicatorsSelected.push({id: indicator._id,parameters: indicator.parameters_schema,antiquity_diff: indicator.antiquity_diff});
+      this.indicatorsSelected.push(indicator);
       let baselineCtrl : FormArray = new FormArray([]);      //LineaBase 
       for(let i = 0; i < this.organizationsSelected.length; i++){
         //Añadiendo inputs para la lineaBase
@@ -654,7 +661,7 @@ export class ProjectViewComponent {
           parameters: new FormArray([])
         });
 
-        for(let j = 0; j < this.indicatorsSelected[i].parameters.length; j++){
+        for(let j = 0; j < this.indicatorsSelected[i].parameters_schema.length; j++){
           (<FormArray> baselineCtrl.get('parameters')).push(new FormGroup({
             name: new FormControl(this.indicatorsSelected[i].parameters[j]['name']),
             baseline: new FormControl('')

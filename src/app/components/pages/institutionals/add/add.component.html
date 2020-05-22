@@ -27,7 +27,7 @@
 
         <mat-card class="mt-4">
             <mat-card-title class="font-weight-lighter">Esquema del Indicador</mat-card-title>
-            <div formArrayName="schema" *ngFor="let schemaGroup of this.institutionalForm.get('schema').controls; let i = index">
+            <div formArrayName="schema" *ngFor="let schemaGroup of this.institutionalForm.get('schema')['controls']; let i = index">
                 <div class="row" [formGroupName]="i">
                     <div class="col-sm-4">
                         <mat-form-field class="full-width">
@@ -55,7 +55,7 @@
                         <button matTooltip="Eliminar Parámetro" matTooltipPosition="above" (click)="removeCampo(i)" mat-icon-button color="primary" class="delete-parameter-btn" type="button" *ngIf="i"><mat-icon>close</mat-icon></button>
                     </div>
                 </div>
-                <mat-divider *ngIf="this.institutionalForm.get('schema').controls.length - 1 != i"></mat-divider>
+                <mat-divider *ngIf="this.institutionalForm.get('schema')['controls'].length - 1 != i"></mat-divider>
             </div>
             <div class="flex">
                 <span class="fill-remaining-space"></span>

@@ -1,7 +1,7 @@
 <app-sub-toolbar *ngIf="this.isAdmin | async"
     title="Indicador: {{this.Indicator.name}}"
     [backButton]="true"
-    [editButton]="!(this.editMode | async)"
+    [editButton]="!this.editMode"
     [deleteButton]="this.DeleteBtn">
 </app-sub-toolbar>
 
@@ -11,71 +11,183 @@
 </app-sub-toolbar>
 
 <div class="page-content">
-    <div *ngIf="!(this.editMode | async); else EditMode">
-        <mat-card class="pb-3">
+    
+    <div *ngIf="!this.editMode; else EditMode">
+        <!--Información General-->
+        <mat-card class="mb-4">
             <mat-card-title class="font-weight-lighter">Información General</mat-card-title>
-            <div class="row mb-3">
+            <div class="row">
                 <div class="col-sm-12">
-                    <div><small class="label">Nombre del Indicador</small></div>
+                    <small class="label">Nombre del Indicador</small>
                     <div>{{this.Indicator.name}}</div>
                 </div>
                 <div class="col-sm-6">
-                    <div><small class="label">Tipo de Indicador</small></div>
+                    <small class="label">Tipo de Indicador</small>
                     <div>{{this.Indicator.type}}</div>
                 </div>
                 <div class="col-sm-6">
-                    <div><small class="label">Frecuencia de ingreso de datos</small></div>
+                    <small class="label">Frecuencia de Ingreso de Datos</small>
                     <div>{{this.Indicator.frequency}}</div>
                 </div>
-            </div>
-            <mat-divider *ngIf="this.Indicator.type == 'Compuesto'"></mat-divider>
-            <div class="label">
-                <div *ngIf="this.Indicator.type == 'Compuesto' && this.Indicator.antiquity_diff"><small>Este indicador <b>DIFERENCIA</b> entre organizaciones nuevas y antiguas</small></div>
-                <ng-template>
-                    <div><small>Este indicador <b>NO DIFERENCIA</b> entre organizaciones nuevas y antiguas</small></div>
-                </ng-template>
+                <div class="col-sm-12 pt-2" *ngIf="this.Indicator.type == 'Compuesto'">
+                    <mat-divider></mat-divider>
+                    <div class="label pt-2 font-weight-lighter">Este indicador <b *ngIf="this.Indicator.antiquity_diff">DIFERENCIA</b><b *ngIf="!this.Indicator.antiquity_diff">NO DIFERENCIA</b> entre organizaciones Nuevas y Antiguas</div>
+                </div>
             </div>
         </mat-card>
-    
-        <!--Parámetros Indicador Simple-->
-        <div class="mt-4" *ngIf="this.Indicator.type == 'Simple'; else EsquemaCompuesto">
-            <mat-card>
-                <mat-card-title class="font-weight-lighter">Descripción del Indicador</mat-card-title>
-                <div class="row">
-                    <div class="col-sm-12">
-                        <div class="label">{{this.Indicator.description}}</div>
-                    </div>
+
+        <!--Descripción del Indicador-->
+        <mat-card class="mb-4">
+            <mat-card-title class="font-weight-lighter">Descripción del Indicador</mat-card-title>
+            <div class="row">
+                <div class="col-sm-12 font-weight-lighter">{{this.Indicator.description}}</div>
+            </div>
+        </mat-card>
+
+        <!--Discriminación de Organizaciones-->
+        <mat-card class="mb-4">
+            <mat-card-title class="font-weight-lighter">Discriminación de Organizaciones</mat-card-title>
+            <div class="row" *ngIf="!this.Indicator.organizations_diff">
+                <div class="col-sm-12 font-weight-lighter">Este Indicador se aplica por igual a todas las organizaciones que se anexen al proyecto.</div>
+            </div>
+            <div class="row" *ngIf="this.Indicator.organizations_diff">
+                <div class="col-sm-6">
+                    <small class="label">Discriminar por:</small>
+                    <div>{{this.Indicator.organizations_diff_by}}</div>
                 </div>
-            </mat-card>
-            <mat-card class="mt-4 mb-4">
-                <mat-card-title class="font-weight-lighter">Parámetros del Indicador</mat-card-title>
-                <div class="row mb-2">
-                    <div class="col-sm-4">
-                        <div class="full-width text-sm-center">Nombre</div>
-                    </div>
-                    <div class="col-sm-4">
-                        <div class="full-width text-sm-center">Acumulativo</div>
-                    </div>
-                    <div class="col-sm-4">
-                        <div class="full-width text-sm-center">Unidad</div>
-                    </div>
+                <div class="col-sm-6">
+                    <small class="label" *ngIf="this.Indicator.organizations_diff_by == 'sector'">Seleccionar por Sector</small>
+                    <small class="label" *ngIf="this.Indicator.organizations_diff_by == 'type'">Seleccionar por Tipo</small>
+                    <small class="label" *ngIf="this.Indicator.organizations_diff_by == 'characteristic'">Seleccionar por Característica</small>
+                    <mat-list class="full-width max-height">
+                        <mat-list-item *ngFor="let type of this.Indicator.organizations">{{type}}</mat-list-item>
+                    </mat-list>
                 </div>
-                <div class="row">
-                    <div class="col-sm-4">
-                        <div class="table-box p-1 font-weight-lighter text-center">{{this.Indicator.parameters_schema[0].name}}</div>
+            </div>
+        </mat-card>
+
+        <!--Indicador Simple y Grupal-->
+        <div *ngIf="this.Indicator.type != 'Compuesto'">
+
+            <div *ngFor="let parameter of this.Indicator.parameters_schema; let i = index">
+                <mat-card class="mb-4">
+                    <mat-card-title *ngIf="this.Indicator.type == 'Simple'" class="font-weight-lighter">Parámetro del Indicador</mat-card-title>
+                    <mat-card-title *ngIf="this.Indicator.type == 'Grupo'" class="font-weight-lighter">Indicador Nº{{i + 1}}</mat-card-title>
+                    <div class="row">
+                        <div class="col-sm-8 text-center">Nombre</div>
+                        <div class="col-sm-4 text-center">Unidad</div>
                     </div>
-                    <div class="col-sm-4">
-                        <div class="table-box p-1 font-weight-lighter text-center">{{this.Indicator.parameters_schema[0].isAcum}}</div>
+                    <div class="row">
+                        <div class="col-sm-8"><div class="schema-input">{{parameter.name}}</div></div>
+                        <div class="col-sm-4"><div class="schema-input">{{parameter.unit}}</div></div>
                     </div>
-                    <div class="col-sm-4">
-                        <div class="table-box p-1 font-weight-lighter text-center">{{this.Indicator.parameters_schema[0].unit}}</div>
+                    <!--Campos del Indicador-->
+                    <div *ngIf="parameter.haveSchema">
+                        <mat-divider></mat-divider>
+                        <div class="pt-3">
+                            <mat-card-title class="font-weight-lighter">Campos para el Cálculo del Indicador</mat-card-title>
+                            <div class="row">
+                                <div class="col-sm-8 text-center">Nombre</div>
+                                <div class="col-sm-4 text-center">Unidad</div>
+                            </div>
+                            <div class="mb-3" *ngFor="let field of parameter.record_schema; let j = index">
+                                <div class="row">
+                                    <div class="col-sm-8"><div class="schema-input">{{field.name}}</div></div>
+                                    <div class="col-sm-4"><div class="schema-input">{{field.unit}}</div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--Definición de los parámetros-->
+                        <mat-divider></mat-divider>
+                        <div class="pt-3">
+                            <mat-card-title class="font-weight-lighter">Definición del Parámetro</mat-card-title>
+                            
+                            <div class="editor-box mt-2">
+                                <mat-list class="definition-column">
+                                    <span class="definition-column-label">Definición del Parámetro</span>
+                                    <div class="definition-space">
+                                        <mat-chip-list #chipList aria-label="Fields selection">
+                                            <div *ngFor="let field of parameter.definition; let j = index">
+                                                <span>{{field.value}}</span>
+                                            </div>
+                                        </mat-chip-list>
+                                    </div>
+                                </mat-list>
+                            </div>    
+
+                        </div>
                     </div>
-                </div>
-            </mat-card>
+                    
+                    <!--Indicador Cualitativo-->
+                    <div *ngIf="parameter.unit == 'Cualitativo'">
+                        <mat-divider></mat-divider>
+                        <div class="pt-3">
+                            <mat-card-title class="font-weight-lighter">Niveles Cualitativos del Indicador (Ascendente)</mat-card-title>
+                            <div class="row">
+                                <div class="col-sm-3 text-center">Nombre</div>
+                                <div class="col-sm-6 text-center">Descripción</div>
+                                <div class="col-sm-3 text-center">Rango</div>
+                            </div>
+                            <div [ngClass]="{'mb-3': j != parameter.cualitative_levels.length - 1}" *ngFor="let field of parameter.cualitative_levels; let j = index">
+                                <div class="row">
+                                    <div class="col-sm-3 flex flex-align-vertical">
+                                        <div class="schema-input">{{field.name}}</div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="text-area-form">{{field.description}}</div>
+                                    </div>
+                                    <div class="col-sm-3 flex flex-align-vertical">
+                                        <div class="row">
+                                            <div class="col-sm-6"><div class="schema-input">{{field.range.from}}</div></div>
+                                            <div class="col-sm-6"><div class="schema-input">{{field.range.to}}</div></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-3"></div>
+                                <div class="col-sm-6"></div>
+                                <div class="col-sm-3">
+                                    <div class="row">
+                                        <div class="col-sm-6 text-center">Desde</div>
+                                        <div class="col-sm-6 text-center">Hasta</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <mat-divider></mat-divider>
+                        <div class="pt-3">
+                            <mat-card-title class="font-weight-lighter">Campos del Indicador</mat-card-title>
+                            <div class="row" *ngIf="!parameter.haveCualitativeSchema">
+                                <div class="col-sm-12 font-weight-lighter">La valoración corresponde a un único campo</div>
+                            </div>
+                            <div *ngIf="parameter.haveCualitativeSchema">
+                                <div class="row">
+                                    <div class="col-sm-8 text-center">Nombre</div>
+                                    <div class="col-sm-4 text-center">Unidad</div>
+                                </div>
+                                <div class="mb-3" *ngFor="let field of parameter.record_schema; let j = index">
+                                    <div class="row">
+                                        <div class="col-sm-8"><div class="schema-input">{{field.name}}</div></div>
+                                        <div class="col-sm-4"><div class="schema-input">{{field.unit}}</div></div>
+                                    </div>
+                                </div>
+                                <mat-divider></mat-divider>
+                                <div class="pt-3">
+                                    <span class="font-weight-lighter mr-3">Este indicador se calcula por: <b>{{parameter.calculate_as}}</b></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </mat-card>
+            </div>
+
         </div>
-    
-        <!--Esquema Indicador Compuesto-->
-        <ng-template #EsquemaCompuesto>
+
+        <!--Indicador Compuesto-->
+        <div *ngIf="this.Indicator.type == 'Compuesto'">
+
             <mat-card class="mt-4">
                 <mat-card-title class="font-weight-lighter">Esquema de la Ficha</mat-card-title>
                 <div class="row">
@@ -86,178 +198,109 @@
                         <div class="full-width text-sm-center">Unidad</div>
                     </div>
                 </div>
-                <div *ngFor="let field of this.Indicator.record_schema">
+                <div *ngFor="let field of this.Indicator.record_schema; let i = index">
                     <div class="row mb-3">
-                        <div class="col-sm-8">
-                            <div class="table-box p-1 font-weight-lighter text-center">{{field.name}}</div>
-                        </div>
-                        <div class="col-sm-4">
-                            <div class="table-box p-1 font-weight-lighter text-center">{{field.unit}}</div>
-                        </div>
+                        <div class="col-sm-8"><div class="schema-input">{{field.name}}</div></div>
+                        <div class="col-sm-4"><div class="schema-input">{{field.unit}}</div></div>
                     </div>
                 </div>
             </mat-card>
-    
-            <!--Parámetros Indicador Compuesto Sin Diferenciación-->
-            <mat-card class="mt-4" *ngIf="!this.Indicator.antiquity_diff; else ConDiferenciacion">
+
+            <!--Parámetros Indicador Compuesto-->
+            <mat-card class="mt-4">
                 <mat-card-title class="font-weight-lighter">Parámetros del Indicador</mat-card-title>
                 <div class="row mb-2">
-                    <div class="col-sm-3">
+                    <div class="col-sm-4">
                         <div class="full-width text-sm-center">Nombre</div>
                     </div>
-                    <div class="col-sm-3">
+                    <div class="col-sm-4">
                         <div class="full-width text-sm-center">Ponderación (%)</div>
                     </div>
-                    <div class="col-sm-3">
-                        <div class="full-width text-sm-center">Acumulativo</div>
-                    </div>
-                    <div class="col-sm-3">
+                    <div class="col-sm-4">
                         <div class="full-width text-sm-center">Unidad</div>
                     </div>
                 </div>
-                <div class="mb-1" *ngFor="let parameter of this.Indicator.parameters_schema">
+                <div class="mb-1" *ngFor="let parameter of this.Indicator.parameters_schema; let i = index">
                     <div class="row mb-3">
-                        <div class="col-sm-3">
-                            <div class="table-box p-1 font-weight-lighter text-center">{{parameter.name}}</div>
+                        <div class="col-sm-4"><div class="schema-input">{{parameter.name}}</div></div>
+                        <div *ngIf="!this.Indicator.antiquity_diff" class="col-sm-4"><div class="schema-input">{{parameter.weighing.weight}}</div></div>
+                        <div class="col-sm-4" *ngIf="this.Indicator.antiquity_diff">
+                            <div class="row">
+                                <div class="col-sm-6"><div class="schema-input">{{parameter.weighing.older}}</div></div>
+                                <div class="col-sm-6"><div class="schema-input">{{parameter.weighing.newer}}</div></div>
+                            </div>
                         </div>
-                        <div class="col-sm-3">
-                            <div class="table-box p-1 font-weight-lighter text-center">{{parameter.weighing[0].weight}}</div>
-                        </div>
-                        <div class="col-sm-3">
-                            <div class="table-box p-1 font-weight-lighter text-center">{{parameter.isAcum}}</div>
-                        </div>
-                        <div class="col-sm-3">
-                            <div class="table-box p-1 font-weight-lighter text-center">{{parameter.unit}}</div>
-                        </div>
+                        <div class="col-sm-4"><div class="schema-input">{{parameter.unit}}</div></div>
                     </div>
                 </div>
+                <div class="row" *ngIf="this.Indicator.antiquity_diff">
+                    <div class="col-sm-4"></div>
+                    <div class="col-sm-4">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="font-weight-lighter full-width text-center">Antigua</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="font-weight-lighter full-width text-center">Nueva</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4"></div>
+                </div>
             </mat-card>
-    
-            <ng-template #ConDiferenciacion>
-                <mat-card class="mt-4">
-                    <mat-card-title class="font-weight-lighter">Parámetros del Indicador</mat-card-title>
-                    <div class="row mb-2">
-                        <div class="col-sm-3">
-                            <div class="full-width text-sm-center">Nombre</div>
-                        </div>
-                        <div class="col-sm-3">
-                            <div class="full-width text-sm-center">Ponderación (%)</div>
-                        </div>
-                        <div class="col-sm-3">
-                            <div class="full-width text-sm-center">Acumulativo</div>
-                        </div>
-                        <div class="col-sm-3">
-                            <div class="full-width text-sm-center">Unidad</div>
-                        </div>
-                    </div>
-                    <div class="mb-1"*ngFor="let parameter of this.Indicator.parameters_schema">
-                        <div class="row mb-3">
-                            <div class="col-sm-3">
-                                <div class="table-box p-1 font-weight-lighter text-center">{{parameter.name}}</div>
-                            </div>
-                            <div class="col-sm-3">
-                                <div class="row">
-                                    <div class="col-sm-6">
-                                        <div class="table-box p-1 font-weight-lighter text-center">{{parameter.weighing[0].older}}</div>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <div class="table-box p-1 font-weight-lighter text-center">{{parameter.weighing[0].newer}}</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-3">
-                                <div class="table-box p-1 font-weight-lighter text-center">{{parameter.isAcum}}</div>
-                            </div>
-                            <div class="col-sm-3">
-                                <div class="table-box p-1 font-weight-lighter text-center">{{parameter.unit}}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-3"></div>
-                        <div class="col-sm-3">
-                            <div class="row">
-                                <div class="col-sm-6">
-                                    <div class="font-weight-lighter full-width text-center">Antigua</div>
-                                </div>
-                                <div class="col-sm-6">
-                                    <div class="font-weight-lighter full-width text-center">Nueva</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-sm-3"></div>
-                        <div class="col-sm-3"></div>
-                    </div>
-                </mat-card>
-            </ng-template>
-    
+                    
             <!--Definición de los Parámetros-->
             <mat-card class="mt-4 mb-4">
                 <mat-card-title class="font-weight-lighter">Definición de los Parámetros</mat-card-title>
-                <div class="definition-box mt-2 mb-4">
+                <div class="definition-box mt-2">
                     <mat-list> 
                         <span class="definition-column-label">Parámetro</span>
                         <li *ngFor="let parameter of this.Indicator.parameters_schema; let i = index">
-                            <button mat-flat-button type="button" *ngIf="this.ParameterSelected != null && i == this.ParameterSelected; else NoSelected" (click)="this.ParameterSelected = i" class="font-weight-lighter selected-parameter full-width">{{parameter.name}}</button>
-                            <ng-template #NoSelected>
-                                <button mat-flat-button type="button" (click)="this.ParameterSelected = i" class="font-weight-lighter full-width">{{parameter.name}}</button>
-                            </ng-template>
+                            <button mat-flat-button type="button" [ngClass]="{'selected-parameter': this.parameterSelected != null && i == this.parameterSelected}" (click)="this.parameterSelected = i" class="font-weight-lighter full-width">{{parameter.name}}</button>
                         </li>
                     </mat-list>
                     <mat-list class="definition-column">
                         <span class="definition-column-label">Definición del Parámetro</span>
                         <div class="definition-space">
-                            <div *ngIf="this.ParameterSelected != null">
-                                <label class="p-1 font-weight-lighter" *ngFor="let field of this.Indicator.parameters_schema[this.ParameterSelected].definition">
-                                    {{field.value}}
-                                </label>
-                            </div>
+                            <mat-chip-list *ngIf="this.parameterSelected != null" #chipList aria-label="Fields selection">
+                                <div *ngFor="let field of this.Indicator.parameters_schema[this.parameterSelected].definition; let i = index">
+                                    <span class="mr-2">{{field.value}}</span>
+                                </div>
+                            </mat-chip-list>
                         </div>
                     </mat-list>
                 </div>
             </mat-card>
-    
-        </ng-template>
+
+        </div>
+
     </div>
 
-
-
-    <!--
-
-
-        Formulario
-
-
-    -->
-
-
-
-
     <ng-template #EditMode>
-        <form [formGroup]="this.IndicatorForm" (ngSubmit)="saveIndicator()">
-            <mat-card class="pb-3">
+        <form [formGroup]="this.IndicatorForm">
+            <!--Información General-->
+            <mat-card class="mb-4">
                 <mat-card-title class="font-weight-lighter">Información General</mat-card-title>
                 <div class="row">
                     <div class="col-sm-12">
                         <mat-form-field class="full-width">
                             <input matInput type="text" formControlName="name" placeholder="Nombre del Indicador">
-                            <mat-error *ngIf="this.IndicatorForm.controls.name.errors?.required">Este campo es obligatorio.</mat-error>
-                            <mat-error *ngIf="!this.IndicatorForm.controls.name.errors?.required && this.IndicatorForm.controls.name.errors?.isBlank">Este campo no puede quedar en blanco.</mat-error>
                         </mat-form-field>
                     </div>
                     <div class="col-sm-6">
                         <mat-form-field class="full-width">
                             <mat-label>Tipo de Indicador</mat-label>
-                            <mat-select formControlName="type" disabled>
+                            <mat-select formControlName="type">
                                 <mat-option value="Simple">Simple</mat-option>
                                 <mat-option value="Compuesto">Compuesto</mat-option>
+                                <mat-option value="Grupo">Grupo de Indicadores Simples</mat-option>
                             </mat-select>
                         </mat-form-field>
                     </div>
                     <div class="col-sm-6">
                         <mat-form-field class="full-width">
-                            <mat-label>Frecuencia de ingreso de datos</mat-label>
-                            <mat-select formControlName="frequency" disabled>
+                            <mat-label>Frecuencia de Ingreso de Datos</mat-label>
+                            <mat-select formControlName="frequency">
                                 <mat-option value="Mensual">Mensual</mat-option>
                                 <mat-option value="Trimestral">Trimestral</mat-option>
                                 <mat-option value="Semestral">Semestral</mat-option>
@@ -265,63 +308,297 @@
                             </mat-select>
                         </mat-form-field>
                     </div>
-                </div>
-                <div class="flex mt-3 justify-content-center">
-                    <mat-checkbox *ngIf="this.Indicator.type == 'Compuesto'" formControlName="antiquity_diff">Diferenciar entre organizaciones nuevas y antiguas</mat-checkbox>
+                    <div class="col-sm-12" *ngIf="this.IndicatorForm.get('type').value == 'Compuesto'">
+                        <mat-checkbox [value]="this.IndicatorForm.get('antiquity_diff').value" formControlName="antiquity_diff" class="font-weight-lighter" *ngIf="this.IndicatorForm.get('type').value == 'Compuesto'">Diferenciar entre organizaciones Nuevas y Antiguas</mat-checkbox>
+                    </div>
                 </div>
             </mat-card>
-        
-            <!--Parámetros Indicador Simple-->
-            <div class="mt-4" *ngIf="this.Indicator.type == 'Simple'; else EsquemaCompuesto">
-                <mat-card>
-                    <mat-card-title class="font-weight-lighter">Descripción del Indicador</mat-card-title>
-                    <div class="row">
-                        <div class="col-sm-12">
+    
+            <!--Descripción del Indicador-->
+            <mat-card class="mb-4">
+                <mat-card-title class="font-weight-lighter">Descripción del Indicador</mat-card-title>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <mat-form-field class="full-width">
+                            <textarea class="text-area" formControlName="description" matInput placeholder="Escriba una breve descripción del indicador aquí..."></textarea>
+                        </mat-form-field>
+                    </div>
+                </div>
+            </mat-card>
+    
+            <!--Discriminación de Organizaciones-->
+            <mat-card class="mb-4">
+                <mat-card-title class="font-weight-lighter">Discriminación de Organizaciones</mat-card-title>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <mat-checkbox [value]="this.IndicatorForm.get('organizations_diff').value" (click)="this.OnChangeSelect($event)" formControlName="organizations_diff" class="font-weight-lighter">Este Indicador se aplicará a un grupo de Indicadores</mat-checkbox>
+                    </div>
+                </div>
+                <div class="row" *ngIf="this.IndicatorForm.get('organizations_diff').value">
+                    <div class="col-sm-6">
+                        <mat-form-field class="full-width">
+                            <mat-label>Discriminar por:</mat-label>
+                            <mat-select formControlName="organizations_diff_by">
+                                <mat-option value="sector">Por Sector</mat-option>
+                                <mat-option value="type">Por Tipo de Organización</mat-option>
+                                <mat-option value="characteristic">Por Característica</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-sm-6">
+                        <div *ngIf="this.IndicatorForm.get('organizations_diff_by').value == 'sector'">
+                            <div>Seleccione los Sectores</div>
+                            <mat-selection-list class="full-width max-height" #TypeList>
+                                <mat-list-option (click)="this.OnOrganizationsChange(type,TypeList)" *ngFor="let type of (this.preferencias | async).types">{{type}}</mat-list-option>
+                            </mat-selection-list>
+                        </div>
+                        <div *ngIf="this.IndicatorForm.get('organizations_diff_by').value == 'type'">
+                            <div>Seleccione los Tipos</div>
+                            <mat-selection-list class="full-width max-height" #TypeList>
+                                <mat-list-option (click)="this.OnOrganizationsChange(type,TypeList)" *ngFor="let type of (this.preferencias | async).types">{{type}}</mat-list-option>
+                            </mat-selection-list>
+                        </div>
+                        <div *ngIf="this.IndicatorForm.get('organizations_diff_by').value == 'characteristic'">
                             <mat-form-field class="full-width">
-                                <textarea matInput #input formControlName="description" maxlength="250" placeholder="Escriba una breve descripción del Indicador Simple aquí..."></textarea>
-                                <mat-error *ngIf="this.IndicatorForm.controls.description.errors?.required">Este campo es obligatorio.</mat-error>
-                                <mat-error *ngIf="!this.IndicatorForm.controls.description.errors?.required && this.IndicatorForm.controls.description.errors?.isBlank">Este campo no puede quedar en blanco.</mat-error>
-                                <mat-hint align="end">{{input.value?.length || 0}}/250</mat-hint>
+                                <mat-label>Seleccione la Característica</mat-label>
+                                <mat-select>
+                                    <mat-option>Con Negocios</mat-option>
+                                    <mat-option>Sin Negocios</mat-option>
+                                    <mat-option>Legalizadas</mat-option>
+                                    <mat-option>No Legalizadas</mat-option>
+                                </mat-select>
                             </mat-form-field>
                         </div>
                     </div>
-                </mat-card>
-                <mat-card class="mt-4 mb-4" formArrayName="parameters_schema">
-                    <mat-card-title class="font-weight-lighter">Parámetros del Indicador</mat-card-title>
-                    <div class="row mb-2">
-                        <div class="col-sm-4">
-                            <div class="full-width text-sm-center">Nombre</div>
+                </div>
+            </mat-card>
+    
+            <!--Indicador Simple y Grupal-->
+            <div *ngIf="this.IndicatorForm.get('type').value != 'Compuesto'">
+    
+                <div formArrayName="parameters_schema" *ngFor="let parameter of this.IndicatorForm.get('parameters_schema')['controls']; let i = index">
+                    <mat-card class="mb-4" [formGroupName]="i">
+                        <mat-card-title *ngIf="this.IndicatorForm.get('type').value == 'Simple'" class="font-weight-lighter">Parámetro del Indicador</mat-card-title>
+                        <mat-card-title *ngIf="this.IndicatorForm.get('type').value == 'Grupo'" class="font-weight-lighter">Indicador Nº{{i + 1}}</mat-card-title>
+                        <div class="row">
+                            <div class="col-sm-8 text-center">Nombre</div>
+                            <div class="col-sm-4 text-center">Unidad</div>
                         </div>
-                        <div class="col-sm-4">
-                            <div class="full-width text-sm-center">Acumulativo</div>
+                        <div class="row">
+                            <div class="col-sm-8">
+                                <input type="text" class="full-width schema-input" placeholder="Nombre" formControlName="name">
+                            </div>
+                            <div class="col-sm-4">
+                                <mat-select class="schema-input full-width" formControlName="unit" (valueChange)="onChangeParameterUnit(i,$event)">
+                                    <mat-option value="Número">Número</mat-option>
+                                    <mat-option value="Moneda">Moneda</mat-option>
+                                    <mat-option value="Porcentaje">Porcentaje</mat-option>
+                                    <mat-option value="Cualitativo">Valor Cualitativo</mat-option>
+                                </mat-select>
+                            </div>
                         </div>
-                        <div class="col-sm-4">
-                            <div class="full-width text-sm-center">Unidad</div>
+                        <div class="row mt-3">
+                            <div class="col-sm-12">
+                                <mat-checkbox formControlName="haveSchema" [value]="parameter.get('haveSchema').value" (change)="onChangeHaveSchema(i,$event)" class="font-weight-lighter" *ngIf="(this.IndicatorForm.get('type').value == 'Simple' || this.IndicatorForm.get('type').value == 'Grupo') && parameter.get('unit').value != 'Cualitativo'">Los datos de campo deben ser procesados</mat-checkbox>
+                            </div>
                         </div>
-                    </div>
-                    <div class="row" [formGroupName]="0">
-                        <div class="col-sm-4">
-                            <input type="text" formControlName="name" class="schema-input full-width">
+                        <!--Campos del Indicador-->
+                        <div *ngIf="parameter.get('haveSchema').value">
+                            <mat-divider></mat-divider>
+                            <div class="pt-3">
+                                <mat-card-title class="font-weight-lighter">Campos para el Cálculo del Indicador</mat-card-title>
+                                <div class="row">
+                                    <div class="col-sm-8 text-center">Nombre</div>
+                                    <div class="col-sm-4 text-center">Unidad</div>
+                                </div>
+                                <div formArrayName="record_schema" class="mb-3" *ngFor="let field of parameter.get('record_schema')['controls']; let j = index">
+                                    <div class="row" [formGroupName]="j">
+                                        <div class="col-sm-8">
+                                            <input placeholder="Nombre" formControlName="name" class="schema-input full-width">
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <mat-select class="schema-input full-width" formControlName="unit">
+                                                <mat-option value="Número">Número</mat-option>
+                                                <mat-option value="Moneda">Moneda</mat-option>
+                                                <mat-option value="Porcentaje">Porcentaje</mat-option>
+                                            </mat-select>
+                                            <button matTooltip="Eliminar Campo" matTooltipPosition="above" (click)="removeFieldInParameter(i,j)" mat-icon-button color="primary" class="delete-parameter-field-btn" type="button" *ngIf="j"><mat-icon>close</mat-icon></button>                
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex pb-3">
+                                    <span class="fill-remaining-space"></span>
+                                    <button mat-raised-button color="primary" type="button" (click)="addFieldInParameter(i)"><mat-icon>add</mat-icon> Agregar Campo</button>
+                                </div>
+                            </div>
+                            <!--Definición de los parámetros-->
+                            <mat-divider></mat-divider>
+                            <div class="pt-3">
+                                <mat-card-title class="font-weight-lighter">Definición del Parámetro</mat-card-title>
+                                
+                                <div class="definition-column mt-2">
+                                    <mat-list>
+                                        <span class="definition-column-label">Campos de la Ficha:</span>
+                                        <div>
+                                            <button mat-button type="button" class="font-weight-lighter full-width" (dblclick)="addFieldToDefinitionSimple(i,field.get('name').value)" *ngFor="let field of parameter.get('record_schema')['controls']">{{field.get('name').value}}</button>
+                                        </div>
+                                    </mat-list>
+                                </div>
+                                <div class="editor-box">
+                                    <mat-list class="definition-column">
+                                        <span class="definition-column-label">Definición del Parámetro</span>
+                                        <div class="definition-space">
+                                            <mat-chip-list #chipList aria-label="Fields selection">
+                                                <div *ngFor="let field of parameter.get('definition')['controls']; let j = index">
+                                                    <div>
+                                                        <mat-chip *ngIf="field.get('type').value == 'field' || field.get('type').value == 'normal'" [selectable]="true" [removable]="true" (removed)="removeFieldFromDefinitionSimple(i,j)">
+                                                            <span>{{field.get('value').value}}</span>
+                                                            <mat-icon matChipRemove *ngIf="true">cancel</mat-icon>
+                                                        </mat-chip>
+                    
+                                                        <div *ngIf="field.get('type').value == '%-number'" class="my-chip">
+                                                            <div>% si <input type="number" width="100px" [formControl]="field.get('value')" placeholder="número"> es el 100%</div>
+                                                            <mat-icon (click)="this.removeFieldFromDefinitionSimple(i,j)" *ngIf="true">cancel</mat-icon>
+                                                        </div>
+                    
+                                                        <div *ngIf="field.get('type').value == 'number'" class="my-chip">
+                                                            <div><input type="number" width="100px" [formControl]="field.get('value')" placeholder="número"></div>
+                                                            <mat-icon (click)="this.removeFieldFromDefinitionSimple(i,j)" *ngIf="true">cancel</mat-icon>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </mat-chip-list>
+                                        </div>
+                                        <div class="botonera">
+                                            <button type="button" mat-raised-button (click)="addOperatorSimple(i,'+')" class="botonera-btn mr-1">+</button>
+                                            <button type="button" mat-raised-button (click)="addOperatorSimple(i,'-')" class="botonera-btn mr-1">-</button>
+                                            <button type="button" mat-raised-button (click)="addOperatorSimple(i,'*')" class="botonera-btn mr-1">*</button>
+                                            <button type="button" mat-raised-button (click)="addOperatorSimple(i,'/')" class="botonera-btn mr-1">/</button>
+                                            <button type="button" mat-raised-button (click)="addOperatorSimple(i,'(')" class="botonera-btn mr-1">(</button>
+                                            <button type="button" mat-raised-button (click)="addOperatorSimple(i,')')" class="botonera-btn mr-1">)</button>
+                                            <button type="button" mat-raised-button (click)="addOperatorSimple(i,'*100%')" class="botonera-btn mr-1">*100%</button>
+                                            <button type="button" mat-raised-button (click)="addOperatorSimple(i,'number')" class="botonera-btn mr-1">número</button>
+                                            <button type="button" mat-raised-button (click)="addOperatorSimple(i,'%-number')" class="botonera-btn">% de número</button>
+                                        </div>
+                                    </mat-list>
+                                </div>    
+    
+                            </div>
                         </div>
-                        <div class="col-sm-4">
-                            <mat-select class="schema-input full-width" formControlName="isAcum">
-                                <mat-option value="Si">Si</mat-option>
-                                <mat-option value="No">No</mat-option>
-                            </mat-select>
+                        
+                        <!--Indicador Cualitativo-->
+                        <div *ngIf="parameter.get('unit').value == 'Cualitativo'">
+                            <mat-divider></mat-divider>
+                            <div class="pt-3">
+                                <mat-card-title class="font-weight-lighter">Niveles Cualitativos del Indicador (Ascendente)</mat-card-title>
+                                <div class="row">
+                                    <div class="col-sm-3 text-center">Nombre</div>
+                                    <div class="col-sm-6 text-center">Descripción</div>
+                                    <div class="col-sm-3 text-center">Rango</div>
+                                </div>
+                                <div formArrayName="cualitative_levels" [ngClass]="{'mb-3': j != parameter.get('cualitative_levels').length - 1}" *ngFor="let field of parameter.get('cualitative_levels')['controls']; let j = index">
+                                    <div [formGroupName]="j" class="row">
+                                        <div class="col-sm-3 flex flex-align-vertical">
+                                            <input placeholder="Nombre" formControlName="name" class="schema-input full-width">
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <textarea matInput class="text-area-form" formControlName="description" placeholder="Descripción"></textarea>
+                                        </div>
+                                        <div class="col-sm-3 flex flex-align-vertical">
+                                            <div class="row" formGroupName="range">
+                                                <div class="col-sm-6">
+                                                    <input class="schema-input full-width" formControlName="from" placeholder="Desde">
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <input class="schema-input full-width" formControlName="to" placeholder="Hasta">
+                                                </div>
+                                                <button matTooltip="Eliminar Nivel" matTooltipPosition="above" (click)="removeLevel(i,j)" mat-icon-button color="primary" class="delete-parameter-btn" type="button" *ngIf="j"><mat-icon>close</mat-icon></button>                
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-sm-3"></div>
+                                    <div class="col-sm-6"></div>
+                                    <div class="col-sm-3">
+                                        <div class="row">
+                                            <div class="col-sm-6 text-center">Desde</div>
+                                            <div class="col-sm-6 text-center">Hasta</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex pb-4">
+                                    <span class="fill-remaining-space"></span>
+                                    <button mat-raised-button color="primary" type="button" (click)="addLevel(i)"><mat-icon>add</mat-icon> Agregar Nivel</button>
+                                </div>
+                            </div>
+                            <mat-divider></mat-divider>
+                            <div class="pt-3">
+                                <mat-card-title class="font-weight-lighter">Campos del Indicador</mat-card-title>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <mat-checkbox (change)="this.onChangeHaveCualitativeSchema(i,$event)" [value]="parameter.get('haveCualitativeSchema').value" formControlName="haveCualitativeSchema" class="font-weight-lighter">La valoración no corresponde a un único campo</mat-checkbox>
+                                    </div>
+                                </div>
+                                <div *ngIf="parameter.get('haveCualitativeSchema').value">
+                                    <div class="row">
+                                        <div class="col-sm-8 text-center">Nombre</div>
+                                        <div class="col-sm-4 text-center">Unidad</div>
+                                    </div>
+                                    <div formArrayName="record_schema" class="mb-3" *ngFor="let field of this.IndicatorForm.get('parameters_schema')['controls'][i].get('record_schema')['controls']; let j = index">
+                                        <div class="row" [formGroupName]="j">
+                                            <div class="col-sm-8">
+                                                <input placeholder="Nombre" formControlName="name" class="schema-input full-width">
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <mat-select class="schema-input full-width" formControlName="unit">
+                                                    <mat-option value="Número">Número</mat-option>
+                                                    <mat-option value="Moneda">Moneda</mat-option>
+                                                    <mat-option value="Porcentaje">Porcentaje</mat-option>
+                                                </mat-select>
+                                                <button matTooltip="Eliminar Campo" matTooltipPosition="above" (click)="removeFieldInParameter(i,j)" mat-icon-button color="primary" class="delete-parameter-field-btn" type="button" *ngIf="j"><mat-icon>close</mat-icon></button>                
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex mb-3">
+                                        <span class="fill-remaining-space"></span>
+                                        <button mat-raised-button color="primary" type="button" (click)="addFieldInParameter(i)"><mat-icon>add</mat-icon> Agregar Campo</button>
+                                    </div>
+                                    <mat-divider></mat-divider>
+                                    <div class="pt-3">
+                                        <span class="font-weight-lighter mr-3">Este indicador se calculará por: </span>
+                                        <div>
+                                            <mat-select class="schema-input full-width" formControlName="calculate_as">
+                                                <mat-option value="Sumatoria">Sumatoria</mat-option>
+                                                <mat-option value="Promedio">Promedio</mat-option>
+                                            </mat-select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-sm-4">
-                            <mat-select class="schema-input full-width" formControlName="unit">
-                                <mat-option value="Número">Número</mat-option>
-                                <mat-option value="Moneda">Moneda</mat-option>
-                                <mat-option value="Porcentaje">Porcentaje</mat-option>
-                            </mat-select>
+    
+                        <div *ngIf="this.IndicatorForm.get('type').value == 'Grupo' && i" class="mt-3">
+                            <mat-divider></mat-divider>
+                            <div class="flex pt-3">
+                                <span class="fill-remaining-space"></span>
+                                <button mat-raised-button color="warn" (click)="this.removeParameter(i)"><mat-icon>delete</mat-icon>Eliminar Indicador</button>
+                            </div>
                         </div>
-                    </div>
-                </mat-card>
+    
+                    </mat-card>
+                </div>
+    
+                <div *ngIf="this.IndicatorForm.get('type').value == 'Grupo'" class="flex mb-3">
+                    <span class="fill-remaining-space"></span>
+                    <button mat-raised-button color="primary" type="button" (click)="this.addParameter()"><mat-icon>add</mat-icon> Agregar Indicador</button>
+                </div>
+    
             </div>
-        
-            <!--Esquema Indicador Compuesto-->
-            <ng-template #EsquemaCompuesto>
+    
+            <!--Indicador Compuesto-->
+            <div *ngIf="this.IndicatorForm.get('type').value == 'Compuesto'">
+    
                 <mat-card class="mt-4">
                     <mat-card-title class="font-weight-lighter">Esquema de la Ficha</mat-card-title>
                     <div class="row">
@@ -332,7 +609,7 @@
                             <div class="full-width text-sm-center">Unidad</div>
                         </div>
                     </div>
-                    <div formArrayName="record_schema" *ngFor="let field of this.IndicatorForm.controls.record_schema['controls']; let i = index">
+                    <div formArrayName="record_schema" *ngFor="let field of this.IndicatorForm.get('record_schema')['controls']; let i = index">
                         <div class="row mb-3" [formGroupName]="i">
                             <div class="col-sm-8">
                                 <input type="text" formControlName="name" class="schema-input full-width">
@@ -343,6 +620,7 @@
                                     <mat-option value="Moneda">Moneda</mat-option>
                                     <mat-option value="Porcentaje">Porcentaje</mat-option>
                                 </mat-select>
+                                <button matTooltip="Eliminar Campo" matTooltipPosition="above" (click)="removeFieldGeneral(i)" mat-icon-button color="primary" class="delete-parameter-field-btn" type="button" *ngIf="i"><mat-icon>close</mat-icon></button>
                             </div>
                         </div>
                     </div>
@@ -353,48 +631,62 @@
                         </div>
                     </mat-card-actions>
                 </mat-card>
-        
-                <!--Parámetros Indicador Compuesto Sin Diferenciación-->
-                <mat-card class="mt-4" *ngIf="!this.IndicatorForm.controls.antiquity_diff.value; else ConDiferenciacion">
+    
+                <!--Parámetros Indicador Compuesto-->
+                <mat-card class="mt-4">
                     <mat-card-title class="font-weight-lighter">Parámetros del Indicador</mat-card-title>
                     <div class="row mb-2">
-                        <div class="col-sm-3">
+                        <div class="col-sm-4">
                             <div class="full-width text-sm-center">Nombre</div>
                         </div>
-                        <div class="col-sm-3">
+                        <div class="col-sm-4">
                             <div class="full-width text-sm-center">Ponderación (%)</div>
                         </div>
-                        <div class="col-sm-3">
-                            <div class="full-width text-sm-center">Acumulativo</div>
-                        </div>
-                        <div class="col-sm-3">
+                        <div class="col-sm-4">
                             <div class="full-width text-sm-center">Unidad</div>
                         </div>
                     </div>
-                    <div class="mb-1" formArrayName="parameters_schema" *ngFor="let parameter of this.IndicatorForm.controls.parameters_schema['controls']; let i = index">
+                    <div class="mb-1" formArrayName="parameters_schema" *ngFor="let parameter of this.IndicatorForm.get('parameters_schema')['controls']; let i = index">
                         <div class="row mb-3" [formGroupName]="i">
-                            <div class="col-sm-3">
+                            <div class="col-sm-4">
                                 <input type="text" formControlName="name" class="schema-input full-width">
                             </div>
-                            <div class="col-sm-3" formArrayName="weighing">
-                                <div [formGroupName]="0">
-                                    <input type="number" formControlName="weight" class="schema-input full-width">
+                            <div class="col-sm-4" formGroupName="weighing" *ngIf="!this.IndicatorForm.get('antiquity_diff').value;">
+                                <input type="number" formControlName="weight" class="schema-input full-width">
+                            </div>
+                            <div class="col-sm-4" *ngIf="this.IndicatorForm.get('antiquity_diff').value">
+                                <div class="row" formGroupName="weighing">
+                                    <div class="col-sm-6">
+                                        <input type="number" formControlName="older" class="schema-input full-width">
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <input type="number" formControlName="newer" class="schema-input full-width">
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-sm-3">
-                                <mat-select formControlName="isAcum" class="schema-input full-width">
-                                    <mat-option value="Si">Sí</mat-option>
-                                    <mat-option value="No">No</mat-option>
-                                </mat-select>
-                            </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-4">
                                 <mat-select formControlName="unit" class="schema-input full-width">
                                     <mat-option value="Número">Número</mat-option>
                                     <mat-option value="Moneda">Moneda</mat-option>
                                     <mat-option value="Porcentaje">Porcentaje</mat-option>
                                 </mat-select>
+                                <button matTooltip="Eliminar Parámetro" matTooltipPosition="above" (click)="removeParameter(i)" mat-icon-button color="primary" class="delete-parameter-field-btn" type="button" *ngIf="i"><mat-icon>close</mat-icon></button>
                             </div>
                         </div>
+                    </div>
+                    <div class="row" *ngIf="this.IndicatorForm.get('antiquity_diff').value">
+                        <div class="col-sm-4"></div>
+                        <div class="col-sm-4">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="font-weight-lighter full-width text-center">Antigua</div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="font-weight-lighter full-width text-center">Nueva</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4"></div>
                     </div>
                     <mat-card-actions>
                         <div class="flex mb-4">
@@ -403,95 +695,21 @@
                         </div>
                     </mat-card-actions>
                 </mat-card>
-        
-                <ng-template #ConDiferenciacion>
-                    <mat-card class="mt-4">
-                        <mat-card-title class="font-weight-lighter">Parámetros del Indicador</mat-card-title>
-                        <div class="row mb-2">
-                            <div class="col-sm-3">
-                                <div class="full-width text-sm-center">Nombre</div>
-                            </div>
-                            <div class="col-sm-3">
-                                <div class="full-width text-sm-center">Ponderación (%)</div>
-                            </div>
-                            <div class="col-sm-3">
-                                <div class="full-width text-sm-center">Acumulativo</div>
-                            </div>
-                            <div class="col-sm-3">
-                                <div class="full-width text-sm-center">Unidad</div>
-                            </div>
-                        </div>
-                        <div class="mb-1" formArrayName="parameters_schema" *ngFor="let parameter of this.IndicatorForm.controls.parameters_schema['controls']; let i = index">
-                            <div class="row mb-3" [formGroupName]="i">
-                                <div class="col-sm-3">
-                                    <input type="text" formControlName="name" class="schema-input full-width">
-                                </div>
-                                <div class="col-sm-3" formArrayName="weighing">
-                                    <div class="row" [formGroupName]="0">
-                                        <div class="col-sm-6">
-                                            <input type="number" formControlName="older" class="schema-input full-width">
-                                        </div>
-                                        <div class="col-sm-6">
-                                            <input type="number" formControlName="newer" class="schema-input full-width">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-sm-3">
-                                    <mat-select formControlName="isAcum" class="schema-input full-width">
-                                        <mat-option value="Si">Sí</mat-option>
-                                        <mat-option value="No">No</mat-option>
-                                    </mat-select>
-                                </div>
-                                <div class="col-sm-3">
-                                    <mat-select formControlName="unit" class="schema-input full-width">
-                                        <mat-option value="Número">Número</mat-option>
-                                        <mat-option value="Moneda">Moneda</mat-option>
-                                        <mat-option value="Porcentaje">Porcentaje</mat-option>
-                                    </mat-select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-3"></div>
-                            <div class="col-sm-3">
-                                <div class="row">
-                                    <div class="col-sm-6">
-                                        <div class="font-weight-lighter full-width text-center">Antigua</div>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <div class="font-weight-lighter full-width text-center">Nueva</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-3"></div>
-                            <div class="col-sm-3"></div>
-                        </div>
-                        <mat-card-actions>
-                            <div class="flex mb-4">
-                                <span class="fill-remaining-space"></span>
-                                <button mat-raised-button color="primary" type="button" (click)="this.addParameter()"><mat-icon>add</mat-icon> AGREGAR</button>
-                            </div>
-                        </mat-card-actions>
-                    </mat-card>
-                </ng-template>
-        
+                        
                 <!--Definición de los Parámetros-->
                 <mat-card class="mt-4 mb-4">
                     <mat-card-title class="font-weight-lighter">Definición de los Parámetros</mat-card-title>
                     <div class="definition-box mt-2">
                         <mat-list> 
                             <span class="definition-column-label">Parámetro</span>
-                            <li *ngFor="let parameter of this.IndicatorForm.controls.parameters_schema['controls']; let i = index">
-                                <button mat-flat-button type="button" *ngIf="this.ParameterSelected && i == this.ParameterSelected; else NoSelected" (click)="this.ParameterSelected = i" class="font-weight-lighter selected-parameter full-width">{{parameter['controls'].name.value}}</button>
-                                <ng-template #NoSelected>
-                                    <button mat-flat-button type="button" (click)="this.ParameterSelected = i" class="font-weight-lighter full-width">{{parameter['controls'].name.value}}</button>
-                                </ng-template>
+                            <li *ngFor="let parameter of this.IndicatorForm.get('parameters_schema')['controls']; let i = index">
+                                <button mat-flat-button type="button" [ngClass]="{'selected-parameter': this.parameterSelected != null && i == this.parameterSelected}" (click)="this.parameterSelected = i" class="font-weight-lighter full-width">{{parameter.get('name').value}}</button>
                             </li>
                         </mat-list>
                         <mat-list>
                             <span class="definition-column-label">Campos de la Ficha:</span>
-                            <div *ngIf="this.ParameterSelected != null">
-                                <button mat-button type="button" class="font-weight-lighter full-width" (dblclick)="addFieldToDefinition(field['controls'].name.value)" *ngFor="let field of this.IndicatorForm.controls.record_schema['controls']">{{field['controls'].name.value}}</button>
+                            <div *ngIf="this.parameterSelected != null">
+                                <button mat-button type="button" class="font-weight-lighter full-width" (dblclick)="addFieldToDefinitionSimple(this.parameterSelected,field.get('name').value)" *ngFor="let field of this.IndicatorForm.get('record_schema')['controls']">{{field.get('name').value}}</button>
                             </div>
                         </mat-list>
                     </div>
@@ -499,46 +717,51 @@
                         <mat-list class="definition-column">
                             <span class="definition-column-label">Definición del Parámetro</span>
                             <div class="definition-space">
-                                <mat-chip-list *ngIf="this.ParameterSelected != null" #chipList aria-label="Fields selection">
-                                    <div *ngFor="let field of this.IndicatorForm.controls.parameters_schema['controls'][this.ParameterSelected].controls.definition.controls; let i = index">
-                                        <div [formGroupName]="i">
-                                            <mat-chip *ngIf="field.get('type').value == 'field' || field.get('type').value == 'normal'" [selectable]="true" [removable]="true" (removed)="remove(i)">
+                                <mat-chip-list *ngIf="this.parameterSelected != null" #chipList aria-label="Fields selection">
+                                    <div *ngFor="let field of this.IndicatorForm.get('parameters_schema')['controls'][this.parameterSelected].get('definition')['controls']; let i = index">
+                                        <div>
+                                            <mat-chip *ngIf="field.get('type').value == 'field' || field.get('type').value == 'normal'" [selectable]="true" [removable]="true" (removed)="removeFieldInParameter(this.parameterSelected,i)">
                                                 <span>{{field.get('value').value}}</span>
                                                 <mat-icon matChipRemove *ngIf="true">cancel</mat-icon>
                                             </mat-chip>
-
+        
                                             <div *ngIf="field.get('type').value == '%-number'" class="my-chip">
                                                 <div>% si <input type="number" width="100px" [formControl]="field.get('value')" placeholder="número"> es el 100%</div>
-                                                <mat-icon (click)="this.remove(i)" *ngIf="true">cancel</mat-icon>
+                                                <mat-icon (click)="this.removeFieldInParameter(this.parameterSelected,i)" *ngIf="true">cancel</mat-icon>
                                             </div>
         
                                             <div *ngIf="field.get('type').value == 'number'" class="my-chip">
                                                 <div><input type="number" width="100px" [formControl]="field.get('value')" placeholder="número"></div>
-                                                <mat-icon (click)="this.remove(i)" *ngIf="true">cancel</mat-icon>
+                                                <mat-icon (click)="this.removeFieldInParameter(this.parameterSelected,i)" *ngIf="true">cancel</mat-icon>
                                             </div>
                                         </div>
                                     </div>
                                 </mat-chip-list>
                             </div>
                             <div class="botonera">
-                                <button type="button" mat-raised-button (click)="addOperator('+')" class="botonera-btn mr-1">+</button>
-                                <button type="button" mat-raised-button (click)="addOperator('-')" class="botonera-btn mr-1">-</button>
-                                <button type="button" mat-raised-button (click)="addOperator('*')" class="botonera-btn mr-1">*</button>
-                                <button type="button" mat-raised-button (click)="addOperator('/')" class="botonera-btn mr-1">/</button>
-                                <button type="button" mat-raised-button (click)="addOperator('(')" class="botonera-btn mr-1">(</button>
-                                <button type="button" mat-raised-button (click)="addOperator(')')" class="botonera-btn mr-1">)</button>
-                                <button type="button" mat-raised-button (click)="addOperator('*100%')" class="botonera-btn mr-1">*100%</button>
-                                <button type="button" mat-raised-button (click)="addOperator('number')" class="botonera-btn mr-1">número</button>
-                                <button type="button" mat-raised-button (click)="addOperator('%-number')" class="botonera-btn">% de número</button>
+                                <button type="button" mat-raised-button (click)="addOperatorSimple(this.parameterSelected,'+')" class="botonera-btn mr-1">+</button>
+                                <button type="button" mat-raised-button (click)="addOperatorSimple(this.parameterSelected,'-')" class="botonera-btn mr-1">-</button>
+                                <button type="button" mat-raised-button (click)="addOperatorSimple(this.parameterSelected,'*')" class="botonera-btn mr-1">*</button>
+                                <button type="button" mat-raised-button (click)="addOperatorSimple(this.parameterSelected,'/')" class="botonera-btn mr-1">/</button>
+                                <button type="button" mat-raised-button (click)="addOperatorSimple(this.parameterSelected,'(')" class="botonera-btn mr-1">(</button>
+                                <button type="button" mat-raised-button (click)="addOperatorSimple(this.parameterSelected,')')" class="botonera-btn mr-1">)</button>
+                                <button type="button" mat-raised-button (click)="addOperatorSimple(this.parameterSelected,'*100%')" class="botonera-btn mr-1">*100%</button>
+                                <button type="button" mat-raised-button (click)="addOperatorSimple(this.parameterSelected,'number')" class="botonera-btn mr-1">número</button>
+                                <button type="button" mat-raised-button (click)="addOperatorSimple(this.parameterSelected,'%-number')" class="botonera-btn">% de número</button>
                             </div>
                         </mat-list>
                     </div>
                 </mat-card>
-        
-            </ng-template>
-        
-            <app-button-group class="mt-4" [formStatus]="false" (cancel)="cancel()" (save)="saveIndicator()"></app-button-group>
-        
+    
+            </div>
+    
+            <div class="flex">
+                <span class="fill-remaining-space"></span>
+                <button mat-button class="mr-3" type="button" (click)="this.cancel()">CANCELAR</button>
+                <button mat-raised-button color="primary" [disabled]="this.IndicatorForm.invalid" type="submit" (click)="this.saveIndicator()">GUARDAR</button>
+            </div>
+    
         </form>
     </ng-template>
-</div> 
+
+</div>

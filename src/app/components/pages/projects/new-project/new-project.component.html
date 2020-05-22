@@ -202,11 +202,16 @@
                                                     <td formArrayName="parameters" class="table-box main-col" *ngFor="let parameter of parameterGroup.get('parameters').controls; let k = index">
                                                         <div [formGroupName]="k">
                                                             <div formGroupName="goals" class="flex ml-2 mr-2" *ngIf="indicadorGroup.get('antiquity_diff').value">
-                                                                <input type="number" class="full-width font-weight-lighter" formControlName="newer" placeholder="Nueva">
-                                                                <input type="number" class="full-width font-weight-lighter" formControlName="older" placeholder="Antigua">
+                                                                <input type="text" class="full-width font-weight-lighter" formControlName="newer" placeholder="Nueva">
+                                                                <input type="text" class="full-width font-weight-lighter" formControlName="older" placeholder="Antigua">
                                                             </div>
-                                                            <div formGroupName="goals" *ngIf="!indicadorGroup.get('antiquity_diff').value">
-                                                                <input type="number" class="full-width font-weight-lighter" formControlName="goal" placeholder="Meta">
+                                                            <div formGroupName="goals" *ngIf="!indicadorGroup.get('antiquity_diff').value && this.indicatorsSelected[i].parameters[k].unit != 'Cualitativo'">
+                                                                <input type="text" class="full-width font-weight-lighter" formControlName="goal" placeholder="Meta">
+                                                            </div>
+                                                            <div formGroupName="goals" *ngIf="this.indicatorsSelected[i].parameters[k].unit == 'Cualitativo'">
+                                                                <select class="full-width font-weight-lighter" formControlName="goal">
+                                                                    <option *ngFor="let level of this.indicatorsSelected[i].parameters[k].cualitative_levels" [value]="level.name">{{level.name}}</option>
+                                                                </select>
                                                             </div>
                                                         </div>
                                                     </td>

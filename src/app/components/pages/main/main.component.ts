@@ -4,6 +4,7 @@ import { State } from '../../../reducers/index';
 import { User } from '../../../reducers/actions/session.actions';
 import { AppServiceService } from '../../../services/app-service.service';
 import { getUserData } from '../../../reducers/selectors/session.selector';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-main',
@@ -12,6 +13,10 @@ import { getUserData } from '../../../reducers/selectors/session.selector';
 export class MainComponent implements OnInit {
 
   userData : User;
+
+  assetsUrl : string = environment.assetsUrl;
+
+  year : number = new Date().getFullYear();
 
   constructor(private store : Store<State>,
               private appService : AppServiceService) {

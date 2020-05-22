@@ -39,7 +39,7 @@
         <mat-card *ngIf="this.Status == 'loading'"><!--Tarjeta de Cargando-->
             <div class="loading-box">
                 <div>
-                    <img src="../../../../../assets/images/logo-sisi-only.svg" alt="">
+                    <img src="{{this.assetsUrl}}/images/logo-sisi-only.svg" alt="">
                     <h4 class="font-weight-lighter text-center">Cargando...</h4>
                 </div>
             </div>
@@ -74,7 +74,10 @@
                                         <td class="sticky main-col font-weight-lighter">{{row.get('name').value}}</td>
                                         <td formArrayName="fields" class="main-col" *ngFor="let field of this.fieldsSchema; let j = index">
                                             <div [formGroupName]="j">
-                                                <input type="number" formControlName="value" class="full-width font-weight-lighter" placeholder="Ingrese un valor">
+                                                <input *ngIf="this.Indicator.parameters_schema[j].unit != 'Cualitativo'" type="number" formControlName="value" class="full-width font-weight-lighter" placeholder="Ingrese un valor">
+                                                <select *ngIf="this.Indicator.parameters_schema[j].unit == 'Cualitativo'" formControlName="value" class="full-width font-weight-lighter">
+                                                    <option [matTooltip]="level.description" *ngFor="let level of this.Indicator.parameters_schema[j].cualitative_levels" [value]="level.name">{{level.name}}</option>    
+                                                </select>
                                             </div>
                                         </td>
                                     </tr>

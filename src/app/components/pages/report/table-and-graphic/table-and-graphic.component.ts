@@ -15,6 +15,8 @@ export class TableAndGraphicComponent {
   @Input() ReportSchema : any;
 
   @Output() setReady : EventEmitter<void>;
+
+  promedios : any[];
   
   IndicatorTable;
   ParametersTable;
@@ -42,8 +44,12 @@ export class TableAndGraphicComponent {
     }
   }
 
+  Users: any[];
+
   constructor(public usersService : UsersServiceService) { 
-    this.usersService.getUsersLocal().subscribe(users => this.Technic = users.filter(user => user._id == this.SchemaTable.technic)[0]);
+    this.usersService.getUsersLocal().subscribe(users => {
+      this.Users = users;
+      this.Technic = users.filter(user => user._id == this.SchemaTable.technic)[0]});
     this.setReady = new EventEmitter();
   }
 
@@ -64,6 +70,7 @@ export class TableAndGraphicComponent {
     this.generateTablesAndGraphicsData();
     if(this.Indicator.antiquity_diff) this.getPromediosDiferenciados();
     this.getIndicatorsPromedio();
+    this.Technic = this.Users.filter(user => user._id == this.SchemaTable.technic)[0];
     this.setReady.emit();
   }
 
@@ -81,12 +88,14 @@ export class TableAndGraphicComponent {
   }
 
   getIndicatorsPromedio() {
-    let totales = this.IndicatorTable.map(organization => organization.total_indicator.value);
-    let sumatoria = 0;
-    totales.forEach(total => sumatoria += total);
-    this.Promedio = sumatoria / totales.length;
-    this.Promedio = Math.round(this.Promedio);
-    this.Calificacion = this.getCalification(this.Promedio);
+    if(this.Indicator.type != 'Grupo'){
+      let totales = this.IndicatorTable.map(organization => organization.total_indicator.value);
+      let sumatoria = 0;
+      totales.forEach(total => sumatoria += total);
+      this.Promedio = sumatoria / totales.length;
+      this.Promedio = Math.round(this.Promedio);
+      this.Calificacion = this.getCalification(this.Promedio);
+    }
   }
 
   getCalification(Promedio : number){
@@ -176,7 +185,16 @@ export class TableAndGraphicComponent {
               let year = `${Math.trunc(diferencia / 12) + 1}º año`;
               for(let k = 0; k < indicadorItem.goals.length; k++){
                 if(year == indicadorItem.goals[k].year){
-                  indicadorItem.total_indicator.value = this.SchemaTable.schema[j].fields[0].value * 100 / indicadorItem.goals[k].parameters[0].goals.goal;
+                  if(this.Parameters[0].unit != 'Cualitativo') indicadorItem.total_indicator.value = Math.round(this.SchemaTable.schema[j].fields[0].value * 100 / indicadorItem.goals[k].parameters[0].goals.goal);
+                  else {
+                    let indiceGoal = 0;
+                    let indiceMedido = 0;
+                    for(let l = 0; l < this.Parameters[0].cualitative_levels.length; l++){
+                      if(this.Parameters[0].cualitative_levels[l].name == this.SchemaTable.schema[j].fields[0].value) indiceMedido = l;
+                      if(this.Parameters[0].cualitative_levels[l].name == indicadorItem.goals[k].parameters[0].goals.goal) indiceGoal = l;
+                    }
+                    if(indiceGoal <= indiceMedido) indicadorItem.total_indicator.value = 100;
+                  }
                   break;
                 }
               }
@@ -191,6 +209,7 @@ export class TableAndGraphicComponent {
   
         });
 
+        console.log(this.IndicatorTable);
 
         /**
          * Graficos Data
@@ -215,7 +234,7 @@ export class TableAndGraphicComponent {
 
         this.ChartData.push(item);
       
-      }else{ // Esquema para Indicadores Compuestos
+      }else if(this.Indicator.type == 'Compuesto'){ // Esquema para Indicadores Compuestos
         this.SchemaTable = {
           projectName: this.Project.name,
           technic: this.Schema.created_by,
@@ -265,12 +284,19 @@ export class TableAndGraphicComponent {
           };
   
           parameters.forEach((parameter,j) => {
-            let goal : any;
-            if(this.Indicator.antiquity_diff) goal = indicadorItem.goals[0].parameters[j].goals;
-            else goal = indicadorItem.goals[0].parameters[j].goals;
-            indicadorItem.parameters.push({
-              ponderacion: this.calculateWeighing(this.ParametersTable[i].parameters[j].value,parameter.weighing,goal,(this.Project.organizations_diff.filter(org => organization._id == org.id)[0]).isOlder,this.Indicator.antiquity_diff)
-            });
+            let startDate = moment(this.Project.start_date);
+            let diferencia = moment(this.Period.date.to).diff(startDate,'months');
+            let year = `${Math.trunc(diferencia / 12) + 1}º año`;
+            for(let k = 0; k < indicadorItem.goals.length; k++){
+              if(year == indicadorItem.goals[k].year){
+                let goal : any;
+                if(this.Indicator.antiquity_diff) goal = indicadorItem.goals[k].parameters[j].goals;
+                else goal = indicadorItem.goals[k].parameters[j].goals;
+                indicadorItem.parameters.push({
+                  ponderacion: this.calculateWeighing(this.ParametersTable[i].parameters[j].value,parameter.weighing,goal,(this.Project.organizations_diff.filter(org => organization._id == org.id)[0]).isOlder,this.Indicator.antiquity_diff)
+                });
+              }
+            }
             //Cálculo del Total del Indicador
             indicadorItem.total_indicator.value += indicadorItem.parameters[j].ponderacion.medido;
           });
@@ -320,8 +346,131 @@ export class TableAndGraphicComponent {
   
         this.ChartData.push(last);
       
+      }else if(this.Indicator.type == 'Grupo'){
+        this.SchemaTable = {
+          projectName: this.Project.name,
+          technic: this.Schema.created_by,
+          schema: this.Schema.records.rows
+        };
+  
+        let parameters : any[] = this.Indicator.parameters_schema;
+  
+        this.Project.organizations.forEach((organization,i) => {
+  
+          /**
+           * Tabla del Indicador Calculado
+           */
+  
+          let indicadorItem = {
+            name: organization.name,
+            id: organization._id,
+            isOlder: (this.Project.organizations_diff.filter(org => organization._id == org.id)[0]).isOlder,
+            goals: this.ReportSchema.goal,
+            parameters,
+            total_indicatores: [/*{
+              value: 0,
+              details: {}
+            }*/]
+          };
+
+          for(let j = 0; j < this.SchemaTable.schema.length; j++){
+            if(this.SchemaTable.schema[j].organization == organization._id){
+              let startDate = moment(this.Project.start_date);
+              let diferencia = moment(this.Period.date.to).diff(startDate,'months');
+              let year = `${Math.trunc(diferencia / 12) + 1}º año`;
+              for(let k = 0; k < indicadorItem.goals.length; k++){
+                if(year == indicadorItem.goals[k].year){
+                  for(let v = 0; v < indicadorItem.parameters.length; v++){
+                    if(parameters[0].unit != 'Cualitativo') {
+                      let valorI = Math.round(this.SchemaTable.schema[j].fields[v].value * 100 / indicadorItem.goals[k].parameters[v].goals.goal);
+                      indicadorItem.total_indicatores.push({
+                        value: valorI,
+                        details: this.getCalification(valorI)
+                      });
+                    }else {
+                      let indiceGoal = 0;
+                      let indiceMedido = 0;
+                      for(let l = 0; l < this.Parameters[0].cualitative_levels.length; l++){
+                        if(this.Parameters[0].cualitative_levels[l].name == this.SchemaTable.schema[j].fields[0].value) indiceMedido = l;
+                        if(this.Parameters[0].cualitative_levels[l].name == indicadorItem.goals[k].parameters[0].goals.goal) indiceGoal = l;
+                      }
+                      if(indiceGoal <= indiceMedido) indicadorItem.total_indicatores.push({
+                        value: 100,
+                        details: this.getCalification(100)
+                      });
+                      else indicadorItem.total_indicatores.push({
+                        value: 0,
+                        details: this.getCalification(0)
+                      });
+                    }
+                  }
+                  break;
+                }
+              }
+            }
+          }
+          this.IndicatorTable.push(indicadorItem);
+  
+  
+          /**
+           * Graficos Data
+           */
+          this.ChartData.push({
+            name: organization.name,
+            multi: [],
+          });
+  
+          parameters.forEach((parameter,j) => {
+            console.log(this.ChartData);
+            this.ChartData[i].multi.push({
+              name: parameter.name,
+              series: [
+                {
+                  name: 'Valor Medido',
+                  value: this.IndicatorTable[i].total_indicatores[j].value
+                }
+              ]
+            })
+          });
+  
+        });
+  
+        
+        //**Promedio de los Indicadores */
+        this.promedios = [];
+        for(let j = 0; j < this.IndicatorTable[0].parameters.length; j++){
+          for(let i = 0; i < this.IndicatorTable.length; i++){
+            if(!i) this.promedios.push({value: 0, details: {}});
+            this.promedios[j].value += this.IndicatorTable[i].total_indicatores[j].value;
+          }
+        }
+        for(let i = 0; i < this.promedios.length; i++){
+          this.promedios[i].value /= this.IndicatorTable.length;
+          this.promedios[i].details = this.getCalification(this.promedios[i].value);
+        }
+
+        let item = {
+          name: 'promedios',
+          multi: []
+        }
+  
+        this.IndicatorTable[0].parameters.forEach((parameter,i) => {
+          item.multi.push({
+            name: parameter.name,
+            series: [
+              {
+                name: 'Valor Promedio',
+                value: this.promedios[i].value
+              }
+            ]
+          });
+        });
+
+        console.log(item);
+  
+        this.ChartData.push(item);
       }
-    
+      
     }
   
   

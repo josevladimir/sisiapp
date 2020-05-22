@@ -9,14 +9,16 @@ import { ProjectsServiceService } from '../../../../services/projects-service.se
 import { IndicatorsServiceService } from '../../../../services/indicators-service.service';
 import { initLoading, stopLoading } from '../../../../reducers/actions/loading.actions';
 import { FormGroup, FormControl, Validators, FormArray } from '@angular/forms';
-import { Observable } from 'rxjs';
 import { getDaysOfLapse } from '../../../../reducers/selectors/general.selector';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-fichas',
   templateUrl: './fichas.component.html'
 })
 export class FichasComponent {
+
+  assetsUrl : string = environment.assetsUrl;
 
   Projects : any[];
   Project : any;
@@ -169,9 +171,9 @@ export class FichasComponent {
   }
 
   makeSchemaForm(){
-    if(this.Indicator.type == 'Simple'){
+    if(this.Indicator.type == 'Simple' || this.Indicator.type == 'Grupo'){
       this.fieldsSchema = this.Indicator.parameters_schema;
-    }else{
+    }else if(this.Indicator.type == 'Compuesto'){
       this.fieldsSchema = this.Indicator.record_schema;
     }
     this.SchemaForm = new FormGroup({
@@ -216,7 +218,10 @@ export class FichasComponent {
   }
 
   cancel(){
-
+    if(confirm('La Ficha no será guardada. Esta acción no se puede deshacer.\n\n¿Está seguro que desea cancelar?')){
+      this.SchemaForm.reset();
+      this.Status = 'none'
+    }
   }
 
   save(){

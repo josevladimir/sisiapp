@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { State } from 'src/app/reducers';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import * as fromLoadingActions from '../../../../reducers/actions/loading.actions';
 import { ActivatedRoute, Params } from '@angular/router';
 import { IndicatorsServiceService } from '../../../../services/indicators-service.service';
@@ -11,6 +10,8 @@ import { isAdmin } from '../../../../reducers/selectors/session.selector';
 import { Observable } from 'rxjs';
 import { isEditMode } from '../../../../reducers/selectors/general.selector';
 import { editModeSetDisabled } from '../../../../reducers/actions/general.actions';
+import { StorageMap } from '@ngx-pwa/local-storage';
+import { MatSelectionList } from '@angular/material/list';
 
 @Component({
   selector: 'app-indicator-view',
@@ -18,203 +19,301 @@ import { editModeSetDisabled } from '../../../../reducers/actions/general.action
 })
 export class IndicatorViewComponent{
 
-  Indicator : any; 
-
+  Indicator : any;
   IndicatorForm : FormGroup;
 
-  ParameterSelected : number;
-
-  editMode : Observable<boolean>;
+  editMode : boolean;
 
   isAdmin : Observable<boolean>;
 
+  parameterSelected : number = 0;
+
+
+  preferencias : Observable<any> = this.storage.get('preferences');
+
   DeleteBtn : () => void = ()=>{
       if(confirm('¿Está seguro que desea eliminar este Indicador?\n\nEsta acción no se puede deshacer.')){
-        this._store.dispatch(fromLoadingActions.initLoading({message: 'Eliminando Indicador...'}));
-        this._indicatorsService.deleteIndicator(this.Indicator._id);
+        this.store.dispatch(fromLoadingActions.initLoading({message: 'Eliminando Indicador...'}));
+        this.indicatorService.deleteIndicator(this.Indicator._id);
       }
     }
 
-  constructor(private _activatedRoute : ActivatedRoute,
-              private _indicatorsService : IndicatorsServiceService,
-              private _store : Store<State>) { 
-    this.isAdmin = this._store.select(isAdmin);
-    this.editMode = this._store.select(isEditMode);
-    this._activatedRoute.params.subscribe(
-      (params : Params) => {
-        this._indicatorsService.getIndicatorsLocal().subscribe((indicators : any[]) => this.Indicator = indicators.filter(indicator => indicator._id == params.id)[0]);
-        this.getFormFromIndicator();
-      }
-    );
+  constructor(private store : Store<State>,
+              private storage : StorageMap,
+              private indicatorService : IndicatorsServiceService,
+              private activatedRoute : ActivatedRoute){
+
+    this.isAdmin = this.store.select(isAdmin);
+    this.store.select(isEditMode).subscribe(editMode => {
+      this.editMode = editMode;
+      if(this.editMode) this.getFormFromIndicator();
+    });
+    this.activatedRoute.params.subscribe((params : Params) => this.indicatorService.getIndicatorsLocal().subscribe((indicators : any[]) => this.Indicator = indicators.filter(indicator => indicator._id == params.id)[0]));
+
   }
 
-  getFormFromIndicator(){
-    if(this.Indicator.type == 'Simple'){
-      let description : string;
-      if(this.Indicator.description) description = this.Indicator.description;
-      else description = '';
-      this.IndicatorForm = new FormGroup({
-        name: new FormControl(this.Indicator.name,[Validators.required,MyValidators.isBlank]),
-        type : new FormControl(this.Indicator.type,Validators.required),
-        antiquity_diff: new FormControl(this.Indicator.antiquity_diff),
-        parameters_schema: new FormArray([]),
-        description: new FormControl(description,[Validators.required,MyValidators.isBlank]),
-        frequency: new FormControl(this.Indicator.frequency)
-      });
-    }else{
-      this.IndicatorForm = new FormGroup({
-        name: new FormControl(this.Indicator.name,[Validators.required,MyValidators.isBlank]),
-        type : new FormControl(this.Indicator.type,Validators.required),
-        antiquity_diff: new FormControl(this.Indicator.antiquity_diff),
-        record_schema: new FormArray([]),
-        parameters_schema: new FormArray([]),
-        frequency: new FormControl(this.Indicator.frequency)
-      });
-      this.Indicator.record_schema.forEach(field => {
-        (<FormArray> this.IndicatorForm.controls.record_schema).push(new FormGroup({
-          name: new FormControl(field.name,[Validators.required,MyValidators.isBlank]),
-          unit: new FormControl(field.unit,[Validators.required])
-        }));
-      });
-
-      
-    }
-    this.Indicator.parameters_schema.forEach((parameter,i) => {
-      let weighing : any = {};
-      if(!parameter.weighing[0].weight) weighing.weight = 0;
-      else weighing.weight = parameter.weighing[0].weight;
-      if(!parameter.weighing[0].older) weighing.older = 0;
-      else weighing.older = parameter.weighing[0].older;
-      if(!parameter.weighing[0].newer) weighing.newer = 0;
-      else weighing.newer = parameter.weighing[0].newer;
-      (<FormArray> this.IndicatorForm.controls.parameters_schema).push(new FormGroup({
-          name: new FormControl(parameter.name,Validators.required),
-          weighing: new FormArray([new FormGroup({
-            weight: new FormControl(weighing.weight),
-            older: new FormControl(weighing.older),
-            newer: new FormControl(weighing.newer),
-          })]),
-          isAcum: new FormControl(parameter.isAcum,Validators.required),
-          unit: new FormControl(parameter.unit,Validators.required),
-          definition: new FormArray([]),
-        }));
-        parameter.definition.forEach(operator => {
-          (<FormArray> this.IndicatorForm.controls.parameters_schema['controls'][i].controls.definition).push(new FormGroup({
-            type: new FormControl(operator.type,Validators.required),
-            value: new FormControl(operator.value,Validators.required)
-          }));
-        });
+  getFormFromIndicator (){
+    this.IndicatorForm = new FormGroup({
+      name: new FormControl(this.Indicator.name,Validators.required),
+      type: new FormControl({value: this.Indicator.type, disabled: true}),
+      frequency: new FormControl(this.Indicator.frequency,Validators.required),
+      description: new FormControl(this.Indicator.description),
+      record_schema: new FormArray([]),
+      parameters_schema: new FormArray([]),
+      antiquity_diff: new FormControl(this.Indicator.antiquity_diff),
+      haveSchema: new FormControl(this.Indicator.haveSchema),
+      organizations_diff: new FormControl(this.Indicator.organizations_diff),
+      organizations_diff_by: new FormControl(this.Indicator.organizations_diff_by),
+      organizations: new FormArray([])
     });
 
-  }
+    for(let i = 0; i < this.Indicator.record_schema.length; i++){
+      (<FormArray> this.IndicatorForm.get('record_schema')).push(new FormGroup({
+        name: new FormControl(this.Indicator.record_schema[i].name,Validators.required),
+        unit: new FormControl(this.Indicator.record_schema[i].value,Validators.required)
+      }));
+    }
 
-  saveIndicator(){
-    this._store.dispatch(fromLoadingActions.initLoading({message: 'Guardando los cambios en el Indicador...'}));
-    let body : any = this.IndicatorForm.value;
-    console.log(body);
-    if(body.type == 'Simple'){
-      if(!this.IndicatorForm.valid){
-        this._store.dispatch(fromLoadingActions.stopLoading());
-        return alert('Todos los campos son obligatorios, por favor, revise el formulario.');
-      }
-    }else{ //Indicador Compuesto
-      let flag : string;
-      body.parameters_schema.forEach((parameter : any) => {
-        if(!parameter.definition.length) return flag = 'Debe definir todos los parámetros del Indicador.';
-      });
-      if(flag) {
-        this._store.dispatch(fromLoadingActions.stopLoading());
-        return alert(flag);
-      }
-      let suma : any = {
-        older: 0,
-        newer: 0,
-        none: 0
-      }
-      body.parameters_schema.forEach(parameter => {
-        if(body.antiquity_diff){
-          suma.older += parseInt(parameter.weighing[0].older);
-          suma.newer += parseInt(parameter.weighing[0].newer);
-          if(parameter.weighing[0].newer == null || parameter.weighing[0].older == null) return flag = 'Debe completar todas las ponderaciones solicitadas.';
-        }else{
-          suma.none += parseInt(parameter.weighing[0].weight);
-          if(parameter.weighing[0].weight == null) return flag = 'Debe completar todas las ponderaciones solicitadas.';
-        }
-      });
-      if(flag) {
-        this._store.dispatch(fromLoadingActions.stopLoading());
-        return alert(flag);
-      }
+    for(let i = 0; i < this.Indicator.parameters_schema.length; i++){
+      let weight : any;
+      if(this.Indicator.parameters_schema[i].weighing.weight) weight.weight = this.Indicator.parameters_schema[i].weighing.weight;
+      if(this.Indicator.parameters_schema[i].weighing.older) weight.older = this.Indicator.parameters_schema[i].weighing.older;
+      if(this.Indicator.parameters_schema[i].weighing.newer) weight.newer = this.Indicator.parameters_schema[i].weighing.newer;
       
-      if(body.antiquity_diff && (suma.older != 100 || suma.newer != 100)) flag = 'La ponderación debe sumar 100% en total.';
-      if(!body.antiquity_diff && suma.none != 100) flag = 'La ponderación debe sumar 100% en total.';
-      if(flag) {
-        this._store.dispatch(fromLoadingActions.stopLoading());
-        return alert(flag);
+      (<FormArray> this.IndicatorForm.get('parameters_schema')).push(new FormGroup({
+          name: new FormControl(this.Indicator.parameters_schema[i].name,Validators.required),
+          definition: new FormArray([]),
+          weighing: new FormGroup({
+            weight: new FormControl(weight.weight,Validators.required),
+            older: new FormControl(weight.older,Validators.required),
+            newer: new FormControl(weight.newer,Validators.required)
+          }),
+          unit: new FormControl(this.Indicator.parameters_schema[i].unit,Validators.required),
+          cualitative_levels: new FormArray([]),
+          description: new FormControl(this.Indicator.parameters_schema[i].description),
+          haveSchema: new FormControl(this.Indicator.parameters_schema[i].haveSchema),
+          haveCualitativeSchema: new FormControl(this.Indicator.parameters_schema[i].haveCualitativeSchema),
+          record_schema: new FormArray([]),
+          calculate_as: new FormControl(this.Indicator.parameters_schema[i].calculate_as)
+      }));
+
+      for(let j = 0; j < this.Indicator.parameters_schema[i].definition.length; j++){
+        (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(i).get('definition')).push(new FormGroup({
+
+        }));
       }
 
-      if(this.IndicatorForm.invalid){
-        this._store.dispatch(fromLoadingActions.stopLoading());
-        return alert('Todos los campos son obligatorios, por favor, revise el formulario');
+      for(let j = 0; j < this.Indicator.parameters_schema[i].cualitative_levels.length; j++){
+        (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(i).get('cualitative_levels')).push(new FormGroup({
+
+        }));
+      }
+
+      for(let j = 0; j < this.Indicator.parameters_schema[i].record_schema.length; j++){
+        (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(i).get('record_schema')).push(new FormGroup({
+          name: new FormControl(this.Indicator.record_schema[i].name,Validators.required),
+          unit: new FormControl(this.Indicator.record_schema[i].value,Validators.required)
+        }));
       }
     }
-    this._indicatorsService.updateIndicator(body,this.Indicator._id);
-  }
-  
-  addParameter(){
-    (<FormArray>this.IndicatorForm.controls.parameters_schema).push(new FormGroup({
-        name: new FormControl('',Validators.required),
-        weighing: new FormArray([new FormGroup({
-          weight: new FormControl(''),
-          older: new FormControl(''),
-          newer: new FormControl(''),
-        })]),
-        isAcum: new FormControl(false,Validators.required),
-        unit: new FormControl('',Validators.required),
-        definition: new FormArray([])
-      })
-    );
-  }
-  
 
-  addField(){
-    (<FormArray>this.IndicatorForm.controls.record_schema).push(new FormGroup({
-      name: new FormControl('',[Validators.required,MyValidators.isBlank]),
-      unit: new FormControl('',[Validators.required])
+  }
+
+  onChangeHaveSchema (Pindex,value) {
+    if(value.checked){
+      this.addFieldInParameter(Pindex);
+    }else {
+      let longitud : number = (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('record_schema')).length;
+      if(longitud){
+        for(let i = longitud - 1; i >= 0; i--){
+          (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('record_schema')).removeAt(i);
+        }
+      }
+    }
+  }
+
+  onChangeHaveCualitativeSchema (Pindex,value) {
+    if(value.checked){
+      this.addFieldInParameter(Pindex);
+    }else {
+      let longitud : number = (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('record_schema')).length;
+      if(longitud){
+        for(let i = longitud - 1; i >= 0; i--){
+          (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('record_schema')).removeAt(i);
+        }
+      }
+    }
+  }
+
+  onChangeParameterUnit (Pindex,value) {
+    if(value == 'Cualitativo'){
+      this.addLevel(Pindex);
+      (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('haveSchema').setValue(false);
+      let longitud : number = (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('record_schema')).length;
+      if(longitud){
+        for(let i = longitud - 1; i >= 0; i--){
+          (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('record_schema')).removeAt(i);
+        }
+      }
+    }else {
+      (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('haveCualitativeSchema').setValue(false);
+      let longitud : number = (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('cualitative_levels')).length;
+      if(longitud){
+        for(let i = longitud - 1; i >= 0; i--){
+          (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('cualitative_levels')).removeAt(i);
+        }
+      }
+    }
+  }
+
+  addParameter () {
+    (<FormArray> this.IndicatorForm.get('parameters_schema')).push(new FormGroup({
+      name: new FormControl('',Validators.required),
+      definition: new FormArray([]),
+      weighing: new FormGroup({
+        weight: new FormControl(''),
+        older: new FormControl(''),
+        newer: new FormControl('')
+      }),
+      unit: new FormControl('',Validators.required),
+      cualitative_levels: new FormArray([]),
+      description: new FormControl(''),
+      haveSchema: new FormControl(false),
+      haveCualitativeSchema: new FormControl(false),
+      record_schema: new FormArray([]),
+      calculate_as: new FormControl('Sumatoria')
     }));
   }
 
-  cancel(){
-    if(confirm('Los cambios no guardados se borrarán.\n\n¿Está seguro que desea cancelar la Edición?')){
-      this._store.dispatch(editModeSetDisabled());
-      this.getFormFromIndicator();
-    }
+  addField () {
+    (<FormArray> this.IndicatorForm.get('record_schema')).push(new FormGroup({
+      name: new FormControl('',Validators.required),
+      unit: new FormControl('',Validators.required)
+    }));
   }
 
-  addOperator(operator : string){
-    if(operator == '+' || operator == '-' || operator == '*' ||
-       operator == '/' || operator == '(' || operator == ')' || operator == '*100%'){
-     (<FormArray> this.IndicatorForm.controls.parameters_schema['controls'][this.ParameterSelected]['controls']['definition']).push(new FormGroup({
-       type: new FormControl('normal'),
-       value: new FormControl(operator)
-     }));
-    }else{
-     (<FormArray> this.IndicatorForm.controls.parameters_schema['controls'][this.ParameterSelected]['controls']['definition']).push(new FormGroup({
-       type: new FormControl(operator),
-       value: new FormControl('',Validators.required)
-     }));
-    }
- }
+  addFieldInParameter (Pindex : number) {
+    (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('record_schema')).push(new FormGroup({
+      name: new FormControl('',Validators.required),
+      unit: new FormControl('',Validators.required)
+    }));
+  }
+  
+  addLevel (Pindex : number) {
+    (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('cualitative_levels')).push(new FormGroup({
+      name: new FormControl('',Validators.required),
+      description: new FormControl('',Validators.required),
+      range: new FormGroup({
+        from: new FormControl('',Validators.required),
+        to: new FormControl('',Validators.required)
+      })
+    }));
+  }
 
-  addFieldToDefinition(value : string){
-    (<FormArray> this.IndicatorForm.controls.parameters_schema['controls'][this.ParameterSelected]['controls']['definition']).push(new FormGroup({
+  addFieldToDefinitionSimple(Pindex : number, value : string){
+    (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('definition')).push(new FormGroup({
       type: new FormControl('field'),
       value: new FormControl(value,Validators.required)
     }));
   }
 
-  remove(index : number){
-    (<FormArray> this.IndicatorForm.controls.parameters_schema['controls'][this.ParameterSelected].controls.definition).removeAt(index)
+  addOperatorSimple(Pindex : number, operator : string){
+    if(operator == '+' || operator == '-' || operator == '*' ||
+       operator == '/' || operator == '(' || operator == ')' || operator == '*100%'){
+      (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('definition')).push(new FormGroup({
+        type: new FormControl('normal'),
+        value: new FormControl(operator)
+      }));
+    }else{
+      (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('definition')).push(new FormGroup({
+        type: new FormControl(operator),
+        value: new FormControl('',Validators.required)
+      }));
+    }
+  }
+
+  removeParameter (Pindex : number) {
+    if(confirm('Esta acción no se puede deshacer.\n\n¿Está seguro que desea eliminar este indicador?')) (<FormArray> this.IndicatorForm.get('parameters_schema')).removeAt(Pindex);
+  }
+
+  removeFieldGeneral (index : number) {
+    if(confirm('Esta acción no se puede deshacer.\n\n¿Está seguro que desea eliminar este indicador?')) (<FormArray> this.IndicatorForm.get('record_schema')).removeAt(index);
+  }
+
+  removeFieldInParameter (Pindex : number, Findex : number) {
+    if(confirm('Esta acción no se puede deshacer.\n\n¿Está seguro que desea eliminar este campo?')) (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('record_schema')).removeAt(Findex);
+  }
+  
+  removeLevel (Pindex : number,Lindex : number) {
+    if(confirm('Esta acción no se puede deshacer.\n\n¿Está seguro que desea eliminar este nivel?')) (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('cualitative_levels')).removeAt(Lindex);
+  }
+
+  removeFieldFromDefinitionSimple(Pindex: number,index : number){
+    (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('definition')).removeAt(index);
+  }
+
+  /**Add Sectors & Types */
+  OnOrganizationsChange(item : string, list : MatSelectionList){
+    let ready : boolean = false;
+    let indice : number;
+    //Verificación de si el indicador estaba seleccionado o no
+    for(let i = 0; i < (<FormArray> this.IndicatorForm.get('organizations')).length; i++){
+      if((<FormArray> this.IndicatorForm.get('organizations')).at(i).value == item){
+        indice = i;
+        ready = true;
+        break;
+      }
+    }
+
+    if(ready){ //Hay que eliminar el indicador
+      (<FormArray> this.IndicatorForm.get('organizations')).removeAt(indice);
+    }else{  //Hay que agregar el indicador
+      (<FormArray> this.IndicatorForm.get('organizations')).push(new FormControl(item,Validators.required));
+    }
+  }
+
+  OnChangeSelect(value){
+    if(value.checked){
+      let longitud = (<FormArray> this.IndicatorForm.get('organizations')).length;
+      for(let i = longitud - 1; i >= 0; i--){
+        (<FormArray> this.IndicatorForm.get('organizations')).removeAt(i);
+      }
+    }
+  }
+
+  saveIndicator(){
+    this.store.dispatch(fromLoadingActions.initLoading({message: 'Guardando el Indicador...'}));
+
+    if(this.IndicatorForm.get('organizations_diff').value && !(<FormArray> this.IndicatorForm.get('organizations')).length){
+      this.store.dispatch(fromLoadingActions.stopLoading());
+      return alert('Por favor selecciona las organizaciones que entrarán en el cálculo del Indicador');
+    }
+
+    if(this.IndicatorForm.get('type').value == 'Compuesto'){
+      let total : any = {newer: 0, older: 0, weight: 0};
+      let diff : boolean = this.IndicatorForm.get('antiquity_diff').value;
+      for(let i = 0; i < (<FormArray> this.IndicatorForm.get('parameters_schema')).length; i++){
+        if(diff){
+          total.newer += (<FormArray> this.IndicatorForm.get('parameters_schema')).at(i).get('weighing').get('newer').value;
+          total.older += (<FormArray> this.IndicatorForm.get('parameters_schema')).at(i).get('weighing').get('older').value;
+        }else total.weight += (<FormArray> this.IndicatorForm.get('parameters_schema')).at(i).get('weighing').get('weight').value;
+      }
+
+      if(diff && (total.older != 100 || total.newer != 100)){
+        this.store.dispatch(fromLoadingActions.stopLoading());
+        return alert('La suma de las ponderaciones debe ser igual a 100%');
+      }else if(!diff && total.weight != 100){
+        this.store.dispatch(fromLoadingActions.stopLoading());
+        return alert('La suma de las ponderaciones deben ser igual a 100%');
+      }
+    }
+    this.indicatorService.updateIndicator(this.IndicatorForm.value,this.Indicator._id);
+  }
+  
+  cancel(){
+    if(confirm('Los cambios no guardados se borrarán.\n\n¿Está seguro que desea cancelar la Edición?')){
+      this.store.dispatch(editModeSetDisabled());
+    }
   }
 
 }

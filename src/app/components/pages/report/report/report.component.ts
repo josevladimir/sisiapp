@@ -1,12 +1,15 @@
 import { Component } from '@angular/core';
 import { ProjectsServiceService } from '../../../../services/projects-service.service';
 import { IndicatorsServiceService } from '../../../../services/indicators-service.service';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-report',
   templateUrl: './report.component.html'
 })
 export class ReportComponent {
+
+  assetsUrl : string = environment.assetsUrl;
 
   Project : any;
   Projects : any[] = [];
@@ -65,6 +68,10 @@ export class ReportComponent {
       //});
 
     }
+
+    this.selectedPeriod = null;
+    this.ReportSchema = null;
+    this.Status = 'none';
     
     this.PeriodSelectAvailable = true;
   }
@@ -88,17 +95,23 @@ export class ReportComponent {
       }
     }
 
+    this.selectedPeriod = seleccion;
+
+    
+    /*this.generateTablesAndGraphicsData();
+
+    this.Status = 'ready';*/ 
+  } 
+  
+  generateReport(){
     this.Status = 'loading';
     let recordsWithIndicator = this.Project.records.filter(record => record.records.indicator == this.selectedIndicator);
-    this.Schema = recordsWithIndicator.filter(record => record.period.period == seleccion)[0];
+    this.Schema = recordsWithIndicator.filter(record => record.period.period == this.selectedPeriod)[0];
 
     this.IndicatorSchema = this.Project.full_schema.filter(indicator => indicator.id == this.selectedIndicator)[0];
 
     this.ReportSchema = this.Project.full_schema.filter(indicator => indicator.id == this.selectedIndicator)[0];
-    /*this.generateTablesAndGraphicsData();
-
-    this.Status = 'ready';*/
-  }  
+  }
 
   setReady(){
     this.Status = 'ready';

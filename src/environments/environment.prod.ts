@@ -1,4 +1,5 @@
 export const environment = {
   production: true,
-  baseUrl: 'https://handsoftcorp.com'
+  baseUrl: 'https://handsoftcorp.com',
+  assetsUrl: 'https://cefodi.org.ec/sisi/assets'
 };

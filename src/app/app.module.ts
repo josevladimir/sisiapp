@@ -192,7 +192,7 @@ import { StoreRouterConnectingModule } from '@ngrx/router-store';
     StoreModule.forRoot(reducers),
     EffectsModule.forRoot([AppEffects]),
     StorageModule.forRoot({ IDBNoWrap: true }),
-    StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: environment.production }),
+    StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: true }),
     StoreRouterConnectingModule.forRoot()
   ],
   entryComponents: [

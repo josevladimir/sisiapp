@@ -64,7 +64,7 @@
                         <div class="col-sm-4">
                             <small class="d-block full-width">Listado de Beneficiarios:</small>
                             <div class="flex pt-1" *ngIf="this.File == undefined; else IfThereFile">
-                                <img class="rotar mr-2" src="../../../../../assets/images/logo-sisi-only.svg" width="25px">
+                                <img class="rotar mr-2" src="{{this.assetsUrl}}/images/logo-sisi-only.svg" width="25px">
                                 <small class="font-weight-lighter">Cargando...</small>
                             </div>
                             <ng-template #IfThereFile>
@@ -332,7 +332,7 @@
                                                 <table class="baseline-table full-width">
                                                     <tr>
                                                         <th class="sticky main-row"></th>
-                                                        <th class="main-row" *ngFor="let parametro of this.indicatorsSelected[i].parameters">{{parametro.name}}</th>
+                                                        <th class="main-row" *ngFor="let parametro of this.indicatorsSelected[i].parameters_schema">{{parametro.name}}</th>
                                                     </tr>
                                                     <tbody class="table-cebra" formArrayName="baseline" *ngFor="let organizationGroup of indicadorGroup.get('baseline').controls; let j = index">
                                                         <tr [formGroupName]="j">
@@ -360,7 +360,7 @@
                                                     <table class="baseline-table full-width">
                                                         <tr>
                                                             <th class="sticky main-row"></th>
-                                                            <th class="main-row" *ngFor="let parametro of this.indicatorsSelected[i].parameters; let j = index">{{parametro.name}}</th>
+                                                            <th class="main-row" *ngFor="let parametro of this.indicatorsSelected[i].parameters_schema; let j = index">{{parametro.name}}</th>
                                                         </tr>
                                                         <tbody formArrayName="goal" *ngFor="let parameterGroup of indicadorGroup.get('goal').controls; let j = index">
                                                             <tr [formGroupName]="j">
@@ -368,11 +368,16 @@
                                                                 <td formArrayName="parameters" class="table-box main-col" *ngFor="let parameter of parameterGroup.get('parameters').controls; let k = index">
                                                                     <div [formGroupName]="k">
                                                                         <div formGroupName="goals" class="flex ml-2 mr-2" *ngIf="indicadorGroup.get('antiquity_diff').value">
-                                                                            <input type="number" class="full-width font-weight-lighter mr-1" formControlName="newer" placeholder="Nueva">
-                                                                            <input type="number" class="full-width font-weight-lighter ml-1" formControlName="older" placeholder="Antigua">
+                                                                            <input type="text" class="full-width font-weight-lighter mr-1" formControlName="newer" placeholder="Nueva">
+                                                                            <input type="text" class="full-width font-weight-lighter ml-1" formControlName="older" placeholder="Antigua">
                                                                         </div>
-                                                                        <div formGroupName="goals" *ngIf="!indicadorGroup.get('antiquity_diff').value">
-                                                                            <input type="number" class="full-width font-weight-lighter" formControlName="goal" placeholder="Meta">
+                                                                        <div formGroupName="goals" *ngIf="!indicadorGroup.get('antiquity_diff').value && this.indicatorsSelected[i].parameters_schema[k].unit != 'Cualitativo'">
+                                                                            <input type="text" class="full-width font-weight-lighter" formControlName="goal" placeholder="Meta">
+                                                                        </div>
+                                                                        <div formGroupName="goals" *ngIf="this.indicatorsSelected[i].parameters_schema[k].unit == 'Cualitativo'">
+                                                                            <select class="full-width font-weight-lighter" formControlName="goal">
+                                                                                <option *ngFor="let level of this.indicatorsSelected[i].parameters_schema[k].cualitative_levels" [value]="level.name">{{level.name}}</option>
+                                                                            </select>
                                                                         </div>
                                                                     </div>
                                                                 </td>
@@ -483,7 +488,7 @@
                                                     <table class="baseline-table full-width">
                                                         <tr>
                                                             <th class="sticky main-row"></th>
-                                                            <th class="main-row" *ngFor="let parametro of this.indicatorsSelected[i].parameters">{{parametro.name}}</th>
+                                                            <th class="main-row" *ngFor="let parametro of this.indicatorsSelected[i].parameters_schema">{{parametro.name}}</th>
                                                         </tr>
                                                         <tbody class="table-cebra" *ngFor="let organizationGroup of indicadorGroup.baseline; let j = index">
                                                             <tr>
@@ -514,7 +519,7 @@
                                                         <table class="baseline-table full-width">
                                                             <tr>
                                                                 <th class="sticky main-row"></th>
-                                                                <th class="main-row" *ngFor="let parametro of this.indicatorsSelected[i].parameters; let j = index">{{parametro.name}}</th>
+                                                                <th class="main-row" *ngFor="let parametro of this.indicatorsSelected[i].parameters_schema; let j = index">{{parametro.name}}</th>
                                                             </tr>
                                                             <tbody *ngFor="let parameterGroup of indicadorGroup.goal; let j = index">
                                                                 <tr>

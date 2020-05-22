@@ -1,7 +1,7 @@
 <mat-card class="mt-4 report-box">
     <mat-tab-group mat-stretch-tabs class="full-height">
         <mat-tab label="Tablas"> 
-            <div *ngIf="this.Indicator.type == 'Compuesto'; else SimpleTables">
+            <div *ngIf="this.Indicator.type == 'Compuesto'">
                 <mat-card class="report-mat-card" *ngIf="this.SchemaTable">
                     <mat-card-title class="font-weight-lighter pt-2">Ficha</mat-card-title>
                     <mat-divider></mat-divider>
@@ -10,7 +10,7 @@
                             <p>Proyecto: <span class="font-weight-lighter">{{this.SchemaTable.projectName}}</span></p>
                             <p>Indicador: <span class="font-weight-lighter">{{this.Indicator.name}}</span></p>
                             <p>Periodo: <span class="font-weight-lighter">{{this.Period}}</span></p>
-                            <p>Técnico Responsable: <span class="font-weight-lighter">{{this.Technic.name}} {{this.Technic.last_names}} - {{this.Technic.position}}</span></p>
+                            <p *ngIf="this.Technic">Técnico Responsable: <span class="font-weight-lighter">{{this.Technic.name}} {{this.Technic.last_names}} - {{this.Technic.position}}</span></p>
                         </div>
                         <div class="table-container full-width pt-3 pb-2">
                             <table class="baseline-table full-width">
@@ -124,7 +124,7 @@
                     </mat-card-content>
                 </mat-card>
             </div>
-            <ng-template #SimpleTables>
+            <div *ngIf="this.Indicator.type == 'Simple'">
                 <mat-card class="report-mat-card" *ngIf="this.SchemaTable">
                     <mat-card-title class="font-weight-lighter pt-2">Ficha</mat-card-title>
                     <mat-divider></mat-divider>
@@ -133,7 +133,7 @@
                             <p>Proyecto: <span class="font-weight-lighter">{{this.SchemaTable.projectName}}</span></p>
                             <p>Indicador: <span class="font-weight-lighter">{{this.Indicator.name}}</span></p>
                             <p>Periodo: <span class="font-weight-lighter">{{this.Period.date.from | date : 'dd MMMM yyyy'}} - {{this.Period.date.to | date : 'dd MMMM yyyy'}} ({{this.Period.period}})</span></p>
-                            <p>Técnico Responsable: <span class="font-weight-lighter">{{this.Technic.name}} {{this.Technic.last_names}} - {{this.Technic.position}}</span></p>
+                            <p *ngIf="this.Technic">Técnico Responsable: <span class="font-weight-lighter">{{this.Technic.name}} {{this.Technic.last_names}} - {{this.Technic.position}}</span></p>
                         </div>
                         <div class="table-container full-width pt-3 pb-2">
                             <table class="baseline-table full-width">
@@ -143,7 +143,7 @@
                                 </tr>
                                 <tr *ngFor="let organization of this.SchemaTable.schema">
                                     <td class="sticky main-col text-center font-weight-lighter">{{organization.name}}</td>
-                                    <td *ngFor="let field of organization.fields">
+                                    <td *ngFor="let field of organization.fields; let i = index">
                                         <div class="full-width font-weight-lighter text-center table-box">
                                             {{field.value}}
                                         </div>
@@ -167,13 +167,13 @@
                                 <tr *ngFor="let organization of this.IndicatorTable; let i = index">
                                     <td class="sticky main-col text-center font-weight-lighter">{{organization.name}}</td>
                                     <td>
-                                        <div  class="full-width font-weight-lighter text-center" [matTooltip]="organization.total_indicator.details.description" matTooltipPosition="left" [ngClass]="{'red': organization.total_indicator.value < 50,'green': organization.total_indicator.value >= 80, 'yellow': organization.total_indicator.value < 80 && organization.total_indicator.value >= 50}">
+                                        <div class="full-width font-weight-lighter text-center" [matTooltip]="organization.total_indicator.details.description" matTooltipPosition="left" [ngClass]="{'red': organization.total_indicator.value < 50,'green': organization.total_indicator.value >= 80, 'yellow': organization.total_indicator.value < 80 && organization.total_indicator.value >= 50}">
                                             {{organization.total_indicator.value}}% - {{organization.total_indicator.details.letter}}
                                         </div>
                                     </td>
                                 </tr>
                             </table>
-                        </div>        
+                        </div>       
                     </mat-card-content>
                 </mat-card>
     
@@ -192,12 +192,75 @@
                         
                     </mat-card-content>
                 </mat-card>
-            </ng-template>
+            </div>
+
+            <div *ngIf="this.Indicator.type == 'Grupo'">
+                <mat-card class="report-mat-card" *ngIf="this.SchemaTable">
+                    <mat-card-title class="font-weight-lighter pt-2">Ficha</mat-card-title>
+                    <mat-divider></mat-divider>
+                    <mat-card-content>
+                        <div class="pt-3">
+                            <p>Proyecto: <span class="font-weight-lighter">{{this.SchemaTable.projectName}}</span></p>
+                            <p>Indicador: <span class="font-weight-lighter">{{this.Indicator.name}}</span></p>
+                            <p>Periodo: <span class="font-weight-lighter">{{this.Period.date.from | date : 'dd MMMM yyyy'}} - {{this.Period.date.to | date : 'dd MMMM yyyy'}} ({{this.Period.period}})</span></p>
+                            <p *ngIf="this.Technic">Técnico Responsable: <span class="font-weight-lighter">{{this.Technic.name}} {{this.Technic.last_names}} - {{this.Technic.position}}</span></p>
+                        </div>
+                        <div class="table-container full-width pt-3 pb-2">
+                            <table class="baseline-table full-width">
+                                <tr>
+                                    <th class="sticky main-row"></th>
+                                    <th class="main-row" *ngFor="let field of this.SchemaTable.schema[0].fields">{{field.name}}</th>
+                                </tr>
+                                <tr *ngFor="let organization of this.SchemaTable.schema">
+                                    <td class="sticky main-col text-center font-weight-lighter">{{organization.name}}</td>
+                                    <td *ngFor="let field of organization.fields">
+                                        <div class="full-width font-weight-lighter text-center table-box">
+                                            {{field.value}}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>        
+                    </mat-card-content>
+                </mat-card>
+
+                <mat-card class="report-mat-card">
+                    <mat-card-title class="font-weight-lighter">Cálculo de Indicador</mat-card-title>
+                    <mat-divider></mat-divider>
+                    <mat-card-content>
+                        <div class="table-container pt-3 pb-2 full-width">
+                            <table class="baseline-table full-width">
+                                <tr>
+                                    <th class="sticky main-row"></th>
+                                    <th class="main-row" *ngFor="let parameter of this.IndicatorTable[0].parameters">{{parameter.name}}</th>
+                                </tr>
+                                <tr *ngFor="let organization of this.IndicatorTable; let i = index">
+                                    <td class="sticky main-col text-center font-weight-lighter">{{organization.name}}</td>
+                                    <td *ngFor="let parameter of this.IndicatorTable[i].total_indicatores">
+                                        <div class="full-width font-weight-lighter text-center" [matTooltip]="parameter.details.description" matTooltipPosition="left" [ngClass]="{'red': parameter.value < 50,'green': parameter.value >= 80, 'yellow': parameter.value < 80 && parameter.value >= 50}">
+                                            {{parameter.value}}% - {{parameter.details.letter}}
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="sticky main-row text-center">Promedio Indicadores</td>
+                                    <td *ngFor="let promedio of this.promedios">
+                                        <div class="full-width font-weight-lighter text-center" [matTooltip]="promedio.details.description" matTooltipPosition="left" [ngClass]="{'red': promedio.value < 50,'green': promedio.value >= 80, 'yellow': promedio.value < 80 && promedio.value >= 50}">
+                                            {{promedio.value}}% - {{promedio.details.letter}}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>        
+                    </mat-card-content>
+                </mat-card>
+                
+            </div>
             
         </mat-tab>
 
         <mat-tab label="Gráficos">
-            <div *ngIf="this.Indicator.type == 'Compuesto'; else SimpleCharts">
+            <div *ngIf="this.Indicator.type == 'Compuesto'">
                 <mat-card class="full-width" *ngFor="let chart of this.ChartData; let i = index">
                     <mat-card-title *ngIf="i != this.ChartData.length - 1; else LastChartTitle" class="font-weight-lighter">Organización: {{chart.name}}</mat-card-title>
                     <ng-template #LastChartTitle>
@@ -243,7 +306,7 @@
                     </mat-card-content>
                 </mat-card>
             </div>
-            <ng-template #SimpleCharts>
+            <div *ngIf="this.Indicator.type == 'Simple'">
                 <mat-card class="full-width" *ngFor="let chart of this.ChartData; let i = index">
                     <mat-card-title class="font-weight-lighter">Indicador: {{chart.name}}</mat-card-title>
                     <mat-divider></mat-divider>
@@ -257,7 +320,7 @@
                                 [xAxis]="showXAxis"
                                 [yAxis]="showYAxis"
                                 [legend]="showLegend"
-                                [showXAxisLabel]="Organizaciones"
+                                [showXAxisLabel]="showXAxisLabel"
                                 [showYAxisLabel]="showYAxisLabel"
                                 [xAxisLabel]="xAxisLabelLast"
                                 [yAxisLabel]="yAxisLabelLast"
@@ -269,7 +332,62 @@
                         </div>
                     </mat-card-content>
                 </mat-card>
-            </ng-template>
+            </div>
+            <div *ngIf="this.Indicator.type == 'Grupo'">
+                <mat-card class="full-width" *ngFor="let chart of this.ChartData; let i = index">
+                    <div *ngIf="this.ChartData.length -1 != i">
+
+                        <mat-card-title class="font-weight-lighter">Organización: {{chart.name}}</mat-card-title>
+                        <mat-divider></mat-divider>
+                        <mat-card-content>
+                            <div class="pt-3 pb-2">
+                                <ngx-charts-bar-vertical-2d
+                                    [view]="view"
+                                    [scheme]="colorScheme"
+                                    [results]="chart.multi"
+                                    [gradient]="gradient"
+                                    [xAxis]="showXAxis"
+                                    [yAxis]="showYAxis"
+                                    [legend]="showLegend"
+                                    [showXAxisLabel]="showXAxisLabel"
+                                    [showYAxisLabel]="showYAxisLabel"
+                                    xAxisLabel="Indicador"
+                                    [yAxisLabel]="yAxisLabelLast"
+                                    [legendTitle]="legendTitle"
+                                    (select)="onSelect($event)"
+                                    (activate)="onActivate($event)"
+                                    (deactivate)="onDeactivate($event)">
+                                </ngx-charts-bar-vertical-2d>
+                            </div>
+                        </mat-card-content>
+                    </div>
+                    <div *ngIf="this.ChartData.length -1 == i">
+                        <mat-card-title class="font-weight-lighter">Indicadores Promediados</mat-card-title>
+                        <mat-divider></mat-divider>
+                        <mat-card-content>
+                            <div class="pt-3 pb-2">
+                                <ngx-charts-bar-vertical-2d
+                                    [view]="view"
+                                    [scheme]="colorScheme"
+                                    [results]="chart.multi"
+                                    [gradient]="gradient"
+                                    [xAxis]="showXAxis"
+                                    [yAxis]="showYAxis"
+                                    [legend]="showLegend"
+                                    [showXAxisLabel]="showXAxisLabel"
+                                    [showYAxisLabel]="showYAxisLabel"
+                                    xAxisLabel="Indicador"
+                                    yAxisLabel="Promedio de Indicadores"
+                                    [legendTitle]="legendTitle"
+                                    (select)="onSelect($event)"
+                                    (activate)="onActivate($event)"
+                                    (deactivate)="onDeactivate($event)">
+                                </ngx-charts-bar-vertical-2d>
+                            </div>
+                        </mat-card-content>
+                    </div>
+                </mat-card>
+            </div>
         </mat-tab>
     </mat-tab-group>
 </mat-card>

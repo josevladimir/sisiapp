@@ -17,7 +17,7 @@
                                     <mat-select [(ngModel)]="this.selectedProject" matNativeControl (valueChange)="onProjectSelected($event)">
                                         <mat-option *ngFor="let project of this.Projects" [value]="project._id">{{project.name}}</mat-option>
                                     </mat-select>
-                                </mat-form-field>
+                                </mat-form-field> 
                             </div>
                             <div class="col-sm-4" *ngIf="this.selectedProject">
                                 <mat-form-field class="full-width">
@@ -37,13 +37,17 @@
                                 </mat-form-field>
                             </div>
                         </div>
+                        <div class="flex mt-3">
+                            <span class="fill-remaining-space"></span>
+                            <button mat-raised-button color="primary"(click)="generateReport()" [disabled]="!this.selectedProject || !this.selectedIndicator || !this.selectedPeriod">Generar Reporte</button>
+                        </div>
                     </mat-card-content>
                 </mat-card> 
         
                 <mat-card class="mt-4" *ngIf="this.Status == 'loading'">
                     <div class="loading-box">
                         <div>
-                            <img src="../../../../../assets/images/logo-sisi-only.svg" alt="">
+                            <img src="{{this.assetsUrl}}/images/logo-sisi-only.svg" alt="">
                             <h4 class="font-weight-lighter text-center">Cargando...</h4>
                         </div>
                     </div>
@@ -60,11 +64,11 @@
 
             </div>
         </mat-tab>
-        <mat-tab label="Reportes: LRC">
+        <!--mat-tab label="Reportes: LRC">
             <div class="p-4">
                 <app-report-lrc></app-report-lrc>
             </div>
-        </mat-tab>
+        </mat-tab-->
     </mat-tab-group>
 
 </div>

@@ -9,6 +9,7 @@ import { AuthObject } from 'src/app/reducers/actions/session.actions';
 import * as fromSessionActions from '../../../reducers/actions/session.actions';
 import { Router } from '@angular/router';
 import { SessionService } from 'src/app/services/session.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -17,6 +18,8 @@ import { SessionService } from 'src/app/services/session.service';
 export class LoginComponent{
 
   LoginForm : FormGroup;
+
+  assetsUrl : string = environment.assetsUrl;
 
   constructor(private service : AuthServiceService,
               private sessionService : SessionService,
