@@ -173,8 +173,8 @@ export class NewIndicatorComponent{
   }
 
   addOperatorSimple(Pindex : number, operator : string){
-    if(operator == '+' || operator == '-' || operator == '*' ||
-       operator == '/' || operator == '(' || operator == ')' || operator == '*100%'){
+    if(operator == '+' || operator == '-' || operator == '*' || operator == 'LB' ||
+       operator == '/' || operator == '(' || operator == ')' || operator == '*100%' || operator == 'ANT'){
       (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('definition')).push(new FormGroup({
         type: new FormControl('normal'),
         value: new FormControl(operator)
@@ -207,10 +207,14 @@ export class NewIndicatorComponent{
     (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('definition')).removeAt(index);
   }
 
+  removeFieldFromDefinition(Pindex: number,index : number){
+    (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('definition')).removeAt(index);
+  }
+
   saveIndicator(){
     this.store.dispatch(fromLoadingActions.initLoading({message: 'Guardando el Indicador...'}));
 
-    if(this.IndicatorForm.get('organizations_diff').value && !(<FormArray> this.IndicatorForm.get('organizations')).length){
+    if(this.IndicatorForm.get('organizations_diff').value && this.IndicatorForm.get('organizations_diff_by').value != 'CEFODI' && !(<FormArray> this.IndicatorForm.get('organizations')).length){
       this.store.dispatch(fromLoadingActions.stopLoading());
       return alert('Por favor selecciona las organizaciones que entrarán en el cálculo del Indicador');
     }
@@ -267,6 +271,14 @@ export class NewIndicatorComponent{
         (<FormArray> this.IndicatorForm.get('organizations')).removeAt(i);
       }
     }
+  }
+
+  selectOrganizations(value){
+    let longitud : number = (<FormArray> this.IndicatorForm.get('organizations')).length - 1;
+    for(let i = longitud; i >= 0; i--){
+      (<FormArray> this.IndicatorForm.get('organizations')).removeAt(i);
+    }
+    (<FormArray> this.IndicatorForm.get('organizations')).push(new FormControl(value));
   }
 
 }

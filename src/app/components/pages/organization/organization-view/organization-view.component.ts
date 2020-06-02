@@ -98,7 +98,8 @@ export class OrganizationViewComponent implements OnInit{
         canton: new FormControl(this.Organization.ubication.canton,Validators.required),
         recinto: new FormControl(this.Organization.ubication.recinto,Validators.required),
         parroquia: new FormControl(this.Organization.ubication.parroquia,Validators.required)
-      })
+      }),
+      with_business: new FormControl(this.Organization.with_business,Validators.required)
     });
   } 
 
@@ -128,7 +129,8 @@ export class OrganizationViewComponent implements OnInit{
           canton: this.Organization.ubication.canton,
           recinto: this.Organization.ubication.recinto,
           parroquia: this.Organization.ubication.parroquia
-        }
+        },
+        with_business: this.Organization.with_business
       });
       this._store.dispatch(editModeSetDisabled());
     }

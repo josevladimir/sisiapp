@@ -77,7 +77,7 @@
                         <div class="col-sm-8 text-center">Nombre</div>
                         <div class="col-sm-4 text-center">Unidad</div>
                     </div>
-                    <div class="row">
+                    <div class="row mb-3">
                         <div class="col-sm-8"><div class="schema-input">{{parameter.name}}</div></div>
                         <div class="col-sm-4"><div class="schema-input">{{parameter.unit}}</div></div>
                     </div>
@@ -131,15 +131,17 @@
                             <div [ngClass]="{'mb-3': j != parameter.cualitative_levels.length - 1}" *ngFor="let field of parameter.cualitative_levels; let j = index">
                                 <div class="row">
                                     <div class="col-sm-3 flex flex-align-vertical">
-                                        <div class="schema-input">{{field.name}}</div>
+                                        <div class="schema-input full-width">{{field.name}}</div>
                                     </div>
                                     <div class="col-sm-6">
                                         <div class="text-area-form">{{field.description}}</div>
                                     </div>
                                     <div class="col-sm-3 flex flex-align-vertical">
-                                        <div class="row">
-                                            <div class="col-sm-6"><div class="schema-input">{{field.range.from}}</div></div>
-                                            <div class="col-sm-6"><div class="schema-input">{{field.range.to}}</div></div>
+                                        <div class="full-width">
+                                            <div class="row">
+                                                <div class="col-sm-6"><div class="schema-input full-width">{{field.range.from}}</div></div>
+                                                <div class="col-sm-6"><div class="schema-input full-width">{{field.range.to}}</div></div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -477,6 +479,8 @@
                                             <button type="button" mat-raised-button (click)="addOperatorSimple(i,'(')" class="botonera-btn mr-1">(</button>
                                             <button type="button" mat-raised-button (click)="addOperatorSimple(i,')')" class="botonera-btn mr-1">)</button>
                                             <button type="button" mat-raised-button (click)="addOperatorSimple(i,'*100%')" class="botonera-btn mr-1">*100%</button>
+                                            <button type="button" mat-raised-button (click)="addOperatorSimple(i,'ANT')" class="botonera-btn mr-1">ANTERIOR</button>
+                                            <button type="button" mat-raised-button (click)="addOperatorSimple(i,'LB')" class="botonera-btn mr-1">LB</button>
                                             <button type="button" mat-raised-button (click)="addOperatorSimple(i,'number')" class="botonera-btn mr-1">número</button>
                                             <button type="button" mat-raised-button (click)="addOperatorSimple(i,'%-number')" class="botonera-btn">% de número</button>
                                         </div>
@@ -720,19 +724,19 @@
                                 <mat-chip-list *ngIf="this.parameterSelected != null" #chipList aria-label="Fields selection">
                                     <div *ngFor="let field of this.IndicatorForm.get('parameters_schema')['controls'][this.parameterSelected].get('definition')['controls']; let i = index">
                                         <div>
-                                            <mat-chip *ngIf="field.get('type').value == 'field' || field.get('type').value == 'normal'" [selectable]="true" [removable]="true" (removed)="removeFieldInParameter(this.parameterSelected,i)">
+                                            <mat-chip *ngIf="field.get('type').value == 'field' || field.get('type').value == 'normal'" [selectable]="true" [removable]="true" (removed)="removeFieldFromDefinition(this.parameterSelected,i)">
                                                 <span>{{field.get('value').value}}</span>
                                                 <mat-icon matChipRemove *ngIf="true">cancel</mat-icon>
                                             </mat-chip>
         
                                             <div *ngIf="field.get('type').value == '%-number'" class="my-chip">
                                                 <div>% si <input type="number" width="100px" [formControl]="field.get('value')" placeholder="número"> es el 100%</div>
-                                                <mat-icon (click)="this.removeFieldInParameter(this.parameterSelected,i)" *ngIf="true">cancel</mat-icon>
+                                                <mat-icon (click)="this.removeFieldFromDefinition(this.parameterSelected,i)" *ngIf="true">cancel</mat-icon>
                                             </div>
         
                                             <div *ngIf="field.get('type').value == 'number'" class="my-chip">
                                                 <div><input type="number" width="100px" [formControl]="field.get('value')" placeholder="número"></div>
-                                                <mat-icon (click)="this.removeFieldInParameter(this.parameterSelected,i)" *ngIf="true">cancel</mat-icon>
+                                                <mat-icon (click)="this.removeFieldFromDefinition(this.parameterSelected,i)" *ngIf="true">cancel</mat-icon>
                                             </div>
                                         </div>
                                     </div>
@@ -746,6 +750,8 @@
                                 <button type="button" mat-raised-button (click)="addOperatorSimple(this.parameterSelected,'(')" class="botonera-btn mr-1">(</button>
                                 <button type="button" mat-raised-button (click)="addOperatorSimple(this.parameterSelected,')')" class="botonera-btn mr-1">)</button>
                                 <button type="button" mat-raised-button (click)="addOperatorSimple(this.parameterSelected,'*100%')" class="botonera-btn mr-1">*100%</button>
+                                <button type="button" mat-raised-button (click)="addOperatorSimple(this.parameterSelected,'ANT')" class="botonera-btn mr-1">ANTERIOR</button>
+                                <button type="button" mat-raised-button (click)="addOperatorSimple(this.parameterSelected,'LB')" class="botonera-btn mr-1">LB</button>
                                 <button type="button" mat-raised-button (click)="addOperatorSimple(this.parameterSelected,'number')" class="botonera-btn mr-1">número</button>
                                 <button type="button" mat-raised-button (click)="addOperatorSimple(this.parameterSelected,'%-number')" class="botonera-btn">% de número</button>
                             </div>

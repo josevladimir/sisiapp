@@ -73,6 +73,16 @@
                         <div *ngIf="!this.isOlder" class="text-center">Nueva</div>
                     </div>    
                 </div>
+                <div class="col-sm-4" *ngIf="this.organizationForm.get('type').value != 'SFL' && this.organizationForm.get('type').value != 'Empresa'">
+                    <mat-form-field class="full-width">
+                        <mat-label>Tiene Negocio:</mat-label>
+                        <mat-select formControlName="with_business">
+                            <mat-option value="Si">Sí</mat-option>
+                            <mat-option value="No">No</mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="this.organizationForm.get('with_business').errors?.required">Este campo es obligatorio</mat-error>
+                    </mat-form-field>
+                </div>
             </div>
         </mat-card>
         <!--Parte de Localización-->

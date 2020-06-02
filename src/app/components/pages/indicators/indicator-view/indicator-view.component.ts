@@ -70,12 +70,13 @@ export class IndicatorViewComponent{
     for(let i = 0; i < this.Indicator.record_schema.length; i++){
       (<FormArray> this.IndicatorForm.get('record_schema')).push(new FormGroup({
         name: new FormControl(this.Indicator.record_schema[i].name,Validators.required),
-        unit: new FormControl(this.Indicator.record_schema[i].value,Validators.required)
+        unit: new FormControl(this.Indicator.record_schema[i].unit,Validators.required)
       }));
     }
 
     for(let i = 0; i < this.Indicator.parameters_schema.length; i++){
-      let weight : any;
+      let weight : any = {};
+      
       if(this.Indicator.parameters_schema[i].weighing.weight) weight.weight = this.Indicator.parameters_schema[i].weighing.weight;
       if(this.Indicator.parameters_schema[i].weighing.older) weight.older = this.Indicator.parameters_schema[i].weighing.older;
       if(this.Indicator.parameters_schema[i].weighing.newer) weight.newer = this.Indicator.parameters_schema[i].weighing.newer;
@@ -84,9 +85,9 @@ export class IndicatorViewComponent{
           name: new FormControl(this.Indicator.parameters_schema[i].name,Validators.required),
           definition: new FormArray([]),
           weighing: new FormGroup({
-            weight: new FormControl(weight.weight,Validators.required),
-            older: new FormControl(weight.older,Validators.required),
-            newer: new FormControl(weight.newer,Validators.required)
+            weight: new FormControl(weight.weight),
+            older: new FormControl(weight.older),
+            newer: new FormControl(weight.newer)
           }),
           unit: new FormControl(this.Indicator.parameters_schema[i].unit,Validators.required),
           cualitative_levels: new FormArray([]),
@@ -99,23 +100,31 @@ export class IndicatorViewComponent{
 
       for(let j = 0; j < this.Indicator.parameters_schema[i].definition.length; j++){
         (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(i).get('definition')).push(new FormGroup({
-
+          type: new FormControl(this.Indicator.parameters_schema[i].definition[j].type),
+          value: new FormControl(this.Indicator.parameters_schema[i].definition[j].value)
         }));
       }
 
       for(let j = 0; j < this.Indicator.parameters_schema[i].cualitative_levels.length; j++){
         (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(i).get('cualitative_levels')).push(new FormGroup({
-
+          name: new FormControl(this.Indicator.parameters_schema[i].cualitative_levels[j].name,Validators.required),
+          description: new FormControl(this.Indicator.parameters_schema[i].cualitative_levels[j].description,Validators.required),
+          range: new FormGroup({
+            from: new FormControl(this.Indicator.parameters_schema[i].cualitative_levels[j].range.from,Validators.required),
+            to: new FormControl(this.Indicator.parameters_schema[i].cualitative_levels[j].range.to,Validators.required)
+          })
         }));
       }
 
       for(let j = 0; j < this.Indicator.parameters_schema[i].record_schema.length; j++){
         (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(i).get('record_schema')).push(new FormGroup({
-          name: new FormControl(this.Indicator.record_schema[i].name,Validators.required),
-          unit: new FormControl(this.Indicator.record_schema[i].value,Validators.required)
+          name: new FormControl(this.Indicator.parameters_schema[i].record_schema[j].name,Validators.required),
+          unit: new FormControl(this.Indicator.parameters_schema[i].record_schema[j].unit,Validators.required)
         }));
       }
     }
+
+    console.log(this.IndicatorForm);
 
   }
 
@@ -218,8 +227,8 @@ export class IndicatorViewComponent{
   }
 
   addOperatorSimple(Pindex : number, operator : string){
-    if(operator == '+' || operator == '-' || operator == '*' ||
-       operator == '/' || operator == '(' || operator == ')' || operator == '*100%'){
+    if(operator == '+' || operator == '-' || operator == '*' || operator == 'LB' ||
+       operator == '/' || operator == '(' || operator == ')' || operator == '*100%' || operator == 'ANT'){
       (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('definition')).push(new FormGroup({
         type: new FormControl('normal'),
         value: new FormControl(operator)
@@ -249,6 +258,10 @@ export class IndicatorViewComponent{
   }
 
   removeFieldFromDefinitionSimple(Pindex: number,index : number){
+    (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('definition')).removeAt(index);
+  }
+
+  removeFieldFromDefinition(Pindex: number,index : number){
     (<FormArray> (<FormArray> this.IndicatorForm.get('parameters_schema')).at(Pindex).get('definition')).removeAt(index);
   }
 

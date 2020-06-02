@@ -38,27 +38,29 @@ export class NewProjectComponent{
 
   projectDuration : number;
 
+  ExistIndicatorWithAntiquityDiff : boolean = false;
+
   File : any; //Variable para la subida de la lista de usuarios
 
-  constructor(private _snackBar : MatSnackBar,
-              private _fundersService : FundersServiceService,
-              private _projectsService : ProjectsServiceService,
-              private _documentsService : DocumentsServiceService,
-              private _sockets : SocketioService,
-              private _indicatorsService : IndicatorsServiceService,
-              private _organizationsService : OrganizationsServiceService,
-              private _store : Store<State>){
+  constructor(private snackBar : MatSnackBar,
+              private fundersService : FundersServiceService,
+              private projectsService : ProjectsServiceService,
+              private documentsService : DocumentsServiceService,
+              private sockets : SocketioService,
+              private indicatorsService : IndicatorsServiceService,
+              private organizationsService : OrganizationsServiceService,
+              private store : Store<State>){
 
     this.projectDuration = 12;
 
-    this._fundersService.getFundersLocal().subscribe(funders => this.Funders = funders);
-    this._indicatorsService.getIndicatorsLocal().subscribe(indicators => this.Indicators = indicators);
-    this._organizationsService.getOrganizationsLocal().subscribe(organizations => this.Organizations = organizations);
+    this.fundersService.getFundersLocal().subscribe(funders => this.Funders = funders);
+    this.indicatorsService.getIndicatorsLocal().subscribe(indicators => this.Indicators = indicators);
+    this.organizationsService.getOrganizationsLocal().subscribe(organizations => this.Organizations = organizations);
 
     this.GeneralFormGroup = new FormGroup({
       name: new FormControl('',[Validators.required,MyValidators.existProject,MyValidators.isBlank]),
       start_date: new FormControl('',[Validators.required]),
-      duration: new FormControl('',[Validators.required,MyValidators.isDurationValid]),
+      duration: new FormControl('',Validators.required),
       budgets: new FormGroup({
         total_inicial: new FormControl('',[Validators.required])
       }),
@@ -122,8 +124,7 @@ export class NewProjectComponent{
           (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('goal')).push(goalCtrl);
           
         }else{ //Hay que disminuir
-          (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('goal'))
-          .removeAt((<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('goal')).length - 1);
+          (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('goal')).removeAt((<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('goal')).length - 1);
         }
   
       }
@@ -158,7 +159,14 @@ export class NewProjectComponent{
       }else list.options.filter(option => option.value == id)[0].selected = true;
     }else{  //Hay que agregar el indicador
       let indicator : any = this.Indicators.filter(indicator => indicator._id == id)[0];
-      this.indicatorsSelected.push({id: indicator._id,parameters: indicator.parameters_schema,antiquity_diff: indicator.antiquity_diff});
+      this.indicatorsSelected.push({
+        id: indicator._id,
+        parameters: indicator.parameters_schema,
+        antiquity_diff: indicator.antiquity_diff,
+        organizations_diff: indicator.organizations_diff,
+        organizations_diff_by: indicator.organizations_diff_by,
+        organizations: indicator.organizations
+      });
       let baselineCtrl : FormArray = new FormArray([]);      //LineaBase 
       for(let i = 0; i < this.organizationsSelected.length; i++){
         //Añadiendo inputs para la lineaBase
@@ -177,12 +185,11 @@ export class NewProjectComponent{
 
       let goalCtrl : FormArray = new FormArray([]);
 
-      console.log(this.projectDuration);
-
+      let fecha = Moment(new Date(this.GeneralFormGroup.get('start_date').value));
       for(let i = 0; i < this.projectDuration/12; i++){
-
         (<FormArray> goalCtrl).push(new FormGroup({
-          year: new FormControl(`${i+1}º año`),
+          yearNumber: new FormControl(`${i+1}º año`),
+          year: new FormControl(new Date(fecha.add(1,'year').format())),
           parameters: new FormArray([])
         }));
 
@@ -207,13 +214,55 @@ export class NewProjectComponent{
       
       }
 
-        (<FormArray> this.GeneralFormGroup.get('full_schema')).push(new FormGroup({
+      if(this.projectDuration % 12){
+        let goal : FormArray = new FormArray([]);
+        
+        for(let j = 0; j < indicator.parameters_schema.length; j++){
+          
+          if(indicator.antiquity_diff) (<FormArray> goal).push(new FormGroup({
+            name: new FormControl(indicator.parameters_schema[j].name),
+            id: new FormControl(indicator.parameters_schema[j]._id),
+            goals: new FormGroup({
+              newer: new FormControl('',Validators.required),
+              older: new FormControl('',Validators.required)
+            })
+          }));
+          else (<FormArray> goal).push(new FormGroup({
+            name: new FormControl(indicator.parameters_schema[j].name),
+            id: new FormControl(indicator.parameters_schema[j]._id),
+            goals: new FormGroup({
+              goal: new FormControl('',Validators.required)
+            })
+          }));
+          
+        }
+
+        (<FormArray> goalCtrl).push(new FormGroup({
+          yearNumber: new FormControl('Último período'),
+          year: new FormControl(new Date(fecha.add(this.projectDuration % 12,'months').format())),
+          parameters: goal
+        }));
+      }
+
+      (<FormArray> this.GeneralFormGroup.get('full_schema')).push(new FormGroup({
           indicator: new FormControl(indicator.name),
           id: new FormControl(indicator._id),
           goal: goalCtrl,
           baseline: baselineCtrl,
           antiquity_diff: new FormControl(indicator.antiquity_diff)
-        }));
+      }));
+
+      if(indicator.antiquity_diff && !this.ExistIndicatorWithAntiquityDiff){
+        for(let i = 0; i < this.organizationsSelected.length; i++){
+          if(this.organizationsSelected[i].type != 'SFL') (<FormArray> this.GeneralFormGroup.get('organizations_diff')).push(new FormGroup({
+            organization: new FormControl(this.organizationsSelected[i].name),
+            id: new FormControl(this.organizationsSelected[i]._id),
+            isOlder: new FormControl('',Validators.required)
+          }));
+        }
+        this.ExistIndicatorWithAntiquityDiff = true
+      }
+
     }
   } 
   
@@ -232,12 +281,9 @@ export class NewProjectComponent{
     //Agregar
     if(!ready){
       let organization : any = this.Organizations.filter(organization => organization._id == id)[0];
-      this.organizationsSelected.push({
-        name: organization.name,
-        id: organization._id
-      });
+      this.organizationsSelected.push(organization);
 
-      (<FormArray> this.GeneralFormGroup.get('organizations_diff')).push(new FormGroup({
+      if(this.ExistIndicatorWithAntiquityDiff && organization.type != 'SFL') (<FormArray> this.GeneralFormGroup.get('organizations_diff')).push(new FormGroup({
         organization: new FormControl(organization.name),
         id: new FormControl(organization._id),
         isOlder: new FormControl('',Validators.required)
@@ -245,23 +291,69 @@ export class NewProjectComponent{
 
       for(let i = 0; i < (<FormArray>this.GeneralFormGroup.get('full_schema')).length; i++){
 
-        let baselineCtrl : FormGroup = new FormGroup({
-          organization: new FormControl(organization.name),
-          id: new FormControl(organization._id),
-          parameters: new FormArray([])
-        });
+        if(this.indicatorsSelected[i].organizations_diff){
+          let diferentiation : string = this.indicatorsSelected[i].organizations_diff_by;
+          if(diferentiation != 'characteristic'){
+            for(let j = 0; j < this.indicatorsSelected[i].organizations.length; j++){
+              if(organization[diferentiation] == this.indicatorsSelected[i].organizations[j]){
+                let baselineCtrl : FormGroup = new FormGroup({
+                  organization: new FormControl(organization.name),
+                  id: new FormControl(organization._id),
+                  parameters: new FormArray([])
+                });
+        
+                for(let k = 0; k < this.indicatorsSelected[i].parameters.length; k++){
+                  (<FormArray> baselineCtrl.get('parameters')).push(new FormGroup({
+                    name: new FormControl(this.indicatorsSelected[i].parameters[k]['name']),
+                    baseline: new FormControl('')
+                  }));
+                }
+        
+                (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('baseline')).push(baselineCtrl);
+              
+              }
 
-        for(let j = 0; j < this.indicatorsSelected[i].parameters.length; j++){
-          (<FormArray> baselineCtrl.get('parameters')).push(new FormGroup({
-            name: new FormControl(this.indicatorsSelected[i].parameters[j]['name']),
-            baseline: new FormControl('')
-          }));
-        }
+            }
+          }else{
+            switch (this.indicatorsSelected[i].organizations[0]) {
+              case 'Con Negocios':
+                if(organization.with_business) (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('baseline')).push(this.addOrgToBaseLine(organization,this.indicatorsSelected[i]));
+                break;
+              case 'Sin Negocios':
+                if(!organization.with_business) (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('baseline')).push(this.addOrgToBaseLine(organization,this.indicatorsSelected[i]));
+                break;
+              case 'Legalizadas':
+                if(organization.legalized) (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('baseline')).push(this.addOrgToBaseLine(organization,this.indicatorsSelected[i]));
+                break;
+              case 'No Legalizadas':
+                if(!organization.legalized) (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('baseline')).push(this.addOrgToBaseLine(organization,this.indicatorsSelected[i]));
+                break;
+              default:
+                break;
+            }
+          }
+        }else (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('baseline')).push(this.addOrgToBaseLine(organization,this.indicatorsSelected[i]));
 
-        (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('baseline')).push(baselineCtrl);
 
       }
     }
+  }
+
+  addOrgToBaseLine (organization, indicator) : FormGroup {
+    let baselineCtrl : FormGroup = new FormGroup({
+      organization: new FormControl(organization.name),
+      id: new FormControl(organization._id),
+      parameters: new FormArray([])
+    });
+
+    for(let j = 0; j < indicator.parameters.length; j++){
+      (<FormArray> baselineCtrl.get('parameters')).push(new FormGroup({
+        name: new FormControl(indicator.parameters[j]['name']),
+        baseline: new FormControl('')
+      }));
+    }
+
+    return baselineCtrl;
   }
 
   RemoveFromForm(index : number){
@@ -277,9 +369,9 @@ export class NewProjectComponent{
   }
 
   createProject(){
-    this._store.dispatch(fromLoadingActions.initLoading({message: 'Guardando el proyecto...'}));
+    this.store.dispatch(fromLoadingActions.initLoading({message: 'Guardando el proyecto...'}));
     if(this.GeneralFormGroup.invalid || !this.File || !this.indicatorsSelected.length || !this.organizationsSelected.length || !(<FormArray> this.GeneralFormGroup.get('funders')).length){
-      this._store.dispatch(fromLoadingActions.stopLoading());
+      this.store.dispatch(fromLoadingActions.stopLoading());
       return alert('Debe completar todo el formulario de registro de Proyectos!\n\nNo olvide asignar los financiadores, indicadores y organizaciones. Tampoco olvide seleccionar el archivo de lista de beneficiarios.')
     }
     let project : any = this.GeneralFormGroup.value;
@@ -291,21 +383,21 @@ export class NewProjectComponent{
     for(let i = 0; i < this.organizationsSelected.length; i++){
       project.organizations.push(this.organizationsSelected[i].id);
     }
-    this._projectsService.createProject(project).subscribe(projectResponse =>
+    this.projectsService.createProject(project).subscribe(projectResponse =>
       this.uploadBeneficiariesList(projectResponse.project._id).subscribe(docResponse => {
-        this._sockets.emit('projectWasCreated',docResponse.project);
-        this._sockets.emit('funderWasUpdated',{});
-        this._sockets.emit('organizationWasUpdated',{});
-        this._projectsService.addToStorage(docResponse.project);
-        this._fundersService.getFunders(true);
-        this._organizationsService.getOrganizations(true);
+        this.sockets.emit('projectWasCreated',docResponse.project);
+        this.sockets.emit('funderWasUpdated',{});
+        this.sockets.emit('organizationWasUpdated',{});
+        this.projectsService.addToStorage(docResponse.project);
+        this.fundersService.getFunders(true);
+        this.organizationsService.getOrganizations(true);
       },error =>{
-        this._store.dispatch(stopLoading());
-        this._snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
+        this.store.dispatch(stopLoading());
+        this.snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
       }),
     error => {
-      this._store.dispatch(stopLoading());
-      this._snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
+      this.store.dispatch(stopLoading());
+      this.snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
     });
   }
 
@@ -344,7 +436,7 @@ export class NewProjectComponent{
     filesForm.append('entity','Project');
     filesForm.append('id',id);
     console.log(filesForm);
-    return this._documentsService.uploadFile(filesForm);
+    return this.documentsService.uploadFile(filesForm);
   }
 
 }

@@ -197,8 +197,8 @@
                                                 <th class="main-row" *ngFor="let parametro of this.indicatorsSelected[i].parameters; let j = index">{{parametro.name}}</th>
                                             </tr>
                                             <tbody formArrayName="goal" *ngFor="let parameterGroup of indicadorGroup.get('goal').controls; let j = index">
-                                                <tr [formGroupName]="j">
-                                                    <td class="sticky main-col">{{parameterGroup.get('year').value}}</td>
+                                                <tr [formGroupName]="j" class="goal_row">
+                                                    <td class="sticky main-col">{{parameterGroup.get('yearNumber').value}}<br/><small>{{parameterGroup.get('year').value | date : 'MMMM - yyyy'}}</small></td>
                                                     <td formArrayName="parameters" class="table-box main-col" *ngFor="let parameter of parameterGroup.get('parameters').controls; let k = index">
                                                         <div [formGroupName]="k">
                                                             <div formGroupName="goals" class="flex ml-2 mr-2" *ngIf="indicadorGroup.get('antiquity_diff').value">
@@ -209,9 +209,9 @@
                                                                 <input type="text" class="full-width font-weight-lighter" formControlName="goal" placeholder="Meta">
                                                             </div>
                                                             <div formGroupName="goals" *ngIf="this.indicatorsSelected[i].parameters[k].unit == 'Cualitativo'">
-                                                                <select class="full-width font-weight-lighter" formControlName="goal">
-                                                                    <option *ngFor="let level of this.indicatorsSelected[i].parameters[k].cualitative_levels" [value]="level.name">{{level.name}}</option>
-                                                                </select>
+                                                                <mat-select class="full-width schema-input font-weight-lighter" formControlName="goal">
+                                                                    <mat-option *ngFor="let level of this.indicatorsSelected[i].parameters[k].cualitative_levels" [value]="level.name">{{level.name}}</mat-option>
+                                                                </mat-select>
                                                             </div>
                                                         </div>
                                                     </td>
@@ -223,33 +223,37 @@
                             </div>
                         </div>
 
-                        <mat-divider></mat-divider>
+                        <div *ngIf="this.ExistIndicatorWithAntiquityDiff">
 
-                        <div class="pt-3 row">
-                            <div class="col-sm-12">
-                                <mat-card-title class="font-weight-lighter">Clasificación de las Organizaciones</mat-card-title>
-                                <div class="table-container">
-                                    <table class="baseline-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Organización</th>
-                                                <th>Clasificación</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody formArrayName="organizations_diff" *ngFor="let organizationGroup of this.GeneralFormGroup.get('organizations_diff')['controls']; let i = index">
-                                            <tr [formGroupName]="i">
-                                                <td>{{organizationGroup.get('organization').value}}</td>
-                                                <td>
-                                                    <select formControlName="isOlder" class="full-width">
-                                                        <option value="newer">Nueva</option>
-                                                        <option value="older">Antigua</option>
-                                                    </select>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                            <mat-divider></mat-divider>
+    
+                            <div class="pt-3 row">
+                                <div class="col-sm-12">
+                                    <mat-card-title class="font-weight-lighter">Clasificación de las Organizaciones</mat-card-title>
+                                    <div class="flex flex-center">
+                                        <table class="baseline-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Organización</th>
+                                                    <th>Clasificación</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody formArrayName="organizations_diff" *ngFor="let organizationGroup of this.GeneralFormGroup.get('organizations_diff')['controls']; let i = index">
+                                                <tr [formGroupName]="i">
+                                                    <td>{{organizationGroup.get('organization').value}}</td>
+                                                    <td>
+                                                        <select formControlName="isOlder" class="full-width">
+                                                            <option value="newer">Nueva</option>
+                                                            <option value="older">Antigua</option>
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
+                            
                         </div>
 
                     </div>

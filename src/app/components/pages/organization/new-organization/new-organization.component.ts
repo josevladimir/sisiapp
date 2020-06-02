@@ -55,7 +55,8 @@ export class NewOrganizationComponent implements OnInit {
         canton: new FormControl('',Validators.required),
         recinto: new FormControl('',Validators.required),
         parroquia: new FormControl('',Validators.required)
-      })
+      }),
+      with_business: new FormControl('',Validators.required)
     });
   }
 
