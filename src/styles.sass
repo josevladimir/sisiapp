@@ -159,36 +159,6 @@ mat-drawer
         overflow-x: hidden
         width: 150px
 
-/*#new-folder-modal
-    background: white
-    position: absolute
-    top: calc((100% / 2) - (100px))
-    width: 500px*/
-    
-
-//Project Baseline Table
-.example-container
-  height: 400px
-  width: 550px
-  overflow: auto
-
-table
-  width: 800px
-
-td.mat-column-star
-  width: 20px
-  padding-right: 8px
-
-th.mat-column-position, td.mat-column-position
-  padding-left: 8px
-
-.mat-table-sticky:first-child
-  border-right: 1px solid #e0e0e0
-
-.mat-table-sticky:last-child
-  border-left: 1px solid #e0e0e0
-
-
 //subToolbar
 #sub-toolbar
     background: #f2f2f2f2
@@ -218,10 +188,11 @@ th.mat-column-position, td.mat-column-position
     color: #fff
 
 .main-col
-    background: #f2f2f2 !important
+    background: #ccc !important
 
 
 .table-container
+    box-sizing: border-box
     display: block
     max-width: 100%
     overflow-x: hidden
@@ -237,6 +208,15 @@ th.mat-column-position, td.mat-column-position
     tr th
         font-weight: normal
         text-align: center
+
+.organizations_diff_table
+    display: block
+    width: 800px
+
+    tr td,
+    tr th
+        min-width: 400px
+
 
 tr .sticky
     background: #ffffff
@@ -589,6 +569,11 @@ tr .sticky
     border: 1px solid #aaa
     height: calc(100% - 41px)
     overflow-y: scroll
+
+.tab-content
+    background: #f2f2f2
+    min-height: 200px
+    padding: 10px
 
 .text-area
     font-size: 11pt
