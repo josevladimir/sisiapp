@@ -52,7 +52,7 @@
                             <div class="flex flex-align-vertical" *ngIf="user.online"><div class="onlineIndicator"></div><small class="label user-status"> Conectado(a) ahora</small></div>
                             <small class="label user-status" *ngIf="!user.online"> Ultima Conexión: {{user.last_login_date | date: 'dd/MM/yyyy hh:mm'}}</small>
                             <a [routerLink]="user._id" mat-button class="font-weight-lighter"><mat-icon>remove_red_eye</mat-icon> DETALLES</a>
-                            <button mat-button class="font-weight-lighter"><mat-icon>delete</mat-icon>ELIMINAR</button>
+                            <button mat-button class="font-weight-lighter" (click)="this.deleteUser(user._id)"><mat-icon>delete</mat-icon>ELIMINAR</button>
                         </div>
                         <mat-divider></mat-divider>
                     </li>

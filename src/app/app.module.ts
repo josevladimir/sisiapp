@@ -94,7 +94,8 @@ import { environment } from '../environments/environment';
 import { EffectsModule } from '@ngrx/effects';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { StoreRouterConnectingModule } from '@ngrx/router-store';
-import { ForProjectsPipe } from './pipes/for-projects.pipe'; 
+import { ForProjectsPipe } from './pipes/for-projects.pipe';
+import { ForFundersPipe } from './pipes/for-funders.pipe'; 
 
 /*const monacoConfig: NgxMonacoEditorConfig = {
   baseUrl: 'assets', // configure base path for monaco editor default: './assets'
@@ -153,7 +154,8 @@ import { ForProjectsPipe } from './pipes/for-projects.pipe';
     PartnersHistoricComponent,
     CalificationCircleComponent,
     NewOrganizationPreferenceComponent,
-    ForProjectsPipe
+    ForProjectsPipe,
+    ForFundersPipe
   ],
   imports: [
     FormsModule,

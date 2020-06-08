@@ -107,4 +107,34 @@ export class UsersServiceService {
     return this.http.put(`${environment.baseUrl}/User/${id}`,user,{headers: this.headersGenerator.generateJsonHeader()});
   }
 
+  deleteUser (id : string, back? : boolean) : void {
+    this.http
+        .delete(`${environment.baseUrl}/User/${id}`,{headers: this.headersGenerator.generateAuthHeader()})
+        .subscribe((response : any) => {
+          //this.sockets.emit('userWasDeleted',response.user._id);
+          this.removeFromStorage(response.user._id,false,back);
+        },
+        error => {
+          this.store.dispatch(fromLoadingActions.stopLoading());
+          this.snackBar.open('Error al eliminar el usuario.','ENTENDIDO',{duration: 3000})
+        });
+  }
+
+
+  removeFromStorage(_id : string, out? : boolean, back? : boolean) : void {
+    this.storage.get('users').subscribe((users : any[]) => {
+      let index : number;
+      users.forEach((user : any, i : number) => {
+        if(user._id == _id) return index = i;
+      });
+      users.splice(index,1);
+      this.storage.set('users',users).subscribe(() => {});
+      if(!out) {
+        if(back) this.location.back();
+        this.store.dispatch(fromLoadingActions.stopLoading());
+        this.snackBar.open('Se ha eliminado el Usuario.','ENTENDIDO',{duration: 3000});
+      }
+    });
+  }
+
 }

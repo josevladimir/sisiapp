@@ -1,7 +1,8 @@
 <app-sub-toolbar
     title="Usuario: {{this.User.name}} {{this.User.last_names}}"
     [backButton]="true"
-    [editButton]="!(this.isEditMode | async)">
+    [editButton]="!(this.isEditMode | async)"
+    [deleteButton]="this.DeleteBtn">
 </app-sub-toolbar>
 
 <div class="page-content">
@@ -74,6 +75,65 @@
                     </div>
                 </mat-card-content>
             </mat-card>
+
+            <div class="mt-4 mb-4">
+                <button mat-raised-button color="primary" type="button" (click)="this.generateNewPassword()">Generar Nueva Contraseña</button>
+            </div>
+
+            <mat-card class="mt-4 mb-4" *ngIf="this.UserForm.get('role').value == 'Técnico'">
+                <mat-card-title class="font-weight-lighter">Asignación de Organizaciones</mat-card-title>
+                <mat-divider></mat-divider>
+                <mat-card-content>
+                    <div class="pt-3 row">
+                        <div class="col-sm-12">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <mat-form-field class="full-width" formGroupName="organizations">
+                                        <mat-label>Criterio de Asignación</mat-label>
+                                        <mat-select formControlName="criteria" (valueChange)="changeCriteria($event)">
+                                            <mat-option value="individual">Individual</mat-option>
+                                            <mat-option value="type">Por Tipo</mat-option>
+                                            <mat-option value="sector">Por Sector</mat-option>
+                                        </mat-select>
+                                        <mat-error *ngIf="this.UserForm.controls.role.errors?.required">Debe seleccionar un rol de usuario</mat-error>
+                                    </mat-form-field>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div>
+                                <div class="project-list-title">Agregar:</div>
+                                <mat-selection-list class="projects-selection-list" *ngIf="this.UserForm.get('organizations').get('criteria').value == 'individual'">
+                                    <mat-list-option class="font-weight-lighter" *ngFor="let organization of (this.$organizations)" [selected]="getStatus('individual',organization._id)" [value]="organization._id" (click)="onOrganizationChange(organization._id)">{{organization.name}}</mat-list-option>
+                                </mat-selection-list>
+                                <mat-selection-list class="projects-selection-list" *ngIf="this.UserForm.get('organizations').get('criteria').value == 'sector'">
+                                    <mat-list-option class="font-weight-lighter" *ngFor="let sector of (this.$preferences).sectors" [selected]="getStatus('criteria',sector)" [value]="sector._id" (click)="onCriteriaItemChange(sector)">{{sector}}</mat-list-option>
+                                </mat-selection-list>
+                                <mat-selection-list class="projects-selection-list" *ngIf="this.UserForm.get('organizations').get('criteria').value == 'type'">
+                                    <mat-list-option class="font-weight-lighter" *ngFor="let type of (this.$preferences).types" [selected]="getStatus('criteria',type)" [value]="type._id" (click)="onCriteriaItemChange(type)">{{type}}</mat-list-option>
+                                </mat-selection-list>
+                            </div>
+                        </div>
+                        <div class="col-sm-6" *ngIf="this.UserForm.get('organizations').get('criteria').value != 'individual'">
+                            <div>
+                                <div class="project-list-title">Excepto:</div>
+                                <mat-selection-list class="projects-selection-list">
+                                    <mat-list-option class="font-weight-lighter" *ngFor="let organization of this.filteredOrganizations" [value]="organization._id" (click)="onRemoveListener(organization._id)">{{organization.name}}</mat-list-option>
+                                </mat-selection-list>
+                            </div>
+                        </div>
+                        <div class="col-sm-12 pt-3">
+                            <p class="full-width font-weight-lighter">Este técnico podrá ingresar datos en las fichas correspondientes a las siguientes organizaciones:</p>
+                            <div>
+                                <mat-list class="projects-selection-list">
+                                    <mat-list-item class="font-weight-lighter" *ngFor="let organization of this.UserForm.get('organizations').get('organizations')['controls']">{{organization.get('name').value}}</mat-list-item>
+                                </mat-list>
+                            </div>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
             <app-button-group *ngIf="this.isEditMode | async" (cancel)="this.cancel()" (save)="this.updateUser()" [formStatus]="this.UserForm.invalid"></app-button-group>
         </form>
     </div>
@@ -111,7 +171,36 @@
                         </div>
                         <div class="col-sm-4" *ngIf="this.User.role == 'Financiador' ">
                             <small class="label">Representa a</small>
-                            {{this.User.funder}}
+                            <div>{{this.User.funder}}</div>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+            
+            <div class="mt-4 mb-4">
+                <button mat-raised-button color="primary" type="button" (click)="this.generateNewPassword()">Generar Nueva Contraseña</button>
+            </div>
+
+            <mat-card class="mt-4 mb-4" *ngIf="this.User.role == 'Técnico'">
+                <mat-card-title class="font-weight-lighter">Asignación de Organizaciones</mat-card-title>
+                <mat-divider></mat-divider>
+                <mat-card-content>
+                    <div class="pt-3 row">
+                        <div class="col-sm-12">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <small class="label">Criterio de Asignación:</small>
+                                    <div>{{this.User.organizations.criteria | forFunders : 'criteria'}}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-12 pt-3">
+                            <p class="full-width font-weight-lighter">Este técnico puede ingresar datos en las fichas correspondientes a las siguientes organizaciones:</p>
+                            <div>
+                                <mat-list class="projects-selection-list">
+                                    <mat-list-item class="font-weight-lighter" *ngFor="let organization of this.User.organizations.organizations">{{organization.name}}</mat-list-item>
+                                </mat-list>
+                            </div>
                         </div>
                     </div>
                 </mat-card-content>
@@ -119,8 +208,5 @@
         </div>
     </ng-template>
     
-    <div class="mt-4 mb-4">
-        <button mat-raised-button color="primary" type="button" (click)="this.generateNewPassword()">Generar Nueva Contraseña</button>
-    </div>
 
 </div>
