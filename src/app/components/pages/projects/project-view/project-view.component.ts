@@ -95,11 +95,13 @@ export class ProjectViewComponent {
           this.executed_budget = this.Project.budgets.ejecutado.pop();
           this.Project.budgets.ejecutado.push(this.executed_budget);
           this.generateChartData();
-          this._documentsService.getBeneficiariesFile(this.Project.beneficiaries.file).subscribe(
-            result => {
-              if(result.message == 'OK') this.File = result.file
-            },error => this._snackBar.open('Error al recuperar la lista de Beneficiarios.','ENTENDIDO',{duration: 3000})
-            );
+          if(this.Project.beneficiaries.file){
+            this._documentsService.getBeneficiariesFile(this.Project.beneficiaries.file).subscribe(
+              result => {
+                if(result.message == 'OK') this.File = result.file
+              },error => this._snackBar.open('Error al recuperar la lista de Beneficiarios.','ENTENDIDO',{duration: 3000})
+              );
+          }
           });
         }
         );
@@ -201,6 +203,7 @@ export class ProjectViewComponent {
       for(let j = 0; j < this.Project.full_schema[i].goal.length; j++){
         (<FormArray> goalCtrl).push(new FormGroup({
           year: new FormControl(this.Project.full_schema[i].goal[j].year),
+          yearNumber: new FormControl(this.Project.full_schema[i].goal[j].yearNumber),
           parameters: new FormArray([])
         }));
 
@@ -231,7 +234,11 @@ export class ProjectViewComponent {
         id: new FormControl(this.Project.full_schema[i].id),
         goal: goalCtrl,
         baseline: baselineCtrl,
-        antiquity_diff: new FormControl(this.Project.full_schema[i].antiquity_diff)
+        antiquity_diff: new FormControl(this.Project.full_schema[i].antiquity_diff),
+        baseline_diff: new FormGroup({
+          type: new FormControl(this.Project.full_schema[i].baseline_diff.type),
+          by: new FormControl(this.Project.full_schema[i].baseline_diff.by)
+        })
       });
 
       (<FormArray> this.SchemaFormGroup.get('full_schema')).push(schemaCtrl);
@@ -444,7 +451,7 @@ export class ProjectViewComponent {
         {
           name: 'Presupuesto',
           series: [{
-              name: new Date(this.Project.created_at),
+              name: new Date(this.Project.start_date),
               value: this.Project.budgets.total_inicial
             },
             {
@@ -454,7 +461,7 @@ export class ProjectViewComponent {
         },
         {
           name: 'Ejecutado',
-          series: [{name: new Date(this.Project.created_at),value: this.Project.budgets.ejecutado[0].value}]
+          series: [{name: new Date(this.Project.start_date),value: this.Project.budgets.ejecutado[0].value}]
         }
       ];
       for(let i = 0; i < this.Project.budgets.ejecutado.length; i++){

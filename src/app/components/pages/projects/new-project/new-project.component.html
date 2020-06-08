@@ -85,7 +85,7 @@
                         <div *ngIf="i != 0" class="form-control-equis">
                             <mat-icon (click)="this.deleteObjective(i)">clear</mat-icon>
                         </div>
-                        <textarea matInput type="text" [formControlName]="i" placeholder="Objetivo Específico"></textarea>
+                        <textarea matInput class="text-area-project-form" type="text" [formControlName]="i" placeholder="Objetivo Específico"></textarea>
                         <mat-error *ngIf="this.GeneralFormGroup.get('esp_objectives')['controls'][i].errors?.required">Este campo es obligatorio.</mat-error>
                         <mat-error *ngIf="!this.GeneralFormGroup.get('esp_objectives')['controls'][i].errors?.required && this.GeneralFormGroup.get('esp_objectives')['controls'][i].errors?.isBlank">Este campo no puede quedar en blanco.</mat-error>
                     </mat-form-field>
@@ -99,7 +99,7 @@
                         <div *ngIf="i != 0" class="form-control-equis">
                             <mat-icon (click)="this.deleteResult(i)">clear</mat-icon>
                         </div>
-                        <textarea matInput type="text" [formControlName]="i" placeholder="Resultado"></textarea>
+                        <textarea matInput class="text-area-project-form" type="text" [formControlName]="i" placeholder="Resultado"></textarea>
                         <mat-error *ngIf="this.GeneralFormGroup.get('results')['controls'][i].errors?.required">Este campo es obligatorio.</mat-error>
                         <mat-error *ngIf="!this.GeneralFormGroup.get('results')['controls'][i].errors?.required && this.GeneralFormGroup.get('results')['controls'][i].errors?.isBlank">Este campo no puede quedar en blanco.</mat-error>
                     </mat-form-field>
@@ -159,7 +159,7 @@
                 <mat-tab-group *ngIf="this.GeneralFormGroup.get('full_schema')['controls'].length">
                     <mat-tab formArrayName="full_schema" [label]="indicadorGroup.get('indicator').value" *ngFor="let indicadorGroup of this.GeneralFormGroup.get('full_schema')['controls']; let i = index">
                         <div [formGroupName]="i" class="tab-content">
-                            <div class="row" formGroupName="baseline_diff"> <!--Diferenciación en la Línea Base por grupo de organizaciones-->
+                            <div class="row" formGroupName="baseline_diff" *ngIf="indicadorGroup.get('baseline')['controls'].length"> <!--Diferenciación en la Línea Base por grupo de organizaciones-->
                                 <div class="col-sm-6">
                                     <mat-form-field class="full-width">
                                         <mat-label>Ingresar Línea Base:</mat-label>
@@ -179,8 +179,8 @@
                                     </mat-form-field>
                                 </div>
                             </div>
-                            <mat-divider></mat-divider>
-                            <div class="pt-3 pb-3">
+                            <mat-divider *ngIf="indicadorGroup.get('baseline')['controls'].length"></mat-divider>
+                            <div class="pt-3 pb-3" *ngIf="indicadorGroup.get('baseline')['controls'].length">
                                 <h5 class="font-weight-lighter">Línea Base</h5>
                                 <div class="table-container">
                                     <table class="baseline-table">

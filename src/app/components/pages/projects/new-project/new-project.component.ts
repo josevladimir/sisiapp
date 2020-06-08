@@ -77,7 +77,7 @@ export class NewProjectComponent{
       }),
       ubication: new FormControl('',[Validators.required,MyValidators.isBlank]),
       beneficiaries: new FormGroup({
-        number: new FormControl('',[Validators.required])
+        number: new FormControl('')
       }),
       gen_objective: new FormControl('',[Validators.required,MyValidators.isBlank]),
       esp_objectives: new FormArray([new FormControl('',[Validators.required,MyValidators.isBlank])]),
@@ -410,9 +410,9 @@ export class NewProjectComponent{
                   parameters: new FormArray([])
                 });
         
-                for(let k = 0; k < this.indicatorsSelected[i].parameters_schema.length; k++){
+                for(let k = 0; k < indicador.parameters_schema.length; k++){
                   (<FormArray> baselineCtrl.get('parameters')).push(new FormGroup({
-                    name: new FormControl(this.indicatorsSelected[i].parameters_schema[k]['name']),
+                    name: new FormControl(indicador.parameters_schema[k]['name']),
                     baseline: new FormControl('')
                   }));
                 }
@@ -706,7 +706,7 @@ export class NewProjectComponent{
 
   createProject(){
     this.store.dispatch(fromLoadingActions.initLoading({message: 'Guardando el proyecto...'}));
-    if(this.GeneralFormGroup.invalid || !this.File || !this.indicatorsSelected.length || !this.organizationsSelected.length || !(<FormArray> this.GeneralFormGroup.get('funders')).length){
+    if(this.GeneralFormGroup.invalid || !this.indicatorsSelected.length || !this.organizationsSelected.length || !(<FormArray> this.GeneralFormGroup.get('funders')).length){
       this.store.dispatch(fromLoadingActions.stopLoading());
       return alert('Debe completar todo el formulario de registro de Proyectos!\n\nNo olvide asignar los financiadores, indicadores y organizaciones. Tampoco olvide seleccionar el archivo de lista de beneficiarios.')
     }
