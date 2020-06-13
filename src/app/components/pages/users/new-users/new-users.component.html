@@ -85,9 +85,10 @@
                         <mat-form-field class="full-width">
                             <mat-label>Rol del Usuario</mat-label>
                             <mat-select formControlName="role">
+                                <mat-option value="Financiador">Financiador</mat-option>
                                 <mat-option value="Técnico">Técnico</mat-option>
                                 <mat-option value="Coordinador">Coordinador</mat-option>
-                                <mat-option value="Financiador">Financiador</mat-option>
+                                <mat-option value="Supervisor">Supervisor</mat-option>
                                 <mat-option value="Administrador">Administrador</mat-option>
                             </mat-select>
                             <mat-error *ngIf="this.UserForm.controls.role.errors?.required">Debe seleccionar un rol de usuario</mat-error>
@@ -96,7 +97,7 @@
                 </div>
             </mat-card-content>
         </mat-card>
-        <mat-card class="mt-4 mb-4" *ngIf="this.UserForm.get('role').value == 'Técnico'">
+        <mat-card class="mt-4 mb-4" *ngIf="this.UserForm.get('role').value == 'Técnico' || this.UserForm.get('role').value == 'Supervisor'">
             <mat-card-title class="font-weight-lighter">Asignación de Organizaciones</mat-card-title>
             <mat-divider></mat-divider>
             <mat-card-content>
@@ -130,7 +131,7 @@
                             </mat-selection-list>
                         </div>
                     </div>
-                    <div class="col-sm-6" *ngIf="this.UserForm.get('organizations').get('criteria').value != 'individual'">
+                    <div class="col-sm-6" *ngIf="this.UserForm.get('organizations').get('criteria').value != 'individual' && this.UserForm.get('role').value == 'Técnico'">
                         <div>
                             <div class="project-list-title">Excepto:</div>
                             <mat-selection-list class="projects-selection-list">

@@ -71,7 +71,13 @@ export class NewUsersComponent {
   }
 
   changeCriteria(value){
-    if(value == 'individual') return this.filteredOrganizations = [];
+    this.filteredOrganizations = [];
+    for(let i = (<FormArray> this.UserForm.get('organizations').get('organizations')).length -1; i >= 0; i--){
+      (<FormArray> this.UserForm.get('organizations').get('organizations')).removeAt(i);
+    }
+    for(let i = (<FormArray> this.UserForm.get('organizations').get('criteriaItem')).length -1; i >= 0; i--){
+      (<FormArray> this.UserForm.get('organizations').get('criteriaItem')).removeAt(i);
+    }
   }
 
   onOrganizationChange(id : string){

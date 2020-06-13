@@ -26,4 +26,5 @@ export interface User {
     position: string;
     email: string;
     funder?: any;
+    organizations?: any[];
 }

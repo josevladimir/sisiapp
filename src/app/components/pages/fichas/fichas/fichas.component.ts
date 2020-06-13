@@ -4,13 +4,14 @@ import * as moment from 'moment';
 import { Component } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SocketioService } from '../../../../services/socketio.service';
-import { UsersServiceService } from '../../../../services/users-service.service';
 import { ProjectsServiceService } from '../../../../services/projects-service.service';
 import { IndicatorsServiceService } from '../../../../services/indicators-service.service';
 import { initLoading, stopLoading } from '../../../../reducers/actions/loading.actions';
 import { FormGroup, FormControl, Validators, FormArray } from '@angular/forms';
 import { getDaysOfLapse } from '../../../../reducers/selectors/general.selector';
 import { environment } from '../../../../../environments/environment';
+import { FichasServiceService } from '../../../../services/fichas-service.service';
+import { getUserData } from '../../../../reducers/selectors/session.selector';
 
 @Component({
   selector: 'app-fichas',
@@ -32,7 +33,8 @@ export class FichasComponent {
 
   UserResponsable : any;
 
-  SchemaForm : any; 
+  Schema : any;
+  SchemaForm : FormGroup; 
 
   Period : any;
 
@@ -42,8 +44,10 @@ export class FichasComponent {
 
   daysOfLapse : number;
 
+  User : any;
+
   constructor(public _projectsService : ProjectsServiceService,
-              private _usersService : UsersServiceService,
+              private fichaService : FichasServiceService,
               private _indicatorsService : IndicatorsServiceService,
               private _store : Store<State>,
               private _sockets : SocketioService,
@@ -63,13 +67,13 @@ export class FichasComponent {
       start_date: project.start_date,
       indicators: project.indicators,
       organizations: project.organizations,
-      records: project.records
+      schema: project.full_schema
     }
   }
 
   generateSchema(){
     this.Status = 'loading';
-    setTimeout(this.makeSchema.bind(this),1500);
+    this.makeSchema();
   }
 
   makeSchema(){
@@ -148,63 +152,82 @@ export class FichasComponent {
   }
 
   comprobarDisponibilidad(){
-    if(this.Project.records.length){
-      for(let i = 0; i < this.Project.records.length; i++){
-        if(this.Project.records[i].records.indicator == this.selectedIndicator && this.Period.period == this.Project.records[i].period.period){
-          this.SchemaForm = this.Project.records[i];
-          let user : any;
-          this._usersService.getUser().subscribe(users => {
-            user = users.filter(user => user._id == this.SchemaForm.created_by)[0];
-            this.UserResponsable = `${user.name} ${user.last_names} - ${user.position}`;
-          });
-          this.Status = 'already-filled';
-          break;
-        }else{
-          this.Status = 'ready';
-        }
-      }
-      if(this.Status == 'ready') this.makeSchemaForm.call(this);
-    }else{
-      this.makeSchemaForm.call(this);
-      this.Status = 'ready';
-    }
+    this.fichaService
+        .existFicha(this.Project._id,this.Indicator._id,this.Period.period)
+        .subscribe((ficha : any) => {
+          console.log(ficha);
+          if(ficha.exist){
+            console.log('existe');
+            this._store.select(getUserData).subscribe(user => {
+              this.Schema = ficha.ficha;
+              this.User = {organizations: user.organizations ? user.organizations : null,role: user.role};
+              this.makeSchemaForm(ficha.exist);
+            }); 
+          }else{
+            console.log('no existe');
+            this._store.select(getUserData).subscribe(user => {
+              this.User = {organizations: user.organizations ? user.organizations : null,role: user.role};
+              this.makeSchemaForm(ficha.exist);
+            }); 
+          }
+        });
   }
 
-  makeSchemaForm(){
-    if(this.Indicator.type == 'Simple' || this.Indicator.type == 'Grupo'){
+  makeSchemaForm(exist : boolean){
+    if(this.Indicator.type == 'Simple'){
+      if(this.Indicator.parameters_schema[0].haveSchema) this.fieldsSchema = this.Indicator.parameters_schema[0].record_schema;
+      else this.fieldsSchema = this.Indicator.parameters_schema;
+    }else if(this.Indicator.type == 'Grupo'){
       this.fieldsSchema = this.Indicator.parameters_schema;
     }else if(this.Indicator.type == 'Compuesto'){
       this.fieldsSchema = this.Indicator.record_schema;
     }
     this.SchemaForm = new FormGroup({
-      period: new FormGroup({
-        date: new FormGroup({
-          to: new FormControl(this.Period.date.to),
-          from: new FormControl(this.Period.date.from)
-        }),
-        period: new FormControl(this.Period.period)
+      lapse: new FormGroup({
+        to: new FormControl(this.Period.date.to),
+        from: new FormControl(this.Period.date.from)
       }),
-      records: new FormGroup({
-        indicator: new FormControl(this.selectedIndicator),
-        rows: new FormArray([])
-      })
+      period: new FormControl(this.Period.period),
+      indicator: new FormControl(this.selectedIndicator),
+      rows: new FormArray([])
     });
 
-    this.Project.organizations.forEach((organization) => {
-        let fieldsCtrl : FormGroup = new FormGroup({
-          organization: new FormControl(organization._id),
-          name: new FormControl(organization.name),
-          fields: new FormArray([])
-        });
-        this.fieldsSchema.forEach(field => {
-          (<FormArray> fieldsCtrl.get('fields')).push(new FormGroup({
-            name: new FormControl(field.name),
-            value: new FormControl('',Validators.required)
-          }));
-        });
-        (<FormArray> this.SchemaForm.get('records').get('rows')).push(fieldsCtrl);
+    this.Project.organizations.forEach((organization,i) => {
+      let fieldsCtrl : FormGroup = new FormGroup({
+        organization: new FormControl(organization._id),
+        name: new FormControl(organization.name),
+        fields: new FormArray([])
+      });
+      this.fieldsSchema.forEach((field,j) => {
+      if(exist) (<FormArray> fieldsCtrl.get('fields')).push(new FormGroup({
+          name: new FormControl(field.name),
+          value: new FormControl(this.Schema.rows[i].fields[j].value,Validators.required),
+          unit: new FormControl(field.unit)
+        }));
+      else (<FormArray> fieldsCtrl.get('fields')).push(new FormGroup({
+          name: new FormControl(field.name),
+          value: new FormControl('',Validators.required),
+          unit: new FormControl(field.unit)
+        }));
+      });
+      (<FormArray> this.SchemaForm.get('rows')).push(fieldsCtrl);
     });
+    if(exist) return this.Status = 'already-filled';
+    return this.Status = 'ready';
 
+  }
+
+  verifyOrganization(id) : boolean {
+    if(this.User.role == 'Técnico'){
+      let allowed : boolean = false;
+      for(let i = 0; i < this.User.organizations.length; i++){
+        if(id == this.User.organizations[i].id){
+          allowed = true;
+          break;
+        }
+      }
+      return allowed;
+    }else return true;
   }
 
   onProjectSelect(ev){
@@ -225,23 +248,19 @@ export class FichasComponent {
   }
 
   save(){
-    console.log(this.SchemaForm.value);
-    this._store.dispatch(initLoading({message: 'Guardando Ficha...'}));
-    this._projectsService.updateProject({records: this.SchemaForm.value},this.selectedProject).subscribe(
-      result => {
-        this._projectsService.updateProjectOnStorage(true);
-        this._sockets.emit('projectWasUpdated',{});
-        this.Status = 'none';
-
-        this.Project.records = result.project.records;
-
-        this.selectedIndicator = null;
-        this._store.dispatch(stopLoading());
-        this._snackBar.open('Ficha guardada exitosamente.','ENTENDIDO',{duration:3000});
-      },error =>{
-        this._store.dispatch(stopLoading());
-        this._snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
-      } 
-    )
+    if(confirm('¿Seguro que ya desea guardar la ficha?')){
+      this._store.dispatch(initLoading({message: 'Guardando Ficha...'}));
+      this.fichaService.saveFicha(this.SchemaForm.value).subscribe(
+        result => {
+          this.Status = 'none';
+          this.selectedIndicator = null;
+          this._store.dispatch(stopLoading());
+          this._snackBar.open('Ficha guardada exitosamente.','ENTENDIDO',{duration:3000});
+        },error =>{
+          this._store.dispatch(stopLoading());
+          this._snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
+        } 
+      )
+    }
   }
 }

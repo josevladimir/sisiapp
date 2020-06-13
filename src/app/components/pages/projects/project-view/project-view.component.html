@@ -328,7 +328,7 @@
                                         <div class="col-sm-6">
                                             <mat-form-field class="full-width">
                                                 <mat-label>Ingresar Línea Base:</mat-label>
-                                                <mat-select formControlName="type" (valueChange)="remakeBaselineSchema($event,i)">
+                                                <mat-select formControlName="type"><!--Agregar el remakeBaseline-->
                                                     <mat-option value="individual">Individual</mat-option>
                                                     <mat-option value="grupos">Por Grupos de Organizaciones</mat-option>
                                                 </mat-select>
@@ -337,7 +337,7 @@
                                         <div class="col-sm-6">
                                             <mat-form-field class="full-width" *ngIf="this.indicadorGroup.get('baseline_diff').get('type').value != 'individual'">
                                                 <mat-label>Agrupar por:</mat-label>
-                                                <mat-select formControlName="by" (valueChange)="remakeBaselineSchema($event,i)">
+                                                <mat-select formControlName="by"><!--Agregar el remakeBaseline-->
                                                     <mat-option value="sectors">Sector</mat-option>
                                                     <mat-option value="types">Tipo</mat-option>
                                                 </mat-select>

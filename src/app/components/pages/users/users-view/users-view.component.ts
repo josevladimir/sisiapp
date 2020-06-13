@@ -135,11 +135,11 @@ export class UsersViewComponent {
 
   getStatus(type: string, value: string) : boolean{
     if(type == 'individual'){
-      for(let i = 0; i < this.User.organizations.organizations.length; i++){
+      for(let i = 0; i < (<FormArray> this.UserForm.get('organizations').get('organizations')).length; i++){
         if((<FormArray> this.UserForm.get('organizations').get('organizations')).at(i).get('id').value == value) return true
       }
     }else if(type == 'criteria'){
-      for(let i = 0; i < this.User.organizations.criteriaItem.length; i++){
+      for(let i = 0; i < (<FormArray> this.UserForm.get('organizations').get('criteriaItem')).length; i++){
         if((<FormArray> this.UserForm.get('organizations').get('criteriaItem')).at(i).value == value) return true
       }
     }
@@ -162,7 +162,13 @@ export class UsersViewComponent {
   }
 
   changeCriteria(value){
-    if(value == 'individual') return this.filteredOrganizations = [];
+    this.filteredOrganizations = [];
+    for(let i = (<FormArray> this.UserForm.get('organizations').get('organizations')).length -1; i >= 0; i--){
+      (<FormArray> this.UserForm.get('organizations').get('organizations')).removeAt(i);
+    }
+    for(let i = (<FormArray> this.UserForm.get('organizations').get('criteriaItem')).length -1; i >= 0; i--){
+      (<FormArray> this.UserForm.get('organizations').get('criteriaItem')).removeAt(i);
+    }
   }
 
   onOrganizationChange(id : string){

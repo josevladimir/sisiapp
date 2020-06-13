@@ -52,7 +52,7 @@
                 </div>
             </div>
         </mat-card>
-        <mat-card *ngIf="this.Status == 'ready'">
+        <mat-card *ngIf="this.Status == 'ready' || this.Status == 'already-filled'"><!--Formulario para Ficha-->
             <mat-card-title class="font-weight-lighter">Ficha</mat-card-title>
             <mat-divider></mat-divider>
             <mat-card-content>
@@ -61,16 +61,19 @@
                         <p>Proyecto: <span class="font-weight-lighter">{{this.Project.name}}</span></p>
                         <p>Indicador: <span class="font-weight-lighter">{{this.Indicator.name}}</span></p>
                         <p>Periodo: <span class="font-weight-lighter">{{this.Period.date.from | date : 'dd MMMM yyyy'}} - {{this.Period.date.to |date : 'dd MMMM yyyy'}} ({{this.Period.period}})</span></p>
+                        <div *ngIf="this.Status == 'already-filled'">
+                            <p *ngFor="let technic of this.Schema.created_by">Técnico Responsable: <span class="font-weight-lighter">{{technic.name}} {{technic.last_names}} - {{technic.position}}</span></p>
+                        </div>
                     </div>
                     <form [formGroup]="this.SchemaForm">
                         <div class="table-container full-width">
-                            <table class="baseline-table full-width" formGroupName="records">
+                            <table class="baseline-table full-width">
                                 <tr>
                                     <th class="sticky main-row">ORGANIZACIÓN</th>
                                     <th class="main-row" *ngFor="let field of this.fieldsSchema">{{field.name}}</th>
                                 </tr>
-                                <tbody formArrayName="rows" *ngFor="let row of this.SchemaForm.get('records').get('rows').controls; let i = index">
-                                    <tr [formGroupName]="i">
+                                <tbody formArrayName="rows" *ngFor="let row of this.SchemaForm.get('rows')['controls']; let i = index">
+                                    <tr [formGroupName]="i" *ngIf="verifyOrganization(row.get('organization').value)">
                                         <td class="sticky main-col font-weight-lighter">{{row.get('name').value}}</td>
                                         <td formArrayName="fields" class="main-col" *ngFor="let field of this.fieldsSchema; let j = index">
                                             <div [formGroupName]="j">
@@ -92,11 +95,11 @@
                 <div class="flex">
                     <span class="fill-remaining-space"></span>
                     <button mat-button type="button" (click)="this.cancel()">CANCELAR</button>
-                    <button mat-raised-button color="primary" type="button" [disabled]="this.SchemaForm.invalid" (click)="this.save()">GUARDAR</button>
+                    <button mat-raised-button color="primary" type="button" (click)="this.save()">GUARDAR</button>
                 </div>
             </mat-card-actions>
         </mat-card>
-        <mat-card *ngIf="this.Status == 'already-filled'"><!--Tarjeta Ficha Llena-->
+        <!--mat-card *ngIf="this.Status == 'already-filled'"><--Tarjeta Ficha Llena->
             <mat-card-title class="font-weight-lighter">Esta Ficha ya ha sido llenada</mat-card-title>
             <mat-divider></mat-divider>
             <mat-card-content>
@@ -105,17 +108,17 @@
                         <p>Proyecto: <span class="font-weight-lighter">{{this.Project.name}}</span></p>
                         <p>Indicador: <span class="font-weight-lighter">{{this.Indicator.name}}</span></p>
                         <p>Periodo: <span class="font-weight-lighter">{{this.Period.date.from | date : 'dd MMMM yyyy'}} - {{this.Period.date.to |date : 'dd MMMM yyyy'}} ({{this.Period.period}})</span></p>
-                        <p>Técnico Responsable: <span class="font-weight-lighter">{{this.UserResponsable}}</span></p>
+                        <p>Técnico Responsable: <span class="font-weight-lighter">{{this.Schema.created_by.name}} {{this.Schema.created_by.last_names}} - {{this.Schema.created_by.position}}</span></p>
                     </div>
                     <div class="table-container full-width">
                         <table class="baseline-table full-width">
                             <tr>
                                 <th class="sticky main-row">ORGANIZACIÓN</th>
-                                <th class="main-row" *ngFor="let field of this.SchemaForm.records.rows[0].fields">{{field.name}}</th>
+                                <th class="main-row" *ngFor="let field of this.Schema.rows[0].fields">{{field.name}}</th>
                             </tr>
                             <tr *ngFor="let organization of this.Project.organizations; let i = index">
                                 <td class="sticky main-col font-weight-lighter text-center">{{organization.name}}</td>
-                                <td class="main-col" *ngFor="let field of this.SchemaForm.records.rows[i].fields; let j = index">
+                                <td class="main-col" *ngFor="let field of this.Schema.rows[i].fields; let j = index">
                                     <div class="full-width font-weight-lighter text-center">{{field.value}}</div>
                                 </td>
                             </tr>
@@ -123,7 +126,7 @@
                     </div>
                 </div>
             </mat-card-content>
-        </mat-card>
+        </mat-card-->
         <mat-card *ngIf="this.Status == 'outDateProject'"><!--Tarjeta Ficha Fuera de Periodo-->
             <div>
                 <div class="p-4">

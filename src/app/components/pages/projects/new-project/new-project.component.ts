@@ -71,13 +71,14 @@ export class NewProjectComponent{
     this.GeneralFormGroup = new FormGroup({
       name: new FormControl('',[Validators.required,MyValidators.existProject,MyValidators.isBlank]),
       start_date: new FormControl(new Date(),[Validators.required]),
+      monitoring_date: new FormControl(new Date(),[Validators.required]),
       duration: new FormControl(12,Validators.required),
       budgets: new FormGroup({
         total_inicial: new FormControl('',[Validators.required])
       }),
       ubication: new FormControl('',[Validators.required,MyValidators.isBlank]),
       beneficiaries: new FormGroup({
-        number: new FormControl('')
+        number: new FormControl('',Validators.required)
       }),
       gen_objective: new FormControl('',[Validators.required,MyValidators.isBlank]),
       esp_objectives: new FormArray([new FormControl('',[Validators.required,MyValidators.isBlank])]),
@@ -95,6 +96,10 @@ export class NewProjectComponent{
   deleteObjective = (index : number) => { if(confirm('¿Está seguro de que quiere eliminar este objetivo?')) (<FormArray> this.GeneralFormGroup.get('esp_objectives')).removeAt(index); }
 
   deleteResult = (index : number) => { if(confirm('¿Está seguro de que quiere eliminar este resultado?')) (<FormArray> this.GeneralFormGroup.get('results')).removeAt(index); }
+
+  assignDate(event){
+    this.GeneralFormGroup.get('monitoring_date').setValue(event.value);
+  }
 
   setDuration () {
 
@@ -115,7 +120,7 @@ export class NewProjectComponent{
             }
             if(duration_diff % 12){
               let toAdd : number = 12 - (duration_diff % 12);
-              let inicioProyecto = Moment(new Date(this.GeneralFormGroup.get('start_date').value));
+              let inicioProyecto = Moment(new Date(this.GeneralFormGroup.get('monitoring_date').value));
               let longitud : number = (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('goal')).length;
               let period : any = inicioProyecto.add(longitud - 1,'year');
               period = inicioProyecto.add(toAdd,'months').format();
@@ -160,7 +165,7 @@ export class NewProjectComponent{
             }
             if(duration_diff % 12){
               let toAdd : number = 12 - (duration_diff % 12);
-              let inicioProyecto = Moment(new Date(this.GeneralFormGroup.get('start_date').value));
+              let inicioProyecto = Moment(new Date(this.GeneralFormGroup.get('monitoring_date').value));
               let longitud : number = (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('goal')).length;
               let period : any = inicioProyecto.add(longitud - 1,'year');
               period = inicioProyecto.add(toAdd,'months').format();
@@ -201,7 +206,7 @@ export class NewProjectComponent{
         duration_diff = Math.abs(duration_diff);
         if(!(this.projectDuration % 12)){ //La duración anterior era exacta en años.
           for(let i = 0; i < this.indicatorsSelected.length; i++){
-            let inicioProyecto = Moment(new Date(this.GeneralFormGroup.get('start_date').value));
+            let inicioProyecto = Moment(new Date(this.GeneralFormGroup.get('monitoring_date').value));
             inicioProyecto = inicioProyecto.add((<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('goal')).length,'year');
 
             for(let a = 0; a < Math.trunc(duration_diff / 12); a++){
@@ -274,7 +279,7 @@ export class NewProjectComponent{
 
             (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('goal')).removeAt(total_goals-1);
 
-            let inicioProyecto = Moment(new Date(this.GeneralFormGroup.get('start_date').value));
+            let inicioProyecto = Moment(new Date(this.GeneralFormGroup.get('monitoring_date').value));
 
             for(let a = 0; a < Math.trunc(duration_diff / 12); a++){
               let goalCtrl : FormGroup = new FormGroup({
@@ -444,7 +449,7 @@ export class NewProjectComponent{
 
       }
       
-      let inicioProyecto = Moment(new Date(this.GeneralFormGroup.get('start_date').value));
+      let inicioProyecto = Moment(new Date(this.GeneralFormGroup.get('monitoring_date').value));
       for(let i = 0; i < Math.trunc(this.projectDuration/12); i++){
         (<FormArray> indicatorGroup.get('goal')).push(new FormGroup({
           yearNumber: new FormControl(`${i+1}º año`),

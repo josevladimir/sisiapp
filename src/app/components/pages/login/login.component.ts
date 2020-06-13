@@ -49,7 +49,8 @@ export class LoginComponent{
             role: result.user.role,
             position: result.user.position,
             _id: result.user._id,
-            funder: result.user.funder ? result.user.funder : null
+            funder: result.user.funder ? result.user.funder : null,
+            organizations: result.user.organizations ? result.user.organizations.organizations : null
           }
           this._store.dispatch(fromSessionActions.authenticate({user}));
         }

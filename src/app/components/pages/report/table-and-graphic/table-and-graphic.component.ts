@@ -47,9 +47,6 @@ export class TableAndGraphicComponent {
   Users: any[];
 
   constructor(public usersService : UsersServiceService) { 
-    this.usersService.getUsersLocal().subscribe(users => {
-      this.Users = users;
-      this.Technic = users.filter(user => user._id == this.SchemaTable.technic)[0]});
     this.setReady = new EventEmitter();
   }
 
@@ -70,7 +67,6 @@ export class TableAndGraphicComponent {
     this.generateTablesAndGraphicsData();
     if(this.Indicator.antiquity_diff) this.getPromediosDiferenciados();
     this.getIndicatorsPromedio();
-    this.Technic = this.Users.filter(user => user._id == this.SchemaTable.technic)[0];
     this.setReady.emit();
   }
 
@@ -156,12 +152,44 @@ export class TableAndGraphicComponent {
         this.SchemaTable = {
           projectName: this.Project.name,
           technic: this.Schema.created_by,
-          schema: this.Schema.records.rows
+          schema: this.Schema.rows
         };
+
+        let baseline : any = this.Project.full_schema.filter(indicador => indicador.id == this.Indicator._id)[0]; 
   
-        this.Parameters = this.Indicator.parameters_schema;
+        let parameters : any[] = this.Indicator.parameters_schema;
+
+        for(let i = 0; i < this.Schema.rows.length; i++){
+
+          /**
+           * Tabla de Cálculo de Parámetros
+           */
   
-        this.Project.organizations.forEach((organization,i) => {
+          let parameterItem = {
+            name: this.Schema.rows[i].name,
+            id: this.Schema.rows[i].organization,
+            parameters: []
+          };
+          let organization : any;
+          for(let i = 0; i < this.Project.organizations.length; i++){
+            if(this.Project.organizations[i]._id == parameterItem.id){
+              organization = this.Project.organizations[i];
+              break;
+            }
+          }
+          
+          for(let j = 0; j < parameters.length; j++){
+            parameterItem.parameters.push({
+              value: this.calculateParameter(parameters[j].definition,this.Schema.rows[i].fields,baseline,organization,parameters[j].name),
+              definition: this.formatDefinition(parameters[j].definition),
+              unit: parameters[j].unit,
+              isAcum: parameters[j].isAcum,
+              name: parameters[j].name
+            });
+          }
+            
+          
+          this.ParametersTable.push(parameterItem);
   
           /**
            * Tabla del Indicador Calculado
@@ -170,13 +198,111 @@ export class TableAndGraphicComponent {
           let indicadorItem = {
             name: organization.name,
             id: organization._id,
-            isOlder: (this.Project.organizations_diff.filter(org => organization._id == org.id)[0]).isOlder,
             goals: this.ReportSchema.goal,
             total_indicator: {
               value: 0,
               details: {}
             }
           };
+  
+          for(let j = 0; j < this.SchemaTable.schema.length; j++){
+            if(this.SchemaTable.schema[j].organization == organization._id){
+              let startDate = moment(this.Project.start_date);
+              let diferencia = moment(this.Period.date.to).diff(startDate,'months');
+              let year = `${Math.trunc(diferencia / 12) + 1}º año`;
+              for(let k = 0; k < indicadorItem.goals.length; k++){
+                if(year == indicadorItem.goals[k].yearNumber){
+                  for(let l = 0; l < parameters.length; l++){
+                    if(parameters[l].unit != 'Cualitativo' ){
+                      let valor = (Math.round(this.ParametersTable[i].parameters[l].value * 100 / parseInt(indicadorItem.goals[k].parameters[0].goals.goal.replace('%',''))));
+                      if(valor > 100) indicadorItem.total_indicator.value = 100;
+                      else if(valor < 0) indicadorItem.total_indicator.value = 0;
+                      else if(valor < 100 && valor > 0)indicadorItem.total_indicator.value = valor;
+                    }
+                    break;
+                  }
+                  break;
+                }
+              }
+            }
+          }
+  
+          indicadorItem.total_indicator.details = this.getCalification(indicadorItem.total_indicator.value);
+  
+          console.log(indicadorItem);
+  
+          this.IndicatorTable.push(indicadorItem);
+        }
+
+        console.log(this.IndicatorTable);
+
+        /*
+
+        
+      
+  
+          /**
+           * Tabla del Indicador Calculado
+           *
+  
+          let indicadorItem = {
+            name: organization.name,
+            id: organization._id,
+            isOlder: (this.Project.organizations_diff.filter(org => organization._id == org.id)[0]).isOlder,
+            goals: this.ReportSchema.goal,
+            parameters: [],
+            total_indicator: {
+              value: 0,
+              details: {}
+            }
+          };
+  
+            let startDate = moment(this.Project.start_date);
+            let diferencia = moment(this.Period.date.to).diff(startDate,'months');
+            let year = `${Math.trunc(diferencia / 12) + 1}º año`;
+            for(let k = 0; k < indicadorItem.goals.length; k++){
+              if(year == indicadorItem.goals[k].year){
+                let goal : any;
+                if(this.Indicator.antiquity_diff) goal = indicadorItem.goals[k].parameters[0].goals;
+                else goal = indicadorItem.goals[k].parameters[0].goals;
+                indicadorItem.parameters.push({
+                  ponderacion: this.calculateWeighing(this.ParametersTable[i].parameters[0].value,this.Parameters.weighing,goal,(this.Project.organizations_diff.filter(org => organization._id == org.id)[0]).isOlder,this.Indicator.antiquity_diff)
+                });
+              }
+            }
+            //Cálculo del Total del Indicador
+            indicadorItem.total_indicator.value += indicadorItem.parameters[0].ponderacion.medido;
+        
+  
+          indicadorItem.total_indicator.details = this.getCalification(indicadorItem.total_indicator.value);
+  
+          this.IndicatorTable.push(indicadorItem);
+
+
+
+
+
+
+  
+          /**
+           * Tabla del Indicador Calculado
+           *
+  
+          let indicadorItem = {
+            name: organization.name,
+            id: organization._id,
+            isOlder: false,
+            goals: this.ReportSchema.goal,
+            total_indicator: {
+              value: 0,
+              details: {}
+            }
+          };
+
+          if(organization.type == 'SFL') indicadorItem.isOlder = organization.isOlder;
+          else{
+            indicadorItem.isOlder = (this.Project.organizations_diff.filter(org => organization._id == org.id)[0]).isOlder;
+          } 
   
           for(let j = 0; j < this.SchemaTable.schema.length; j++){
             if(this.SchemaTable.schema[j].organization == organization._id){
@@ -206,10 +332,9 @@ export class TableAndGraphicComponent {
           console.log(indicadorItem);
   
           this.IndicatorTable.push(indicadorItem);
-  
         });
 
-        console.log(this.IndicatorTable);
+        console.log(this.IndicatorTable);*/
 
         /**
          * Graficos Data
@@ -219,10 +344,10 @@ export class TableAndGraphicComponent {
           multi: []
         }
   
-        this.Project.organizations.forEach((organization,j) => {
+        this.Schema.rows.forEach((row,j) => {
           
           item.multi.push({
-            name: organization.name,
+            name: row.name,
             series: [
               {
                 name: 'Valor Medido',
@@ -257,7 +382,7 @@ export class TableAndGraphicComponent {
           
           parameters.forEach(parameter => {
             parameterItem.parameters.push({
-              value: this.calculateParameter(parameter.definition,(this.SchemaTable.schema.filter(row => row.organization == organization._id)[0]).fields),
+              //value: this.calculateParameter(parameter.definition,(this.SchemaTable.schema.filter(row => row.organization == organization._id)[0]).fields),
               definition: this.formatDefinition(parameter.definition),
               unit: parameter.unit,
               isAcum: parameter.isAcum,
@@ -414,7 +539,7 @@ export class TableAndGraphicComponent {
   
           /**
            * Graficos Data
-           */
+           *
           this.ChartData.push({
             name: organization.name,
             multi: [],
@@ -431,7 +556,7 @@ export class TableAndGraphicComponent {
                 }
               ]
             })
-          });
+          });*/
   
         });
   
@@ -501,20 +626,67 @@ export class TableAndGraphicComponent {
       return result;
     }
   
-    calculateParameter(definition : string[],fields : any[]) : number {
+    calculateParameter(definition : string[],fields : any[],baseline : any, organization : any, nameParameter : string) : number {
       let calculated : string = '';
       definition.forEach((operador : any) => {
         if(operador.type == 'normal'){
           if(operador.value == '*100%') calculated += '*100';
+          else if(operador.value == 'LB'){
+            if(baseline.baseline_diff.type == 'individual'){
+              for(let i = 0; i < baseline.baseline.length; i++){
+                if(baseline.baseline[i].organization == organization.name){
+                  for(let j = 0; j < baseline.baseline[i].parameters.length; j++){
+                    if(baseline.baseline[i].parameters[j].name == nameParameter){
+                      calculated += baseline.baseline[i].parameters[j].baseline;
+                      break;
+                    }
+                  }
+                  break;
+                }
+              }
+            }else{
+              for(let i = 0; i < baseline.baseline.length; i++){
+                if(baseline.baseline_diff.by == 'sectors' && baseline.baseline[i].organization == organization['sector']){
+                  for(let j = 0; j < baseline.baseline[i].parameters.length; j++){
+                    if(baseline.baseline[i].parameters[j].name == nameParameter){
+                      calculated += baseline.baseline[i].parameters[j].baseline;
+                      break;
+                    }
+                  }
+                  break;
+                }else if(baseline.baseline_diff.by == 'types' && baseline.baseline[i].organization == organization['type']){
+                  for(let j = 0; j < baseline.baseline[i].parameters.length; j++){
+                    if(baseline.baseline[i].parameters[j].name == nameParameter){
+                      calculated += baseline.baseline[i].parameters[j].baseline;
+                      break;
+                    }
+                  }
+                  break;
+                }
+              }
+            }
+          }
           else calculated += operador.value;
         }else if(operador.type == 'field'){
           calculated += (fields.filter(field => operador.value == field.name)[0]).value;
         }
-      })
+      });
+      console.log(calculated);
       return Math.round(eval(calculated));
     }
   
-    /*formatPeriod(fecha : Date) : string{
+    /*
+    
+      0: {type: "normal", value: "("}
+      1: {type: "field", value: "Total Ingreso Mensual"}
+      2: {type: "normal", value: "-"}
+      3: {type: "normal", value: "LB"}
+      4: {type: "normal", value: ")"}
+      5: {type: "normal", value: "/"}
+      6: {type: "normal", value: "LB"}
+      7: {type: "normal", value: "*100%"}
+
+    formatPeriod(fecha : Date) : string{
       return `${this._service.getMonth(fecha.getMonth())} ${fecha.getFullYear()}`;
     }*/
 

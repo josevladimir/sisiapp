@@ -11,6 +11,7 @@ export const isCoordinator = createSelector(getMainState, (state : SessionState)
 
 export const getUserData = createSelector(getMainState, (state : SessionState) : User => state.user);
 
+export const getUserOrganizations = createSelector(getUserData, (state : User) : any[] => state.organizations);
 export const getUserToken = createSelector(getUserData, (state : User) : string => state.token);
 export const getUserRole = createSelector(getUserData, (state : User) : string => state.role);
 export const getUserId = createSelector(getUserData, (state : User) : string => state._id);

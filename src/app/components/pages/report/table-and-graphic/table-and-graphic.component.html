@@ -132,8 +132,8 @@
                         <div class="pt-3">
                             <p>Proyecto: <span class="font-weight-lighter">{{this.SchemaTable.projectName}}</span></p>
                             <p>Indicador: <span class="font-weight-lighter">{{this.Indicator.name}}</span></p>
-                            <p>Periodo: <span class="font-weight-lighter">{{this.Period.date.from | date : 'dd MMMM yyyy'}} - {{this.Period.date.to | date : 'dd MMMM yyyy'}} ({{this.Period.period}})</span></p>
-                            <p *ngIf="this.Technic">Técnico Responsable: <span class="font-weight-lighter">{{this.Technic.name}} {{this.Technic.last_names}} - {{this.Technic.position}}</span></p>
+                            <p>Periodo: <span class="font-weight-lighter">{{this.Period}}</span></p>
+                            <p *ngFor="let technic of this.Schema.created_by">Técnico Responsable: <span class="font-weight-lighter">{{technic.name}} {{technic.last_names}} - {{technic.position}}</span></p>
                         </div>
                         <div class="table-container full-width pt-3 pb-2">
                             <table class="baseline-table full-width">
@@ -143,9 +143,38 @@
                                 </tr>
                                 <tr *ngFor="let organization of this.SchemaTable.schema">
                                     <td class="sticky main-col text-center font-weight-lighter">{{organization.name}}</td>
-                                    <td *ngFor="let field of organization.fields; let i = index">
-                                        <div class="full-width font-weight-lighter text-center table-box">
+                                    <td *ngFor="let field of organization.fields" class="full-height">
+                                        <div class="full-width full-height font-weight-lighter text-center table-box">
                                             {{field.value}}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>        
+                    </mat-card-content>
+                </mat-card>
+    
+                <mat-card class="report-mat-card">
+                    <mat-card-title class="font-weight-lighter">Cálculo de los Parámetros</mat-card-title>
+                    <mat-divider></mat-divider>
+                    <mat-card-content>
+                        <div class="table-container pt-3 pb-2 full-width">
+                            <table class="baseline-table full-width">
+                                <tr>
+                                    <th class="sticky main-row"></th>
+                                    <th class="main-row" [matTooltip]="this.ParametersTable[0].parameters[i].definition" matTooltipPosition="above" *ngFor="let parameter of this.ParametersTable[0].parameters; let i = index">{{parameter.name}}</th>
+                                </tr>
+                                <tr *ngFor="let organization of this.ParametersTable">
+                                    <td class="sticky main-col font-weight-lighter text-center">{{organization.name}}</td>
+                                    <td *ngFor="let parameter of organization.parameters">
+                                        <div *ngIf="parameter.unit == 'Número'" class="full-width font-weight-lighter text-center table-box">
+                                            {{parameter.value}}
+                                        </div>
+                                        <div *ngIf="parameter.unit == 'Moneda'" class="full-width font-weight-lighter text-center table-box">
+                                            {{parameter.value | currency}}
+                                        </div>
+                                        <div *ngIf="parameter.unit == 'Porcentaje'" class="full-width font-weight-lighter text-center table-box">
+                                            {{parameter.value}}%
                                         </div>
                                     </td>
                                 </tr>
@@ -166,14 +195,19 @@
                                 </tr>
                                 <tr *ngFor="let organization of this.IndicatorTable; let i = index">
                                     <td class="sticky main-col text-center font-weight-lighter">{{organization.name}}</td>
+                                    <td *ngFor="let parameter of this.IndicatorTable[i].parameters">
+                                        <div class="full-width font-weight-lighter text-center table-box">
+                                            {{parameter.ponderacion.medido}}% de {{parameter.ponderacion.establecido}}%
+                                        </div>
+                                    </td>
                                     <td>
-                                        <div class="full-width font-weight-lighter text-center" [matTooltip]="organization.total_indicator.details.description" matTooltipPosition="left" [ngClass]="{'red': organization.total_indicator.value < 50,'green': organization.total_indicator.value >= 80, 'yellow': organization.total_indicator.value < 80 && organization.total_indicator.value >= 50}">
+                                        <div  class="full-width font-weight-lighter text-center" [ngClass]="{'red': organization.total_indicator.value < 50,'green': organization.total_indicator.value >= 80, 'yellow': organization.total_indicator.value < 80 && organization.total_indicator.value >= 50}">
                                             {{organization.total_indicator.value}}% - {{organization.total_indicator.details.letter}}
                                         </div>
                                     </td>
                                 </tr>
                             </table>
-                        </div>       
+                        </div>        
                     </mat-card-content>
                 </mat-card>
     
@@ -181,7 +215,7 @@
                     <mat-card-title class="font-weight-lighter">Resultados Indicador</mat-card-title>
                     <mat-divider></mat-divider>
                     <mat-card-content>
-                        <div class="columns-2 pt-3 pb-2">
+                        <div class="columns-2 pt-3 pb-2" *ngIf="!this.Indicator.antiquity_diff; else ConDiferenciacion">
                             <div class="flex flex-align-vertical">
                                 <span>Valor Promedio del Indicador: <span class="font-weight-lighter">{{this.Promedio}}%</span></span>
                             </div>
@@ -189,6 +223,25 @@
                                 <app-calification-circle [Promedio]="this.Promedio" DetailsPosition='bottom' [Calificacion]="this.Calificacion"></app-calification-circle>
                             </div>
                         </div>
+                        <ng-template #ConDiferenciacion>
+                            <div class="row pt-4">
+                                <div class="col-sm-4">
+                                    <div class="full-width text-center">Valor Promedio del Indicador en Antiguas:</div>
+                                    <h3 class="font-weight-lighter text-center full-width">{{this.PromediosDiferenciados.older.value}}%</h3>
+                                    <app-calification-circle [Promedio]="this.PromediosDiferenciados.older.value" DetailsPosition='below' [Calificacion]="this.PromediosDiferenciados.older.calification"></app-calification-circle>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="full-width text-center">Valor Promedio del Indicador en Nuevas:</div> 
+                                    <h3 class="font-weight-lighter text-center full-width">{{this.PromediosDiferenciados.newer.value}}%</h3>
+                                    <app-calification-circle [Promedio]="this.PromediosDiferenciados.newer.value" DetailsPosition='below' [Calificacion]="this.PromediosDiferenciados.newer.calification"></app-calification-circle>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="full-width text-center">Valor Promedio del Indicador: </div>
+                                    <h3 class="font-weight-lighter text-center full-width">{{this.Promedio}}%</h3>
+                                    <app-calification-circle [Promedio]="this.Promedio" DetailsPosition='below' [Calificacion]="this.Calificacion"></app-calification-circle>
+                                </div>
+                            </div>
+                        </ng-template>
                         
                     </mat-card-content>
                 </mat-card>

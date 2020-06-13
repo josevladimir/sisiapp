@@ -17,7 +17,7 @@
                                     <mat-select [(ngModel)]="this.selectedProject" matNativeControl (valueChange)="onProjectSelected($event)">
                                         <mat-option *ngFor="let project of this.Projects" [value]="project._id">{{project.name}}</mat-option>
                                     </mat-select>
-                                </mat-form-field> 
+                                </mat-form-field>
                             </div>
                             <div class="col-sm-4" *ngIf="this.selectedProject">
                                 <mat-form-field class="full-width">

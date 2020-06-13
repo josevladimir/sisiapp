@@ -1,9 +1,10 @@
-import { NgModule } from '@angular/core';
 import { StorageModule } from '@ngx-pwa/local-storage';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { HttpClientModule } from '@angular/common/http';
 import { NgxSortableModule } from 'ngx-sortable';
+import { registerLocaleData } from '@angular/common';
+import { LOCALE_ID, NgModule } from '@angular/core';
 import { MonacoEditorModule, MONACO_PATH} from '@materia-ui/ngx-monaco-editor';
 import { FormsModule, ReactiveFormsModule} from '@angular/forms';
 import { MAT_DATE_LOCALE, MatNativeDateModule } from '@angular/material/core';
@@ -90,22 +91,17 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { reducers } from './reducers/index';
 import { AppEffects } from './app.effects';
 import { StoreModule } from '@ngrx/store';
-import { environment } from '../environments/environment';
 import { EffectsModule } from '@ngrx/effects';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { StoreRouterConnectingModule } from '@ngrx/router-store';
 import { ForProjectsPipe } from './pipes/for-projects.pipe';
 import { ForFundersPipe } from './pipes/for-funders.pipe'; 
 
-/*const monacoConfig: NgxMonacoEditorConfig = {
-  baseUrl: 'assets', // configure base path for monaco editor default: './assets'
-  defaultOptions: { 
-    minimap: { enabled: false },
-    scrollBeyondLastLine: false,
-    wordWrap: 'on'
-  }, // pass default options to be used
-  onMonacoLoad: () => { console.log((<any>window).monaco); } // here monaco object will be available as window.monaco use this function to extend monaco editor functionalities.
-};*/
+
+import localeEsEc from '@angular/common/locales/es-EC';
+
+
+registerLocaleData(localeEsEc, 'es-EC');
 
 @NgModule({
   declarations: [
@@ -211,6 +207,7 @@ import { ForFundersPipe } from './pipes/for-funders.pipe';
       useValue: 'https://unpkg.com/monaco-editor@0.20.0/min/vs'
     },
     {provide: MAT_DATE_LOCALE, useValue: 'es-EC'},
+    {provide: LOCALE_ID, useValue: 'es-EC'},
     {provide: MAT_DIALOG_DEFAULT_OPTIONS, useValue: {hasBackdrop: false}}
   ],
   bootstrap: [AppComponent]
