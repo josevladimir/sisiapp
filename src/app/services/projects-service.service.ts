@@ -44,6 +44,10 @@ export class ProjectsServiceService {
     return this.storage.watch('projects');
   }
 
+  getProjectsUniqueLocal() : Observable<any>{
+    return this.storage.get('projects');
+  }
+
   createProject (project : any) : Observable<any> {
     return this.http
         .post<any>(`${environment.baseUrl}/Project/`,project,{headers: this.headersGenerator.generateJsonHeader()});

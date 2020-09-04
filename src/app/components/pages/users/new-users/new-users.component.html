@@ -124,10 +124,10 @@
                                 <mat-list-option class="font-weight-lighter" *ngFor="let organization of (this.$organizations)" [value]="organization._id" (click)="onOrganizationChange(organization._id)">{{organization.name}}</mat-list-option>
                             </mat-selection-list>
                             <mat-selection-list class="projects-selection-list" *ngIf="this.UserForm.get('organizations').get('criteria').value == 'sector'">
-                                <mat-list-option class="font-weight-lighter" *ngFor="let sector of (this.$preferences).sectors" [value]="sector._id" (click)="onCriteriaItemChange(sector)">{{sector}}</mat-list-option>
+                                <mat-list-option class="font-weight-lighter" *ngFor="let sector of this.$preferences.sectors" [value]="sector" (click)="onCriteriaItemChange(sector)">{{sector}}</mat-list-option>
                             </mat-selection-list>
                             <mat-selection-list class="projects-selection-list" *ngIf="this.UserForm.get('organizations').get('criteria').value == 'type'">
-                                <mat-list-option class="font-weight-lighter" *ngFor="let type of (this.$preferences).types" [value]="type._id" (click)="onCriteriaItemChange(type)">{{type}}</mat-list-option>
+                                <mat-list-option class="font-weight-lighter" *ngFor="let type of (this.$preferences).types" [value]="type" (click)="onCriteriaItemChange(type)">{{type}}</mat-list-option>
                             </mat-selection-list>
                         </div>
                     </div>

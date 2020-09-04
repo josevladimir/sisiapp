@@ -25,18 +25,22 @@
                             <span class="font-weight-lighter">{{this.Project.name}}</span>
                         </div>
                         <div class="col-sm-4">
-                            <small class="d-block full-width">Fecha de Inicio:</small>
-                            <span class="font-weight-lighter">{{this.Project.start_date | date : 'd/M/yyyy'}}</span>
-                        </div>
-                        <div class="col-sm-4">
                             <small class="d-block full-width">Ubicación (cantón):</small>
                             <span class="font-weight-lighter">{{this.Project.ubication}}</span>
+                        </div>
+                        <div class="col-sm-4">
+                            <small class="d-block full-width">Duración del Proyecto:</small>
+                            <span class="font-weight-lighter">{{this.Project.duration}} meses</span>
                         </div>
                     </div>
                     <div class="mb-3 row">
                         <div class="col-sm-4">
-                            <small class="d-block full-width">Duración del Proyecto:</small>
-                            <span class="font-weight-lighter">{{this.Project.duration}} meses</span>
+                            <small class="d-block full-width">Fecha de Inicio:</small>
+                            <span class="font-weight-lighter">{{this.Project.start_date | date : 'd/M/yyyy'}}</span>
+                        </div>
+                        <div class="col-sm-4">
+                            <small class="d-block full-width">Inicio de Seguimiento:</small>
+                            <span class="font-weight-lighter">{{this.Project.monitoring_date | date : 'd/M/yyyy'}}</span>
                         </div>
                     </div>
                     <mat-divider></mat-divider>
@@ -211,7 +215,7 @@
                 
                     <div id="graphic">
                         <div class="flex justify-content-center">
-                            <ngx-charts-line-chart *ngIf="this.multi"
+                            <!--ngx-charts-line-chart *ngIf="this.multi"
                                 [view]="view"
                                 [scheme]="colorScheme"
                                 [legend]="legend"
@@ -226,7 +230,7 @@
                                 (select)="onSelect($event)"
                                 (activate)="onActivate($event)"
                                 (deactivate)="onDeactivate($event)">
-                            </ngx-charts-line-chart>
+                            </ngx-charts-line-chart-->
                         </div>
                     </div>
 
@@ -290,7 +294,11 @@
             <form *ngIf="(this.isEditMode | async); else SchemaView" class="p-4" [formGroup]="this.SchemaFormGroup"> <!--Formulario de Esquema-->
         
                 <mat-card>
-                    <mat-card-title class="font-weight-lighter">Indicadores y Organizaciones</mat-card-title>
+                    <div class="flex flex-align-vertical">
+                        <mat-card-title class="font-weight-lighter">Indicadores y Organizaciones</mat-card-title>
+                        <span class="fill-remaining-space"></span>
+                        <button mat-raised-button color="primary" type="button" (click)="remakeSchema()"><mat-icon>refresh</mat-icon> Reajustar Periodos de Metas</button>
+                    </div>
                     <div class="row mt-3">
                         <div class="col-sm-6">
                             <div>

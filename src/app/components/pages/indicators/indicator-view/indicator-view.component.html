@@ -344,6 +344,7 @@
                                 <mat-option value="sector">Por Sector</mat-option>
                                 <mat-option value="type">Por Tipo de Organización</mat-option>
                                 <mat-option value="characteristic">Por Característica</mat-option>
+                                <mat-option value="CEFODI">Aplicar a CEFODI</mat-option>
                             </mat-select>
                         </mat-form-field>
                     </div>
@@ -363,11 +364,11 @@
                         <div *ngIf="this.IndicatorForm.get('organizations_diff_by').value == 'characteristic'">
                             <mat-form-field class="full-width">
                                 <mat-label>Seleccione la Característica</mat-label>
-                                <mat-select>
-                                    <mat-option>Con Negocios</mat-option>
-                                    <mat-option>Sin Negocios</mat-option>
-                                    <mat-option>Legalizadas</mat-option>
-                                    <mat-option>No Legalizadas</mat-option>
+                                <mat-select (valueChange)="this.selectOrganizations($event)">
+                                    <mat-option value="Con Negocios">Con Negocios</mat-option>
+                                    <mat-option value="Sin Negocios">Sin Negocios</mat-option>
+                                    <mat-option value="Legalizadas">Legalizadas</mat-option>
+                                    <mat-option value="No Legalizadas">No Legalizadas</mat-option>
                                 </mat-select>
                             </mat-form-field>
                         </div>

@@ -7,7 +7,7 @@ export interface GeneralState {
 
 export const initialState : GeneralState = {
     editMode: false,
-    lapseToRecord: 5
+    lapseToRecord: 25
 }
 
 export function reducer(state : GeneralState = initialState, action) : GeneralState{

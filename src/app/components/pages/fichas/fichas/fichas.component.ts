@@ -21,246 +21,320 @@ export class FichasComponent {
 
   assetsUrl : string = environment.assetsUrl;
 
-  Projects : any[];
-  Project : any;
-  selectedProject : string;
+  Projects : any[] = [];
+  ProjectSelected : any;
 
-  selectedIndicator : string;
-  Indicator : any;
-  Indicators : any[] = [];
+  IndicatorSelected : any;
 
-  fieldsSchema : any[];
+  FichaTable : FormGroup;
 
-  UserResponsable : any;
-
-  Schema : any;
-  SchemaForm : FormGroup; 
-
-  Period : any;
-
-  periodText : string;
-
-  Status : string = 'none';
+  Status : string;
 
   daysOfLapse : number;
 
-  User : any;
+  Period : any;
 
-  constructor(public _projectsService : ProjectsServiceService,
+  userOrganizations : any;
+
+  Schema : any;
+
+  constructor(private projectService : ProjectsServiceService,
+              private store : Store<State>,
+              private snackBar : MatSnackBar,
               private fichaService : FichasServiceService,
-              private _indicatorsService : IndicatorsServiceService,
-              private _store : Store<State>,
-              private _sockets : SocketioService,
-              private _snackBar : MatSnackBar) { 
+              private indicatorService : IndicatorsServiceService){
     
-    this._projectsService.getProjectsLocal().subscribe(projects => this.Projects = projects);
-    this._indicatorsService.getIndicatorsLocal().subscribe(indicators => this.Indicators = indicators);
-    this._store.select(getDaysOfLapse).subscribe((days : number) => this.daysOfLapse = days);
+    this.store.select(getDaysOfLapse).subscribe((days : number) => this.daysOfLapse = days);
+    projectService.getProjectsUniqueLocal().subscribe(projects => projects.forEach(project => this.Projects.push(this.formatProjectForList(project))));
+    this.store.select(getUserData).subscribe(user => {console.log(user); this.userOrganizations = user.organizations});
 
   }
-
-  formatProjects(project : any){
-    return {
-      name: project.name,
-      _id: project._id,
-      duration: project.duration,
-      start_date: project.start_date,
-      indicators: project.indicators,
-      organizations: project.organizations,
-      schema: project.full_schema
+  
+  cancel(){
+    if(confirm('La Ficha no será guardada. Esta acción no se puede deshacer.\n\n¿Está seguro que desea cancelar?')){
+      this.FichaTable.reset();
+      this.Status = 'none'
     }
   }
+  
+  save(){
+    console.log(this.FichaTable.value);
+    if(confirm('\n¿Seguro que ya desea guardar la ficha?')){
+      this.store.dispatch(initLoading({message: 'Guardando Ficha...'}));
+      if(!this.Schema)return this.fichaService.saveFicha(this.FichaTable.value)
+                                              .subscribe(result => {
+                                                            this.Status = 'none';
+                                                            this.store.dispatch(stopLoading());
+                                                            this.snackBar.open('Ficha guardada exitosamente.','ENTENDIDO',{duration:3000});
+                                                          },error =>{
+                                                            this.store.dispatch(stopLoading());
+                                                            this.snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
+                                                          });
+      else return this.fichaService.updateFicha(this.Schema._id,this.FichaTable.value)
+                                   .subscribe(result => {
+                                      if(result.message == 'OK') {
+                                        this.Status = 'none';
+                                        this.store.dispatch(stopLoading());
+                                        this.snackBar.open('Ficha guardada exitosamente.','ENTENDIDO',{duration: 3000});
+                                      }
+                                   },error => {
+                                     this.store.dispatch(stopLoading());
+                                     this.snackBar.open('Ha ocurriido un error.','ENTENDIDO',{duration: 3000});
+                                   });
+      
+    }
+  }
+
+  /*listeners*/
+  onProjectSelect(value){
+    this.ProjectSelected = this.Projects.filter(project => project._id == value)[0];
+  }
+
+  onIndicatorSelect(value){
+    this.indicatorService.getIndicatorsUniqueLocal().subscribe(indicators => {
+      this.IndicatorSelected = indicators.filter(indicator => indicator._id == value)[0];
+    }); 
+  }
+
+  indicadorTable : number = 0;
 
   generateSchema(){
     this.Status = 'loading';
-    this.makeSchema();
+
+    if(moment(new Date()).isAfter(moment(moment(this.ProjectSelected.start_date).add(this.ProjectSelected.duration,'months').add(this.daysOfLapse,'days').format()))) return this.Status = 'outDateProject';
+    
+    let startDate = moment(this.ProjectSelected.start_date);
+    let diferencia = moment(new Date()).diff(startDate,'months');
+    console.log('inicio',startDate);
+    console.log('diferencia',diferencia);
+    let noCorresponde : number;
+    let period : any; 
+    switch(this.IndicatorSelected.frequency){
+      case 'Mensual':
+        noCorresponde = 0;
+        period = {
+          period: Math.trunc(diferencia / 1) + 'º Mes',
+          date: {
+            to: new Date(startDate.add(diferencia,'months').format()),
+            from: new Date(startDate.subtract(1,'months').format()),
+          }
+        }  
+        break;
+      case 'Trimestral':
+        noCorresponde = diferencia % 3;
+        period = {
+          period: Math.trunc(diferencia / 3) + 'º Trimestre',
+          date: {
+            to: new Date(startDate.add(diferencia,'months').format()),
+            from: new Date(startDate.subtract(3,'months').format()),
+          }
+        }  
+        break;
+      case 'Semestral':
+        noCorresponde = diferencia % 6;
+        period = {
+          period: Math.trunc(diferencia / 6) + 'º Semestre',
+          date: {
+            to: new Date(startDate.add(diferencia,'months').format()),
+            from: new Date(startDate.subtract(6,'months').format()),
+          }
+        }  
+        break;
+      case 'Anual':
+        noCorresponde = diferencia % 12;
+        period = {
+          period: Math.trunc(diferencia / 12) + 'º Año',
+          date: {
+            to: new Date(startDate.add(diferencia,'months').format()),
+            from: new Date(startDate.subtract(12,'months').format()),
+          }
+        }  
+        break;
+      default:
+        break;
+    }
+
+    if(noCorresponde) return this.Status = 'noPeriod';
+
+    this.FichaTable = new FormGroup({
+      lapse: new FormGroup({
+        to: new FormControl(period.date.to),
+        from: new FormControl(period.date.from)
+      }),
+      indicator: new FormControl(this.IndicatorSelected._id),
+      of_project: new FormControl(this.ProjectSelected._id),
+      period: new FormControl(period.period),
+      rows: new FormArray([])
+    });
+
+    let fechaLimite = ((moment(this.ProjectSelected.start_date).add(diferencia,'months')
+                                                               .add(this.daysOfLapse,'days')
+                                                               .set('hours',23))
+                                                               .set('minutes',59))
+                                                               .set('seconds',59)
+                                                               .format();
+
+    let fueraDeTiempo : boolean = moment(new Date()).isAfter(moment(fechaLimite));
+
+    this.comprobarDisponibilidad(fueraDeTiempo);
+
   }
 
-  makeSchema(){
-    if(moment(new Date()).isAfter(moment(moment(this.Project.start_date).add(this.Project.duration,'months').add(this.daysOfLapse,'days').format()))) return this.Status = 'outDateProject';
-    this.SchemaForm = null;
-    let startDate = moment(this.Project.start_date);
-    let diferencia = moment(new Date()).diff(startDate,'months');
-    if(this.Indicator.frequency == 'Mensual'){
-      this.Period = {
-        period: `${Math.trunc(diferencia)}º Mes`,
-        date: {
-          to: new Date(startDate.add(diferencia,'months').format()),
-          from: new Date(startDate.subtract(1,'months').format())
+  makeSchemaForm(exist){
+
+    console.log(exist,this.Schema);
+    this.indicadorTable = 0;
+    /** ['Organizacion','Campo 1','Campo 2'] */
+    for(let i = 0; i < this.ProjectSelected.organizations.length; i++){
+      if(this.IndicatorSelected.organizations_diff){
+        if(this.IndicatorSelected.organizations_diff_by != 'CEFODI' && this.IndicatorSelected.organizations_diff_by != 'characteristic'){
+          for(let j = 0; j < this.IndicatorSelected.organizations.length; j++){
+            if(this.ProjectSelected.organizations[i][this.IndicatorSelected.organizations_diff_by] == this.IndicatorSelected.organizations[j]) this.addRowInTable(i,exist);
+          }
+        }else if(this.IndicatorSelected.organizations_diff_by == 'characteristic'){
+          switch(this.IndicatorSelected.organizations[0]){
+            case 'Con Negocios':
+              if(this.ProjectSelected.organizations[i].with_business == 'Si') this.addRowInTable(i,exist);
+              break;
+            case 'Sin Negocios':
+              if(this.ProjectSelected.organizations[i].with_business == 'No') this.addRowInTable(i,exist);
+              break;
+            case 'Legalizadas':
+              if(this.ProjectSelected.organizations[i].legalized == 'Si') this.addRowInTable(i,exist);
+              break;
+            case 'No Legalizadas':
+              if(this.ProjectSelected.organizations[i].legalized == 'No') this.addRowInTable(i,exist);
+              break;
+            default:
+              break;
+          }
         }
-      }
-      let fechaLimite = moment(startDate.add(diferencia,'months').add(this.daysOfLapse,'days').format());
-      if(moment(new Date).isSameOrBefore(fechaLimite)) this.comprobarDisponibilidad();
-      else{ 
-        this.Status = 'noPeriod';
-        this.periodText = 'Mensual';
+      }else this.addRowInTable(i,exist);
+
+    }
+    if(this.IndicatorSelected.organizations_diff && this.IndicatorSelected.organizations_diff_by == 'CEFODI'){
+      this.addRowInTable(0,exist);
+    }
+    console.log(this.FichaTable.value);
+    return this.Status = 'ready';
+  }
+  
+  addRowInTable(i,exist){
+    let fila : FormArray = new FormArray([]);
+    if(this.IndicatorSelected.type != 'Compuesto'){
+      if(!this.indicadorTable){
+        (<FormArray> fila).push(new FormArray([]));
+        (<FormArray> (<FormArray> fila).at(0)).push(new FormControl('Organización'));
+        (<FormArray> (<FormArray> fila).at(0)).push(new FormControl('id'));
+        (<FormArray> fila).push(new FormArray([]));
+        (<FormArray> (<FormArray> fila).at(1)).push(new FormControl(this.ProjectSelected.organizations[i].name));
+        (<FormArray> (<FormArray> fila).at(1)).push(new FormControl(this.ProjectSelected.organizations[i]._id));
+        for(let j = 0; j < this.IndicatorSelected.parameters_schema.length; j++){
+          if(this.IndicatorSelected.parameters_schema[j].haveCualitativeSchema || this.IndicatorSelected.parameters_schema[j].haveSchema){
+            for(let k = 0; k < this.IndicatorSelected.parameters_schema[j].record_schema.length; k++){
+              (<FormArray> (<FormArray> fila).at(0)).push(new FormControl(this.IndicatorSelected.parameters_schema[j].record_schema[k].name));
+              (<FormArray> (<FormArray> fila).at(1)).push(new FormControl((exist ? this.Schema.rows[this.indicadorTable+1][k+2] : ''),Validators.required));
+            }
+          }else{
+            (<FormArray> (<FormArray> fila).at(0)).push(new FormControl(this.IndicatorSelected.parameters_schema[j].name));
+            (<FormArray> (<FormArray> fila).at(1)).push(new FormControl((exist ? this.Schema.rows[this.indicadorTable+1][j+2] : ''),Validators.required));
+          }
+        }
+      }else{
+        (<FormArray> fila).push(new FormArray([]));
+        (<FormArray> (<FormArray> fila).at(0)).push(new FormControl(this.ProjectSelected.organizations[i].name));
+        (<FormArray> (<FormArray> fila).at(0)).push(new FormControl(this.ProjectSelected.organizations[i]._id));
+        for(let j = 0; j < this.IndicatorSelected.parameters_schema.length; j++){
+          if(this.IndicatorSelected.parameters_schema[j].haveSchema){
+            for(let k = 0; k < this.IndicatorSelected.parameters_schema[j].record_schema.length; k++){
+              (<FormArray> (<FormArray> fila).at(0)).push(new FormControl((exist ? this.Schema.rows[this.indicadorTable+1][k+2] : ''),Validators.required));
+            }
+          }else{
+            (<FormArray> (<FormArray> fila).at(0)).push(new FormControl((exist ? this.Schema.rows[this.indicadorTable+1][j+2] : ''),Validators.required));
+          }
+        }
       }
     }else{
-      if(this.Indicator.frequency == 'Trimestral'){
-        if(!(diferencia % 3)){
-          this.Period = {
-            period: `${Math.trunc(diferencia / 3)}º Trimestre`,
-            date: {
-              to: new Date(startDate.add(diferencia,'months').format()),
-              from: new Date(startDate.subtract(3,'months').format())
-            }
-          }
-          this.comprobarDentroDelPlazo(startDate,diferencia,'Trimestralmente');
-        }else{
-          this.Status = 'noPeriod';
-          this.periodText = 'Trimestralmente';
+      if(!this.indicadorTable){
+        (<FormArray> fila).push(new FormArray([]));
+        (<FormArray> (<FormArray> fila).at(0)).push(new FormControl('Organización'));
+        (<FormArray> (<FormArray> fila).at(0)).push(new FormControl('id'));
+        (<FormArray> fila).push(new FormArray([]));
+        (<FormArray> (<FormArray> fila).at(1)).push(new FormControl(this.ProjectSelected.organizations[i].name));
+        (<FormArray> (<FormArray> fila).at(1)).push(new FormControl(this.ProjectSelected.organizations[i]._id));
+        for(let j = 0; j < this.IndicatorSelected.record_schema.length; j++){
+          (<FormArray> (<FormArray> fila).at(0)).push(new FormControl(this.IndicatorSelected.record_schema[j].name));
+          (<FormArray> (<FormArray> fila).at(1)).push(new FormControl((exist ? this.Schema.rows[this.indicadorTable+1][j] : ''),Validators.required));
         }
-      }else if(this.Indicator.frequency == 'Semestral'){
-        if(!(diferencia % 6)){
-          this.Period = {
-            period: `${Math.trunc(diferencia / 6)}º Semestre`,
-            date: {
-              to: new Date(startDate.add(diferencia,'months').format()),
-              from: new Date(startDate.subtract(6,'months').format())
-            }
-          }
-          this.comprobarDentroDelPlazo(startDate,diferencia,'Semestralmente');
-        }else{
-          this.Status = 'noPeriod';
-          this.periodText = 'Semestralmente';
-        }
-      }else if(this.Indicator.frequency == 'Anual'){
-        if(!(diferencia % 12)){
-          this.Period = {
-            period: `${diferencia / 12}º Año`,
-            date: {
-              to: new Date(startDate.add(diferencia,'months').format()),
-              from: new Date(startDate.subtract(12,'months').format())
-            }
-          }
-          this.comprobarDentroDelPlazo(startDate,diferencia,'Anualmente');
-        }else{
-          this.Status = 'noPeriod';
-          this.periodText = 'Anualmente';   
+      }else{
+        (<FormArray> fila).push(new FormArray([]));
+        (<FormArray> (<FormArray> fila).at(0)).push(new FormControl(this.ProjectSelected.organizations[i].name));
+        (<FormArray> (<FormArray> fila).at(0)).push(new FormControl(this.ProjectSelected.organizations[i]._id));
+        for(let j = 0; j < this.IndicatorSelected.record_schema.length; j++){
+          (<FormArray> (<FormArray> fila).at(0)).push(new FormControl((exist ? this.Schema.rows[this.indicadorTable+1][j] : ''),Validators.required));
         }
       }
     }
+    for(let j = 0; j < (<FormArray> fila).length; j++){
+      (<FormArray> this.FichaTable.get('rows')).push((<FormArray> fila).at(j));
+    }
+    this.indicadorTable += 1;
   }
 
-  comprobarDentroDelPlazo(startDate, diferencia, periodText) : void{
-    let fechaLimite = moment(startDate.add(diferencia,'months').add(this.daysOfLapse,'days').format());
-    if(moment(new Date).isSameOrBefore(fechaLimite)) this.comprobarDisponibilidad();
-    else{ 
-      this.Status = 'noPeriod';
-      this.periodText = periodText;
+  /*Utilities*/
+
+  isMyOrganization (id : string) : boolean {
+    if(!this.userOrganizations.length) return true;
+    else{
+      for(let i = 0; i < this.userOrganizations.length; i++){
+        if(id === this.userOrganizations[i].id) return true;
+      }
+    }  
+    return false;
+  }
+  
+  formatProjectForList (project : any) : any {
+    return {
+      name: project.name,
+      _id: project._id,
+      indicators: project.indicators,
+      organizations: project.organizations,
+      start_date: project.monitoring_date,
+      duration: project.duration
     }
   }
 
-  comprobarDisponibilidad(){
+  comprobarDisponibilidad(fueraDeTiempo){
+    console.log('aqui');
     this.fichaService
-        .existFicha(this.Project._id,this.Indicator._id,this.Period.period)
+        .existFicha(this.ProjectSelected._id,this.IndicatorSelected._id,this.FichaTable.get('period').value)
         .subscribe((ficha : any) => {
           console.log(ficha);
-          if(ficha.exist){
+
+          this.Schema = ficha.ficha;
+
+          if(fueraDeTiempo){
+            if(ficha.exist) this.Status = 'fueraDeTiempo';
+            else this.Status = 'noSeHizoNada'
+          }else this.makeSchemaForm(ficha.exist);
+
+          console.log(this.Status);
+
+          /*if(ficha.exist){
             console.log('existe');
             this._store.select(getUserData).subscribe(user => {
               this.Schema = ficha.ficha;
               this.User = {organizations: user.organizations ? user.organizations : null,role: user.role};
               this.makeSchemaForm(ficha.exist);
-            }); 
+            }); *
           }else{
             console.log('no existe');
-            this._store.select(getUserData).subscribe(user => {
+            /this._store.select(getUserData).subscribe(user => {
               this.User = {organizations: user.organizations ? user.organizations : null,role: user.role};
               this.makeSchemaForm(ficha.exist);
-            }); 
-          }
+            });
+          }*/
         });
   }
-
-  makeSchemaForm(exist : boolean){
-    if(this.Indicator.type == 'Simple'){
-      if(this.Indicator.parameters_schema[0].haveSchema) this.fieldsSchema = this.Indicator.parameters_schema[0].record_schema;
-      else this.fieldsSchema = this.Indicator.parameters_schema;
-    }else if(this.Indicator.type == 'Grupo'){
-      this.fieldsSchema = this.Indicator.parameters_schema;
-    }else if(this.Indicator.type == 'Compuesto'){
-      this.fieldsSchema = this.Indicator.record_schema;
-    }
-    this.SchemaForm = new FormGroup({
-      lapse: new FormGroup({
-        to: new FormControl(this.Period.date.to),
-        from: new FormControl(this.Period.date.from)
-      }),
-      period: new FormControl(this.Period.period),
-      indicator: new FormControl(this.selectedIndicator),
-      rows: new FormArray([])
-    });
-
-    this.Project.organizations.forEach((organization,i) => {
-      let fieldsCtrl : FormGroup = new FormGroup({
-        organization: new FormControl(organization._id),
-        name: new FormControl(organization.name),
-        fields: new FormArray([])
-      });
-      this.fieldsSchema.forEach((field,j) => {
-      if(exist) (<FormArray> fieldsCtrl.get('fields')).push(new FormGroup({
-          name: new FormControl(field.name),
-          value: new FormControl(this.Schema.rows[i].fields[j].value,Validators.required),
-          unit: new FormControl(field.unit)
-        }));
-      else (<FormArray> fieldsCtrl.get('fields')).push(new FormGroup({
-          name: new FormControl(field.name),
-          value: new FormControl('',Validators.required),
-          unit: new FormControl(field.unit)
-        }));
-      });
-      (<FormArray> this.SchemaForm.get('rows')).push(fieldsCtrl);
-    });
-    if(exist) return this.Status = 'already-filled';
-    return this.Status = 'ready';
-
-  }
-
-  verifyOrganization(id) : boolean {
-    if(this.User.role == 'Técnico'){
-      let allowed : boolean = false;
-      for(let i = 0; i < this.User.organizations.length; i++){
-        if(id == this.User.organizations[i].id){
-          allowed = true;
-          break;
-        }
-      }
-      return allowed;
-    }else return true;
-  }
-
-  onProjectSelect(ev){
-      this.Project = this.formatProjects(this.Projects.filter(project => ev == project._id)[0]);
-      this.Status = 'none';
-  }
-
-  onIndicatorSelect(ev){
-    this.Indicator = this.Indicators.filter(indicator => indicator._id == ev)[0] ;
-    this.Status = 'none';
-  }
-
-  cancel(){
-    if(confirm('La Ficha no será guardada. Esta acción no se puede deshacer.\n\n¿Está seguro que desea cancelar?')){
-      this.SchemaForm.reset();
-      this.Status = 'none'
-    }
-  }
-
-  save(){
-    if(confirm('¿Seguro que ya desea guardar la ficha?')){
-      this._store.dispatch(initLoading({message: 'Guardando Ficha...'}));
-      this.fichaService.saveFicha(this.SchemaForm.value).subscribe(
-        result => {
-          this.Status = 'none';
-          this.selectedIndicator = null;
-          this._store.dispatch(stopLoading());
-          this._snackBar.open('Ficha guardada exitosamente.','ENTENDIDO',{duration:3000});
-        },error =>{
-          this._store.dispatch(stopLoading());
-          this._snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
-        } 
-      )
-    }
-  }
+  
 }

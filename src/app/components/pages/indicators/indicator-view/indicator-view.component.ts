@@ -294,6 +294,14 @@ export class IndicatorViewComponent{
     }
   }
 
+  selectOrganizations(value){
+    let longitud : number = (<FormArray> this.IndicatorForm.get('organizations')).length - 1;
+    for(let i = longitud; i >= 0; i--){
+      (<FormArray> this.IndicatorForm.get('organizations')).removeAt(i);
+    }
+    (<FormArray> this.IndicatorForm.get('organizations')).push(new FormControl(value));
+  }
+
   saveIndicator(){
     this.store.dispatch(fromLoadingActions.initLoading({message: 'Guardando el Indicador...'}));
 

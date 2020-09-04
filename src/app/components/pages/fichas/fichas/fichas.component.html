@@ -3,7 +3,8 @@
 </app-sub-toolbar>
 
 <div class="page-content">
-    <mat-card><!--Selector de Proyectos e Indicadores-->
+    <!--Selector de Proyectos e Indicadores-->
+    <mat-card>
         <mat-card-title class="font-weight-lighter">Generar Ficha:</mat-card-title>
         <mat-divider></mat-divider>
         <mat-card-content>
@@ -11,32 +12,33 @@
                 <div class="col-sm-4">
                     <mat-form-field class="full-width">
                         <mat-label>Seleccione un proyecto</mat-label>
-                        <mat-select (valueChange)="onProjectSelect($event)" [(ngModel)]="this.selectedProject">
+                        <mat-select (valueChange)="onProjectSelect($event)">
                           <mat-option *ngFor="let project of this.Projects" [value]="project._id">
                             {{project.name}}
                           </mat-option>
                         </mat-select>
                     </mat-form-field>
                 </div>
-                <div class="col-sm-4" *ngIf="this.selectedProject">
+                <div class="col-sm-4" *ngIf="this.ProjectSelected">
                     <mat-form-field class="full-width">
                         <mat-label>Seleccione un indicador</mat-label>
-                        <mat-select (valueChange)="onIndicatorSelect($event)" [(ngModel)]="this.selectedIndicator"[disabled]="!this.Indicators" >
-                          <mat-option *ngFor="let indicator of this.Project.indicators" [value]="indicator._id">
+                        <mat-select (valueChange)="onIndicatorSelect($event)">
+                          <mat-option *ngFor="let indicator of this.ProjectSelected.indicators" [value]="indicator._id">
                             {{indicator.name}}
                           </mat-option>
                         </mat-select>
                     </mat-form-field>
                 </div>
-                <div class="col-sm-4" *ngIf="this.selectedProject && this.selectedIndicator">
-                    <button mat-raised-button color="primary" type="button" [disabled]="!this.selectedIndicator" (click)="generateSchema()">GENERAR</button>
+                <div class="col-sm-4" *ngIf="this.ProjectSelected && this.IndicatorSelected">
+                    <button mat-raised-button color="primary" type="button" [disabled]="!this.IndicatorSelected" (click)="generateSchema()">GENERAR</button>
                 </div>
             </div>
         </mat-card-content>
     </mat-card>
 
     <div class="mt-4">
-        <mat-card *ngIf="this.Status == 'loading'"><!--Tarjeta de Cargando-->
+        <!--Tarjeta de Cargando-->
+        <mat-card *ngIf="this.Status == 'loading'">
             <div class="loading-box">
                 <div>
                     <img src="{{this.assetsUrl}}/images/logo-sisi-only.svg" alt="">
@@ -44,35 +46,51 @@
                 </div>
             </div>
         </mat-card>
-        <mat-card *ngIf="this.Status == 'noPeriod'"><!--Tarjeta de Fuera de Tiempo-->
+
+        <!--Tarjeta de Fuera de Tiempo-->
+        <mat-card *ngIf="this.Status == 'noPeriod'">
             <div>
                 <div class="p-4">
-                    <h3 class="text-center font-weight-lighter">Esta ficha se llena {{this.periodText}}</h3>
+                    <h3 class="text-center font-weight-lighter">Esta ficha se llena {{this.IndicatorSelected.frequency}}mente</h3>
                     <p class="text-center font-weight-lighter">La ficha estará disponible cuando sea la fecha adecuada y se le notificará por e-mail.</p>
                 </div>
             </div>
         </mat-card>
-        <mat-card *ngIf="this.Status == 'ready' || this.Status == 'already-filled'"><!--Formulario para Ficha-->
+        
+        <!--Formulario para Ficha-->
+        <mat-card *ngIf="this.Status == 'ready'">
             <mat-card-title class="font-weight-lighter">Ficha</mat-card-title>
             <mat-divider></mat-divider>
             <mat-card-content>
                 <div>
                     <div class="pt-3 mb-3">
-                        <p>Proyecto: <span class="font-weight-lighter">{{this.Project.name}}</span></p>
-                        <p>Indicador: <span class="font-weight-lighter">{{this.Indicator.name}}</span></p>
-                        <p>Periodo: <span class="font-weight-lighter">{{this.Period.date.from | date : 'dd MMMM yyyy'}} - {{this.Period.date.to |date : 'dd MMMM yyyy'}} ({{this.Period.period}})</span></p>
+                        <p>Proyecto: <span class="font-weight-lighter">{{this.ProjectSelected.name}}</span></p>
+                        <p>Indicador: <span class="font-weight-lighter">{{this.IndicatorSelected.name}}</span></p>
+                        <p>Periodo: <span class="font-weight-lighter">{{this.FichaTable.get('lapse').get('from').value | date : 'dd MMMM yyyy'}} - {{this.FichaTable.get('lapse').get('to').value | date : 'dd MMMM yyyy'}} ({{this.FichaTable.get('period').value}})</span></p>
                         <div *ngIf="this.Status == 'already-filled'">
                             <p *ngFor="let technic of this.Schema.created_by">Técnico Responsable: <span class="font-weight-lighter">{{technic.name}} {{technic.last_names}} - {{technic.position}}</span></p>
                         </div>
                     </div>
-                    <form [formGroup]="this.SchemaForm">
+                    <form [formGroup]="this.FichaTable">
                         <div class="table-container full-width">
-                            <table class="baseline-table full-width">
-                                <tr>
-                                    <th class="sticky main-row">ORGANIZACIÓN</th>
-                                    <th class="main-row" *ngFor="let field of this.fieldsSchema">{{field.name}}</th>
-                                </tr>
-                                <tbody formArrayName="rows" *ngFor="let row of this.SchemaForm.get('rows')['controls']; let i = index">
+                            <table formArrayName="rows" class="baseline-table full-width">
+                                <tbody *ngFor="let row of this.FichaTable.get('rows')['controls']; let i = index">
+                                    <tr *ngIf="!i" [formGroupName]="i">
+                                        <th [ngClass]="{'sticky': !j, 'gone': j == 1}" class="main-row" *ngFor="let column of row['controls']; let j = index">
+                                            {{column.value}}
+                                        </th>
+                                    </tr>
+                                    <tr *ngIf="i && this.isMyOrganization(row['controls'][1].value)" [formGroupName]="i">
+                                        <td [ngClass]="{'sticky': !j, 'main-col': !j, 'gone': j == 1}" *ngFor="let column of row['controls']; let j = index">
+                                            <div *ngIf="!j">{{column.value}}</div>
+                                            <div *ngIf="j">
+                                                <input type="text" class="full-width schema-input" placeholder="Ingrese aquí el dato" [formControlName]="j">
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                                <!--tbody formArrayName="rows" *ngFor="let row of this.SchemaForm.get('rows')['controls']; let i = index">
                                     <tr [formGroupName]="i" *ngIf="verifyOrganization(row.get('organization').value)">
                                         <td class="sticky main-col font-weight-lighter">{{row.get('name').value}}</td>
                                         <td formArrayName="fields" class="main-col" *ngFor="let field of this.fieldsSchema; let j = index">
@@ -84,8 +102,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                </tbody>
-                            </table>
+                                </tbody-->
                         </div>
                     </form>
                 </div>
@@ -99,18 +116,20 @@
                 </div>
             </mat-card-actions>
         </mat-card>
-        <!--mat-card *ngIf="this.Status == 'already-filled'"><--Tarjeta Ficha Llena->
-            <mat-card-title class="font-weight-lighter">Esta Ficha ya ha sido llenada</mat-card-title>
+        
+        <!--Tarjeta Ficha Llena Fuera de Tiempo-->
+        <mat-card *ngIf="this.Status == 'fueraDeTiempo'">
+            <mat-card-title class="font-weight-lighter">Ya terminó el tiempo de llenado de esta ficha</mat-card-title>
             <mat-divider></mat-divider>
             <mat-card-content>
                 <div>
                     <div class="pt-3 mb-3">
-                        <p>Proyecto: <span class="font-weight-lighter">{{this.Project.name}}</span></p>
-                        <p>Indicador: <span class="font-weight-lighter">{{this.Indicator.name}}</span></p>
-                        <p>Periodo: <span class="font-weight-lighter">{{this.Period.date.from | date : 'dd MMMM yyyy'}} - {{this.Period.date.to |date : 'dd MMMM yyyy'}} ({{this.Period.period}})</span></p>
-                        <p>Técnico Responsable: <span class="font-weight-lighter">{{this.Schema.created_by.name}} {{this.Schema.created_by.last_names}} - {{this.Schema.created_by.position}}</span></p>
+                        <p>Proyecto: <span class="font-weight-lighter">{{this.ProjectSelected.name}}</span></p>
+                        <p>Indicador: <span class="font-weight-lighter">{{this.IndicatorSelected.name}}</span></p>
+                        <!--p>Periodo: <span class="font-weight-lighter">{{this.Period.date.from | date : 'dd MMMM yyyy'}} - {{this.Period.date.to |date : 'dd MMMM yyyy'}} ({{this.Period.period}})</span></p>
+                        <p>Técnico Responsable: <span class="font-weight-lighter">{{this.Schema.created_by.name}} {{this.Schema.created_by.last_names}} - {{this.Schema.created_by.position}}</span></p-->
                     </div>
-                    <div class="table-container full-width">
+                    <!--div class="table-container full-width">
                         <table class="baseline-table full-width">
                             <tr>
                                 <th class="sticky main-row">ORGANIZACIÓN</th>
@@ -123,18 +142,31 @@
                                 </td>
                             </tr>
                         </table>
-                    </div>
+                    </div-->
                 </div>
             </mat-card-content>
-        </mat-card-->
-        <mat-card *ngIf="this.Status == 'outDateProject'"><!--Tarjeta Ficha Fuera de Periodo-->
+        </mat-card>
+        
+        <!--Tarjeta Ficha Fuera de Periodo-->
+        <mat-card *ngIf="this.Status == 'outDateProject'">
             <div>
                 <div class="p-4">
                     <h3 class="text-center font-weight-lighter">Este proyecto ya ha finalizado</h3>
-                    <p class="text-center font-weight-lighter">El proyecto inició en {{this.Project.start_date | date : "MMMM, d \'del\' yyyy"}} con una duración de {{this.Project.duration}} meses.</p>
+                    <p class="text-center font-weight-lighter">El proyecto inició en {{this.ProjectSelected.start_date | date : "MMMM, d \'del\' yyyy"}} con una duración de {{this.ProjectSelected.duration}} meses.</p>
                 </div>
             </div>
         </mat-card>
+
+        <!--Tarjeta No Se Hizo Nada-->
+        <mat-card *ngIf="this.Status == 'noSeHizoNada'">
+            <div>
+                <div class="p-4">
+                    <h3 class="text-center font-weight-lighter">Ya pasó el tiempo para subir esta Ficha</h3>
+                    <p class="text-center font-weight-lighter">No se encontró que se haya subido ninguna ficha correspondiente a este período.</p>
+                </div>
+            </div>
+        </mat-card>
+    
     </div>
 
 </div>

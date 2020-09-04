@@ -7,6 +7,7 @@ import { catchError } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { State } from '../reducers/index';
 import { isAuth } from '../reducers/selectors/session.selector';
+import { HeadersGenerator } from './headersGenerator.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +17,8 @@ export class AuthServiceService {
   isAuth : boolean;
 
   constructor(private http : HttpClient,
-              private store : Store<State>) {
+              private store : Store<State>,
+              private headerGenerator : HeadersGenerator) {
 
                 this.store.select(isAuth).subscribe(auth => this.isAuth = auth);
                }

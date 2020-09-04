@@ -8,6 +8,7 @@ import { State } from '../reducers';
 import { StorageMap } from '@ngx-pwa/local-storage';
 import { Observable } from 'rxjs';
 import { SocketioService } from './socketio.service';
+import { setLapseToRecord } from '../reducers/actions/general.actions';
 
 @Injectable({
   providedIn: 'root'
@@ -16,6 +17,7 @@ export class PreferencesServiceService {
 
   constructor(private http : HttpClient,
               private sockets : SocketioService,
+              private store : Store<State>,
               private storage : StorageMap,
               private snackBar : MatSnackBar,
               private headersGenerator : HeadersGenerator) { }
@@ -26,8 +28,11 @@ export class PreferencesServiceService {
         .subscribe((response : any) => {
           let preferencias = {
             sectors: response.preferences.Organizations.Sectors,
-            types: response.preferences.Organizations.Types
+            types: response.preferences.Organizations.Types,
+            notifications: response.preferences.Notifications,
+            fichas: response.preferences.Fichas
           }
+          //this.store.dispatch(setLapseToRecord({numberOfDays: response.preferences.Fichas.maxTimeToUpload}))
           this.storage.set('preferences',preferencias).subscribe(() => {
             if(!NoNotify) this.snackBar.open('Se han obtenido las preferencias de Usuario.','ENTENDIDO',{duration: 3000})
           });

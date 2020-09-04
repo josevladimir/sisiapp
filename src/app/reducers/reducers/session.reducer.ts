@@ -17,7 +17,8 @@ export const initialState : SessionState = {
         last_names: '',
         role: '',
         position: '',
-        email: ''
+        email: '',
+        organizations: {}
     },
     isAdmin: false,
     isFunder: false,

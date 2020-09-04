@@ -194,22 +194,16 @@
                                 <h5 class="font-weight-lighter">Línea Base</h5>
                                 <div class="table-container">
                                     <table class="baseline-table">
-                                        <thead>
-                                            <tr>
-                                                <th class="sticky main-row"></th>
-                                                <th class="main-row" *ngFor="let parameter of this.indicatorsSelected[i].parameters_schema">{{parameter.name}}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody formArrayName="baseline" *ngFor="let organizationGroup of indicadorGroup.get('baseline')['controls']; let j = index">
-                                            <tr [formGroupName]="j">
-                                                <td class="sticky main-col">{{organizationGroup.get('organization').value}}</td>
-                                                <td formArrayName="parameters" class="table-box main-col" *ngFor="let parameter of organizationGroup.get('parameters')['controls']; let k = index">
-                                                    <div [formGroupName]="k">
-                                                        <input type="number" class="full-width font-weight-lighter" formControlName="baseline" placeholder="Línea Base">
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        </tbody>
+                                        <tr formArrayName="baseline" *ngFor="let row of indicadorGroup.get('baseline')['controls']; let j = index">
+                                            <td [formArrayName]="j" [ngClass]="{'no-visible': k == 1, sticky: !k, 'main-row': !j, 'main-col font-weight-lighter': !k && j}" *ngFor="let column of row['controls']; let k = index">
+                                                <div *ngIf="!j && k" class="text-center">{{column.value}}</div>
+                                                <div *ngIf="!j && !k" class="text-center">Organización</div>
+                                                <div *ngIf="!k && j">{{column.value | titlecase}}</div>
+                                                <div *ngIf="j && k > 1" >
+                                                    <input type="number" class="full-width font-weight-lighter" [formControlName]="k" placeholder="Línea Base">
+                                                </div>
+                                            </td>
+                                        </tr>
                                     </table>
                                 </div>
                             </div>
@@ -218,33 +212,24 @@
                                 <h5 class="font-weight-lighter">Metas</h5>
                                 <div class="table-container">
                                     <table class="baseline-table">
-                                        <thead>
-                                            <tr>
-                                                <th class="sticky main-row"></th>
-                                                <th class="main-row" *ngFor="let parameter of this.indicatorsSelected[i].parameters_schema">{{parameter.name}}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody formArrayName="goal" *ngFor="let parameterGroup of indicadorGroup.get('goal').controls; let j = index">
-                                            <tr [formGroupName]="j" class="goal_row">
-                                                <td class="sticky main-col">{{parameterGroup.get('yearNumber').value}}<br/><small>{{parameterGroup.get('year').value | date : 'MMMM - yyyy'}}</small></td>
-                                                <td formArrayName="parameters" class="table-box main-col" *ngFor="let parameter of parameterGroup.get('parameters').controls; let k = index">
-                                                    <div [formGroupName]="k">
-                                                        <div formGroupName="goals" class="flex ml-2 mr-2" *ngIf="indicadorGroup.get('antiquity_diff').value">
-                                                            <input type="text" class="full-width font-weight-lighter" formControlName="newer" placeholder="Nueva">
-                                                            <input type="text" class="full-width font-weight-lighter" formControlName="older" placeholder="Antigua">
-                                                        </div>
-                                                        <div formGroupName="goals" *ngIf="!indicadorGroup.get('antiquity_diff').value && this.indicatorsSelected[i].parameters_schema[k].unit != 'Cualitativo'">
-                                                            <input type="text" class="full-width font-weight-lighter" formControlName="goal" placeholder="Meta">
-                                                        </div>
-                                                        <div formGroupName="goals" *ngIf="this.indicatorsSelected[i].parameters_schema[k].unit == 'Cualitativo'">
-                                                            <mat-select class="full-width schema-input font-weight-lighter" formControlName="goal">
-                                                                <mat-option *ngFor="let level of this.indicatorsSelected[i].parameters_schema[k].cualitative_levels" [value]="level.name">{{level.name}}</mat-option>
-                                                            </mat-select>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        </tbody>
+                                        <tr formArrayName="goal" *ngFor="let row of indicadorGroup.get('goal')['controls']; let j = index">
+                                            <td [formArrayName]="j" [ngClass]="{sticky: !k, 'main-row': !j, 'main-col font-weight-lighter': !k && j}" *ngFor="let column of row['controls']; let k = index">
+                                                <div *ngIf="!j && k" class="text-center">{{column.value}}</div>
+                                                <div *ngIf="!k && j" class="text-center">{{column.get('yearNumber').value}}<br/><small>{{column.get('yearPeriod').value | date : 'MMMM yyyy' | titlecase}}</small></div>
+                                                <div [formGroupName]="k" class="flex ml-2 mr-2" *ngIf="j && k && indicadorGroup.get('antiquity_diff').value">
+                                                    <input type="text" class="full-width font-weight-lighter" formControlName="newer" placeholder="Nueva">
+                                                    <input type="text" class="full-width font-weight-lighter" formControlName="older" placeholder="Antigua">
+                                                </div>
+                                                <div *ngIf="j && k && !indicadorGroup.get('antiquity_diff').value && this.indicatorsSelected[i].parameters_schema[k-1].unit != 'Cualitativo'">
+                                                    <input type="text" class="full-width font-weight-lighter" [formControlName]="k" placeholder="Meta">
+                                                </div>
+                                                <div *ngIf="j && k && this.indicatorsSelected[i].parameters_schema[k-1].unit == 'Cualitativo'">
+                                                    <mat-select class="full-width schema-input font-weight-lighter" [formControlName]="k">
+                                                        <mat-option *ngFor="let level of this.indicatorsSelected[i].parameters_schema[k-1].cualitative_levels" [value]="level.name">{{level.name}}</mat-option>
+                                                    </mat-select>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     </table>
                                 </div>
                             </div>

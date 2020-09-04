@@ -40,6 +40,10 @@ export class IndicatorsServiceService {
     return this.storage.watch('indicators'); 
   }
 
+  getIndicatorsUniqueLocal() : Observable<any> {
+    return this.storage.get('indicators'); 
+  }
+
   createIndicator (indicator : any) : void {
     this.http
         .post(`${environment.baseUrl}/Indicator/`,indicator,{headers: this.headersGenerator.generateJsonHeader()})

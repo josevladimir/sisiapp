@@ -186,7 +186,10 @@ mat-drawer
 
 .main-row
     background: #666666 !important
+    border-right: 1px solid #000
     color: #fff
+    padding: 0px 10px
+    box-sizing: border-box
 
 .main-col
     background: #ccc !important
@@ -201,10 +204,16 @@ mat-drawer
     .baseline-table
         display: block
         overflow-x: scroll
+        column-span: none
 
     tr td,
     tr th
+        padding: 0px 
         min-width: 200px
+
+    tr td > div,
+    tr th > div
+        height: 100%
 
     tr th
         font-weight: normal
@@ -481,6 +490,9 @@ tr .sticky
 .goal_row
     border-bottom: 1px solid #333
 
+.gone
+    display: none
+
 .hover:hover
     background: rgba(0,0,0,.1)
 
@@ -517,6 +529,9 @@ tr .sticky
     border: 1px solid #aaa
     height: 200px
     overflow-y: scroll
+
+.no-visible
+    display: none
 
 .onlineIndicator
     background: rgb(0,225,0)

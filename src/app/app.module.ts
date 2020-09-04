@@ -1,11 +1,8 @@
 import { StorageModule } from '@ngx-pwa/local-storage';
 import { BrowserModule } from '@angular/platform-browser';
-import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { HttpClientModule } from '@angular/common/http';
-import { NgxSortableModule } from 'ngx-sortable';
 import { registerLocaleData } from '@angular/common';
 import { LOCALE_ID, NgModule } from '@angular/core';
-import { MonacoEditorModule, MONACO_PATH} from '@materia-ui/ngx-monaco-editor';
 import { FormsModule, ReactiveFormsModule} from '@angular/forms';
 import { MAT_DATE_LOCALE, MatNativeDateModule } from '@angular/material/core';
 
@@ -27,7 +24,6 @@ import { ProjectsComponent } from './components/pages/projects/projects/projects
 import { PartnersComponent } from './components/pages/organization/partners/partners.component';
 import { SettingsComponent } from './components/pages/settings/settings/settings.component';
 import { NewUsersComponent } from './components/pages/users/new-users/new-users.component';
-import { ReportLRCComponent } from './components/pages/report/report-lrc/report-lrc.component';
 import { DashboardComponent } from './components/pages/dashboard/dashboard.component';
 import { UploadBoxComponent } from './components/shared/upload-box/upload-box.component';
 import { UsersViewComponent } from './components/pages/users/users-view/users-view.component';
@@ -49,7 +45,6 @@ import { NewIndicatorComponent } from './components/pages/indicators/new-indicat
 import { OrganizationsComponent } from './components/pages/organization/organizations/organizations.component';
 import { IndicatorViewComponent } from './components/pages/indicators/indicator-view/indicator-view.component';
 import { UpdateExecutedComponent } from './components/dialogs/update-executed/update-executed.component';
-import { TableAndGraphicComponent } from './components/pages/report/table-and-graphic/table-and-graphic.component';
 import { NewOrganizationComponent } from './components/pages/organization/new-organization/new-organization.component';
 import { OrganizationViewComponent } from './components/pages/organization/organization-view/organization-view.component';
 import { OrganizationCardComponent } from './components/cards/organization-card/organization-card.component';
@@ -122,7 +117,6 @@ registerLocaleData(localeEsEc, 'es-EC');
     SettingsComponent,
     NewUsersComponent,
     UsersViewComponent,
-    ReportLRCComponent,
     FilterBoxComponent,
     DocumentsComponent,
     UploadBoxComponent,
@@ -143,7 +137,6 @@ registerLocaleData(localeEsEc, 'es-EC');
     OrganizationsComponent,
     IndicatorViewComponent,
     UpdateExecutedComponent,
-    TableAndGraphicComponent,
     NewOrganizationComponent,
     OrganizationCardComponent,
     OrganizationViewComponent,
@@ -167,7 +160,6 @@ registerLocaleData(localeEsEc, 'es-EC');
     MatTableModule,
     MatInputModule,
     MatRadioModule,
-    NgxChartsModule,
     MatButtonModule,
     MatDialogModule,
     MatSelectModule,
@@ -181,9 +173,7 @@ registerLocaleData(localeEsEc, 'es-EC');
     MatCheckboxModule,
     MatSnackBarModule,
     MatGridListModule,
-    NgxSortableModule,
     MatPaginatorModule,
-    MonacoEditorModule,
     MatDatepickerModule,
     MatNativeDateModule,
     ReactiveFormsModule,
@@ -202,10 +192,6 @@ registerLocaleData(localeEsEc, 'es-EC');
     NewOrganizationPreferenceComponent
   ],
   providers: [
-    {
-      provide: MONACO_PATH,
-      useValue: 'https://unpkg.com/monaco-editor@0.20.0/min/vs'
-    },
     {provide: MAT_DATE_LOCALE, useValue: 'es-EC'},
     {provide: LOCALE_ID, useValue: 'es-EC'},
     {provide: MAT_DIALOG_DEFAULT_OPTIONS, useValue: {hasBackdrop: false}}

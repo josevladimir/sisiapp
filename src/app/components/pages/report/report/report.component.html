@@ -3,72 +3,56 @@
 </app-sub-toolbar>
 
 <div class="page-content-without-padding">
-    <mat-tab-group mat-stretch-tabs class="full-height"> 
-        <mat-tab label="Reporte Indicadores">
-            <div class="p-4">
-                <mat-card class="margin-bottom-50">
-                    <mat-card-title class="font-weight-lighter">Generar Reporte:</mat-card-title>
-                    <mat-divider></mat-divider>
-                    <mat-card-content>
-                        <div class="row pt-3">
-                            <div class="col-sm-4">
-                                <mat-form-field class="full-width">
-                                    <mat-label>Proyectos</mat-label>
-                                    <mat-select [(ngModel)]="this.selectedProject" matNativeControl (valueChange)="onProjectSelected($event)">
-                                        <mat-option *ngFor="let project of this.Projects" [value]="project._id">{{project.name}}</mat-option>
-                                    </mat-select>
-                                </mat-form-field>
-                            </div>
-                            <div class="col-sm-4" *ngIf="this.selectedProject">
-                                <mat-form-field class="full-width">
-                                    <mat-label>Indicadores</mat-label>
-                                    <mat-select [disabled]="!this.selectedProject" [(ngModel)]="this.selectedIndicator" (valueChange)="onIndicatorSelected($event)" matNativeControl>
-                                        <mat-option *ngFor="let indicator of this.Project.indicators" [value]="indicator._id">{{indicator.name}}</mat-option>
-                                    </mat-select>
-                                </mat-form-field>
-                            </div>
-                            <div class="col-sm-4" *ngIf="this.selectedProject && this.selectedIndicator">
-                                <mat-form-field class="full-width">
-                                    <mat-label>Período</mat-label>
-                                    <mat-select [disabled]="!this.PeriodSelectAvailable" [(ngModel)]="this.selectedPeriod" (valueChange)="onPeriodSelected($event)" matNativeControl>
-                                        <mat-option *ngIf="this.AvailablePeriods && !this.AvailablePeriods.length" value="none">No existen registros</mat-option>
-                                        <mat-option *ngFor="let periodo of this.AvailablePeriods" [value]="periodo.period">{{periodo.date.from | date : 'MMMM yyyy'}} - {{periodo.date.to | date : 'MMMM yyyy'}}</mat-option>
-                                    </mat-select>
-                                </mat-form-field>
-                            </div>
-                        </div>
-                        <div class="flex mt-3">
-                            <span class="fill-remaining-space"></span>
-                            <button mat-raised-button color="primary"(click)="generateReport()" [disabled]="!this.selectedProject || !this.selectedIndicator || !this.selectedPeriod">Generar Reporte</button>
-                        </div>
-                    </mat-card-content>
-                </mat-card> 
-        
-                <mat-card class="mt-4" *ngIf="this.Status == 'loading'">
-                    <div class="loading-box">
-                        <div>
-                            <img src="{{this.assetsUrl}}/images/logo-sisi-only.svg" alt="">
-                            <h4 class="font-weight-lighter text-center">Cargando...</h4>
-                        </div>
+    
+    <div class="p-4">
+        <mat-card class="margin-bottom-50">
+            <mat-card-title class="font-weight-lighter">Generar Reporte:</mat-card-title>
+            <mat-divider></mat-divider>
+            <mat-card-content>
+                <div class="row pt-3">
+                    <div class="col-sm-4">
+                        <mat-form-field class="full-width">
+                            <mat-label>Proyectos</mat-label>
+                            <mat-select [(ngModel)]="this.selectedProject" matNativeControl (valueChange)="onProjectSelected($event)">
+                                <mat-option *ngFor="let project of this.Projects" [value]="project._id">{{project.name}}</mat-option>
+                            </mat-select>
+                        </mat-form-field>
                     </div>
-                </mat-card>
-                
-                <app-table-and-graphic *ngIf="this.ReportSchema"
-                    [Indicator]="this.Indicator"
-                    [Project]="this.Project"
-                    [Period]="this.Period"
-                    [ReportSchema]="this.ReportSchema"
-                    [Schema]="this.Schema"
-                    (setReady)="setReady()">
-                </app-table-and-graphic>
+                    <div class="col-sm-4" *ngIf="this.selectedProject">
+                        <mat-form-field class="full-width">
+                            <mat-label>Indicadores</mat-label>
+                            <mat-select [disabled]="!this.selectedProject" [(ngModel)]="this.selectedIndicator" (valueChange)="onIndicatorSelected($event)" matNativeControl>
+                                <mat-option *ngFor="let indicator of this.Project.indicators" [value]="indicator._id">{{indicator.name}}</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-sm-4" *ngIf="this.selectedProject && this.selectedIndicator">
+                        <mat-form-field class="full-width">
+                            <mat-label>Período</mat-label>
+                            <mat-select [disabled]="!this.PeriodSelectAvailable" [(ngModel)]="this.selectedPeriod" (valueChange)="onPeriodSelected($event)" matNativeControl>
+                                <mat-option *ngIf="this.AvailablePeriods && !this.AvailablePeriods.length" value="none">No existen registros</mat-option>
+                                <mat-option *ngFor="let periodo of this.AvailablePeriods" [value]="periodo.period">{{periodo.date.from | date : 'MMMM yyyy'}} - {{periodo.date.to | date : 'MMMM yyyy'}}</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                </div>
+                <div class="flex mt-3">
+                    <span class="fill-remaining-space"></span>
+                    <button mat-raised-button color="primary"(click)="generateReport()" [disabled]="!this.selectedProject || !this.selectedIndicator || !this.selectedPeriod">Generar Reporte</button>
+                </div>
+            </mat-card-content>
+        </mat-card> 
 
+        <mat-card class="mt-4" *ngIf="this.Status == 'loading'">
+            <div class="loading-box">
+                <div>
+                    <img src="{{this.assetsUrl}}/images/logo-sisi-only.svg" alt="">
+                    <h4 class="font-weight-lighter text-center">Cargando...</h4>
+                </div>
             </div>
-        </mat-tab>
-        <!--mat-tab label="Reportes: LRC">
-            <div class="p-4">
-                <app-report-lrc></app-report-lrc>
-            </div>
-        </mat-tab-->
-    </mat-tab-group>
+        </mat-card>
+        
+
+    </div>
 
 </div>

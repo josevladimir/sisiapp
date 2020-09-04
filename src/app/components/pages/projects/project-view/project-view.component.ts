@@ -22,6 +22,7 @@ import { OrganizationsServiceService } from '../../../../services/organizations-
 import { MatSelectionList } from '@angular/material/list';
 import { editModeSetDisabled } from '../../../../reducers/actions/general.actions';
 import { StorageMap } from '@ngx-pwa/local-storage';
+import * as Moment from 'moment';
 
 @Component({
   selector: 'app-project-view',
@@ -516,6 +517,265 @@ export class ProjectViewComponent {
       console.log('Deactivate', JSON.parse(JSON.stringify(data)));
     }
 
+/**
+ * -------------------------------------------------------------------------------------------
+ * Remake Schemas
+ * -------------------------------------------------------------------------------------------
+ */
+
+  remakeSchema(){
+    if(confirm('Algunos datos podrían perderse.\n\n¿Está seguro que desea rehacer el esquema de metas de este proyecto?')){
+      this._store.dispatch(fromLoadingActions.initLoading({message: 'Rehaciendo el esquema de las metas del proyecto...'}));
+      
+      let duration_diff : number = (this.projectDuration) - this.Project.duration; //si es positivo hay que disminuir; si es negativo hay que aumentar.
+  
+      console.log(duration_diff);
+      
+      if(!duration_diff){
+        this._store.dispatch(fromLoadingActions.stopLoading());
+      }else if(duration_diff > 0){ //Hay que disminuir
+        console.log('primera diferencia',duration_diff);
+        if(this.projectDuration % 12){ //La duration anterior no era exacta en años
+          let n_years : number = Math.trunc(this.projectDuration / 12);
+          duration_diff -= (this.projectDuration % 12);
+          for(let i = 0; i < this.indicatorsSelected.length; i++){
+            (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('goal')).removeAt(n_years);
+            for(let j = 0; j < Math.trunc(duration_diff/12); j++){
+              let longitud : number = (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('goal')).length;
+              (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('goal')).removeAt(longitud -1);
+            }
+            if(duration_diff % 12){
+              let toAdd : number = 12 - (duration_diff % 12);
+              let inicioProyecto = Moment(new Date(this.GeneralFormGroup.get('monitoring_date').value));
+              let longitud : number = (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('goal')).length;
+              let period : any = inicioProyecto.add(longitud - 1,'year');
+              period = inicioProyecto.add(toAdd,'months').format();
+
+              (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('goal')).removeAt(longitud -1);
+
+              let goalCtrl : FormGroup = new FormGroup({
+                yearNumber: new FormControl('Último período'),
+                year: new FormControl(new Date(period)),
+                parameters: new FormArray([])
+              });
+      
+              for(let j = 0; j < this.indicatorsSelected[i].parameters_schema.length; j++){
+                if(this.indicatorsSelected[i].antiquity_diff) (<FormArray> goalCtrl.get('parameters')).push(new FormGroup({
+                  name: new FormControl(this.indicatorsSelected[i].parameters_schema[j].name),
+                  id: new FormControl(this.indicatorsSelected[i].parameters_schema[j]._id),
+                  goals: new FormGroup({
+                    newer: new FormControl('', Validators.required),
+                    older: new FormControl('', Validators.required)
+                  })
+                }));
+                else (<FormArray> goalCtrl.get('parameters')).push(new FormGroup({
+                  name: new FormControl(this.indicatorsSelected[i].parameters_schema[j].name),
+                  id: new FormControl(this.indicatorsSelected[i].parameters_schema[j]._id),
+                  goals: new FormGroup({
+                    goal: new FormControl('', Validators.required)
+                  })
+                }));
+              }
+      
+              (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('goal')).push(goalCtrl);  
+              
+            }
+          }
+
+        }else{ //La duración anterior era exacta en años
+
+          for(let i = 0; i < this.indicatorsSelected.length; i++){
+            for(let j = 0; j < Math.trunc(duration_diff/12); j++){
+              let longitud : number = (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('goal')).length;
+              (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('goal')).removeAt(longitud -1);
+            }
+            if(duration_diff % 12){
+              let toAdd : number = 12 - (duration_diff % 12);
+              let inicioProyecto = Moment(new Date(this.GeneralFormGroup.get('monitoring_date').value));
+              let longitud : number = (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('goal')).length;
+              let period : any = inicioProyecto.add(longitud - 1,'year');
+              period = inicioProyecto.add(toAdd,'months').format();
+
+              (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('goal')).removeAt(longitud -1);
+
+              let goalCtrl : FormGroup = new FormGroup({
+                yearNumber: new FormControl('Último período'),
+                year: new FormControl(new Date(period)),
+                parameters: new FormArray([])
+              });
+      
+              for(let j = 0; j < this.indicatorsSelected[i].parameters_schema.length; j++){
+                if(this.indicatorsSelected[i].antiquity_diff) (<FormArray> goalCtrl.get('parameters')).push(new FormGroup({
+                  name: new FormControl(this.indicatorsSelected[i].parameters_schema[j].name),
+                  id: new FormControl(this.indicatorsSelected[i].parameters_schema[j]._id),
+                  goals: new FormGroup({
+                    newer: new FormControl('', Validators.required),
+                    older: new FormControl('', Validators.required)
+                  })
+                }));
+                else (<FormArray> goalCtrl.get('parameters')).push(new FormGroup({
+                  name: new FormControl(this.indicatorsSelected[i].parameters_schema[j].name),
+                  id: new FormControl(this.indicatorsSelected[i].parameters_schema[j]._id),
+                  goals: new FormGroup({
+                    goal: new FormControl('', Validators.required)
+                  })
+                }));
+              }
+      
+              (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('goal')).push(goalCtrl);  
+              
+            }
+          }
+
+        }
+      }else if(duration_diff < 0){ //Hay que aumentar
+        duration_diff = Math.abs(duration_diff);
+        if(!(this.projectDuration % 12)){ //La duración anterior era exacta en años.
+          for(let i = 0; i < this.indicatorsSelected.length; i++){
+            let inicioProyecto = Moment(new Date(this.GeneralFormGroup.get('monitoring_date').value));
+            inicioProyecto = inicioProyecto.add((<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('goal')).length,'year');
+
+            for(let a = 0; a < Math.trunc(duration_diff / 12); a++){
+              let goalCtrl : FormGroup = new FormGroup({
+                yearNumber: new FormControl(`${(<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('goal')).length + 1}º año`),
+                year: new FormControl(new Date(inicioProyecto.add(1,'year').format())),
+                parameters: new FormArray([])
+              });
+      
+              for(let j = 0; j < this.indicatorsSelected[i].parameters_schema.length; j++){
+                if(this.indicatorsSelected[i].antiquity_diff) (<FormArray> goalCtrl.get('parameters')).push(new FormGroup({
+                  name: new FormControl(this.indicatorsSelected[i].parameters_schema[j].name),
+                  id: new FormControl(this.indicatorsSelected[i].parameters_schema[j]._id),
+                  goals: new FormGroup({
+                    newer: new FormControl('', Validators.required),
+                    older: new FormControl('', Validators.required)
+                  })
+                }));
+                else (<FormArray> goalCtrl.get('parameters')).push(new FormGroup({
+                  name: new FormControl(this.indicatorsSelected[i].parameters_schema[j].name),
+                  id: new FormControl(this.indicatorsSelected[i].parameters_schema[j]._id),
+                  goals: new FormGroup({
+                    goal: new FormControl('', Validators.required)
+                  })
+                }));
+              }
+  
+              (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('goal')).push(goalCtrl);
+            }
+    
+            if(duration_diff % 12){
+              let goal : FormArray = new FormArray([]);
+              
+              for(let j = 0; j < this.indicatorsSelected[i].parameters_schema.length; j++){
+                
+                if(this.indicatorsSelected[i].antiquity_diff) (<FormArray> goal).push(new FormGroup({
+                  name: new FormControl(this.indicatorsSelected[i].parameters_schema[j].name),
+                  id: new FormControl(this.indicatorsSelected[i].parameters_schema[j]._id),
+                  goals: new FormGroup({
+                    newer: new FormControl('',Validators.required),
+                    older: new FormControl('',Validators.required)
+                  })
+                }));
+                else (<FormArray> goal).push(new FormGroup({
+                  name: new FormControl(this.indicatorsSelected[i].parameters_schema[j].name),
+                  id: new FormControl(this.indicatorsSelected[i].parameters_schema[j]._id),
+                  goals: new FormGroup({
+                    goal: new FormControl('',Validators.required)
+                  })
+                }));
+                
+              }
+      
+              (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('goal')).push(new FormGroup({
+                yearNumber: new FormControl('Último período'),
+                year: new FormControl(new Date(inicioProyecto.add((duration_diff % 12),'months').format())),
+                parameters: goal
+              }));
+            }
+            
+            
+          }
+        }else{ //La duración anterior no era exacta en años.
+
+          duration_diff += this.projectDuration % 12;
+
+          for(let i = 0; i < this.indicatorsSelected.length; i++){
+
+            let total_goals : number = (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('goal')).length;
+
+            (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('goal')).removeAt(total_goals-1);
+
+            let inicioProyecto = Moment(new Date(this.GeneralFormGroup.get('monitoring_date').value));
+
+            for(let a = 0; a < Math.trunc(duration_diff / 12); a++){
+              let goalCtrl : FormGroup = new FormGroup({
+                yearNumber: new FormControl(`${(<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('goal')).length + 1}º año`),
+                year: new FormControl(new Date(inicioProyecto.add(1,'year').format())),
+                parameters: new FormArray([])
+              });
+      
+              for(let j = 0; j < this.indicatorsSelected[i].parameters_schema.length; j++){
+                if(this.indicatorsSelected[i].antiquity_diff) (<FormArray> goalCtrl.get('parameters')).push(new FormGroup({
+                  name: new FormControl(this.indicatorsSelected[i].parameters_schema[j].name),
+                  id: new FormControl(this.indicatorsSelected[i].parameters_schema[j]._id),
+                  goals: new FormGroup({
+                    newer: new FormControl('', Validators.required),
+                    older: new FormControl('', Validators.required)
+                  })
+                }));
+                else (<FormArray> goalCtrl.get('parameters')).push(new FormGroup({
+                  name: new FormControl(this.indicatorsSelected[i].parameters_schema[j].name),
+                  id: new FormControl(this.indicatorsSelected[i].parameters_schema[j]._id),
+                  goals: new FormGroup({
+                    goal: new FormControl('', Validators.required)
+                  })
+                }));
+              }
+  
+              (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('goal')).push(goalCtrl);
+            }
+    
+            if(duration_diff % 12){
+              let goal : FormArray = new FormArray([]);
+              
+              for(let j = 0; j < this.indicatorsSelected[i].parameters_schema.length; j++){
+                
+                if(this.indicatorsSelected[i].antiquity_diff) (<FormArray> goal).push(new FormGroup({
+                  name: new FormControl(this.indicatorsSelected[i].parameters_schema[j].name),
+                  id: new FormControl(this.indicatorsSelected[i].parameters_schema[j]._id),
+                  goals: new FormGroup({
+                    newer: new FormControl('',Validators.required),
+                    older: new FormControl('',Validators.required)
+                  })
+                }));
+                else (<FormArray> goal).push(new FormGroup({
+                  name: new FormControl(this.indicatorsSelected[i].parameters_schema[j].name),
+                  id: new FormControl(this.indicatorsSelected[i].parameters_schema[j]._id),
+                  goals: new FormGroup({
+                    goal: new FormControl('',Validators.required)
+                  })
+                }));
+                
+              }
+
+              let longitud : number = (<FormArray> this.GeneralFormGroup.get('full_schema')['controls'][i].get('goal')).length;
+              let period : any = inicioProyecto.add(longitud,'year');
+              period = inicioProyecto.add((duration_diff % 12),'months').format();
+      
+              (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('goal')).push(new FormGroup({
+                yearNumber: new FormControl('Último período'),
+                year: new FormControl(new Date(period)),
+                parameters: goal
+              }));
+            }
+            
+          }
+
+        }
+      }
+      this.projectDuration = this.GeneralFormGroup.get('duration').value;
+    }
+  }
 
 /**
  * -------------------------------------------------------------------------------------------
