@@ -221,9 +221,22 @@ export class NewProjectComponent{
 
       (<FormArray> indicatorGroup.get('baseline')).push(this.addOrgToBaseLine('First',indicador,true));
 
+      let diferentiation : string = indicador.organizations_diff_by;
+      if(diferentiation == 'CEFODI'){
+        let baselineRow : FormArray = new FormArray([]);
+            (<FormArray> baselineRow).push(new FormControl('CEFODI'));
+            (<FormArray> baselineRow).push(new FormControl('CEFODI'));
+  
+            for(let k = 0; k < indicador.parameters_schema.length; k++){
+              (<FormArray> baselineRow).push(new FormControl(''));
+            }
+  
+            (<FormArray> indicatorGroup.get('baseline')).push(baselineRow);
+  
+      }
+
       for(let i = 0; i < this.organizationsSelected.length; i++){
         if(indicador.organizations_diff){
-          let diferentiation : string = indicador.organizations_diff_by;
           if(diferentiation != 'characteristic'){
             for(let j = 0; j < indicador.organizations.length; j++){
               if(this.organizationsSelected[i][diferentiation] == indicador.organizations[j]) (<FormArray> indicatorGroup.get('baseline')).push(this.addOrgToBaseLine(this.organizationsSelected[i],indicador));
@@ -383,7 +396,6 @@ export class NewProjectComponent{
   }
 
   addOrgToBaseLine (organization, indicator, isFirst?) : FormArray {
-    console.log(organization);
     let baselineRow : FormArray = new FormArray([]);
     if(isFirst){
       (<FormArray> baselineRow).push(new FormControl('Organization'));
@@ -412,6 +424,76 @@ export class NewProjectComponent{
 
   OnFundersListChange(id : string){
     (<FormArray> this.GeneralFormGroup.get('funders')).push(new FormControl(id,[Validators.required]));
+  }
+
+  remakeBaselineSchema(value,i){
+    //Clean the previous baseline schema
+    for(let j = (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('baseline')).length - 1; j > 0; j--){
+      (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('baseline')).removeAt(j);
+    }
+
+    if(this.indicatorsSelected[i].organizations_diff_by == 'CEFODI'){
+      let baselineRow : FormArray = new FormArray([]);
+          (<FormArray> baselineRow).push(new FormControl('CEFODI'));
+          (<FormArray> baselineRow).push(new FormControl('CEFODI'));
+
+          for(let k = 0; k < this.indicatorsSelected[i].parameters_schema.length; k++){
+            (<FormArray> baselineRow).push(new FormControl(''));
+          }
+
+          (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('baseline')).push(baselineRow);
+
+    }else if(value == 'sectors' || value == 'types'){
+
+        for(let j = 0; j < this.preferences[value].length; j++){
+        
+          let baselineRow : FormArray = new FormArray([]);
+          (<FormArray> baselineRow).push(new FormControl(this.preferences[value][j]));
+          (<FormArray> baselineRow).push(new FormControl(this.preferences[value][j]));
+
+          for(let k = 0; k < this.indicatorsSelected[i].parameters_schema.length; k++){
+            (<FormArray> baselineRow).push(new FormControl(''));
+          }
+
+          (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('baseline')).push(baselineRow);
+
+        }
+
+    }else if(value == 'individual'){
+        
+        for(let j = 0; j < this.organizationsSelected.length; j++){
+          if(this.indicatorsSelected[i].organizations_diff){
+            let diferentiation : string = this.indicatorsSelected[i].organizations_diff_by;
+            if(diferentiation != 'characteristic'){
+              for(let k = 0; k < this.indicatorsSelected[i].organizations.length; k++){
+                if(this.organizationsSelected[j][diferentiation] == this.indicatorsSelected[i].organizations[k]){
+                  (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('baseline')).push(this.addOrgToBaseLine(this.organizationsSelected[j],this.indicatorsSelected[i]));
+                }
+    
+              }
+            }else{
+              switch (this.indicatorsSelected[i].organizations[0]) {
+                case 'Con Negocios':
+                  if(this.organizationsSelected[j].with_business == 'Si') (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('baseline')).push(this.addOrgToBaseLine(this.organizationsSelected[j],this.indicatorsSelected[i]));
+                  break;
+                case 'Sin Negocios':
+                  if(this.organizationsSelected[j].with_business == 'No') (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('baseline')).push(this.addOrgToBaseLine(this.organizationsSelected[j],this.indicatorsSelected[i]));
+                  break;
+                case 'Legalizadas':
+                  if(this.organizationsSelected[j].legalized) (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('baseline')).push(this.addOrgToBaseLine(this.organizationsSelected[j],this.indicatorsSelected[i]));
+                  break;
+                case 'No Legalizadas':
+                  if(!this.organizationsSelected[j].legalized) (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('baseline')).push(this.addOrgToBaseLine(this.organizationsSelected[j],this.indicatorsSelected[i]));
+                  break;
+                default:
+                  break;
+              }
+            }
+          }else (<FormArray> (<FormArray> this.GeneralFormGroup.get('full_schema')).at(i).get('baseline')).push(this.addOrgToBaseLine(this.organizationsSelected[j],this.indicatorsSelected[i]));
+  
+        }
+
+    }
   }
 
   createProject(){
