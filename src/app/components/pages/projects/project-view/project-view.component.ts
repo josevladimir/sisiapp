@@ -176,56 +176,38 @@ export class ProjectViewComponent {
     }
 
     for(let i = 0; i < this.Project.full_schema.length; i++){
-      let baselineCtrl : FormArray = new FormArray([]);
-
-      let indicator = this.Indicators.filter(indicador => indicador._id == this.Project.full_schema[i].id)[0];
-
-      console.log('indicador',indicator);
       
+      let indicator = this.Indicators.filter(indicador => indicador._id == this.Project.full_schema[i].id)[0];
+      
+      let baselineCtrl : FormArray = new FormArray([]);
       for(let j = 0; j < this.Project.full_schema[i].baseline.length; j++){
-
-        (<FormArray> baselineCtrl).push(new FormGroup({
-          organization: new FormControl(this.Project.full_schema[i].baseline[j].organization),
-          id: new FormControl(this.Project.full_schema[i].baseline[j].id),
-          parameters: new FormArray([])
-        }));
-
-        for(let k = 0; k < this.Project.full_schema[i].baseline[j].parameters.length; k++){
-          (<FormArray> baselineCtrl['controls'][j].get('parameters')).push(new FormGroup({
-            name: new FormControl(this.Project.full_schema[i].baseline[j].parameters[k].name),
-            baseline: new FormControl(this.Project.full_schema[i].baseline[j].parameters[k].baseline)
-          }));
+        let auxArrayForm : FormArray = new FormArray([]);
+        for(let k = 0; k < this.Project.full_schema[i].baseline[j].length; k++){
+          (<FormArray> auxArrayForm).push(new FormControl(this.Project.full_schema[i].baseline[j][k]));
         }
-
+        (<FormArray> baselineCtrl).push(auxArrayForm);
       }
-
+      
       let goalCtrl : FormArray = new FormArray([]);
-
       for(let j = 0; j < this.Project.full_schema[i].goal.length; j++){
-        (<FormArray> goalCtrl).push(new FormGroup({
-          year: new FormControl(this.Project.full_schema[i].goal[j].year),
-          yearNumber: new FormControl(this.Project.full_schema[i].goal[j].yearNumber),
-          parameters: new FormArray([])
-        }));
-
-        for(let k = 0; k < this.Project.full_schema[i].goal[j].parameters.length; k++){
-          if(this.Project.full_schema[i].antiquity_diff) (<FormArray> goalCtrl['controls'][j].get('parameters')).push(new FormGroup({
-            name: new FormControl(this.Project.full_schema[i].goal[j].parameters[k].name),
-            id: new FormControl(this.Project.full_schema[i].goal[j].parameters[k].id),
-            goals: new FormGroup({
-              newer: new FormControl(this.Project.full_schema[i].goal[j].parameters[k].goals.newer,[Validators.required]),
-              older: new FormControl(this.Project.full_schema[i].goal[j].parameters[k].goals.older,[Validators.required])
-            })
-          }));
-          else (<FormArray> goalCtrl['controls'][j].get('parameters')).push(new FormGroup({
-            name: new FormControl(this.Project.full_schema[i].goal[j].parameters[k].name),
-            id: new FormControl(this.Project.full_schema[i].goal[j].parameters[k].id),
-            goals: new FormGroup({
-              goal: new FormControl(this.Project.full_schema[i].goal[j].parameters[k].goals.goal,[Validators.required])
-            })
-          }));
+        let auxFormArray : FormArray = new FormArray([]);
+        for(let k = 0; k < this.Project.full_schema[i].goal[j].length; k++){
+          if(!j){ //First row whit the table's legend
+            (<FormArray> auxFormArray).push(new FormControl(this.Project.full_schema[i].goal[j][k].yearNumber));
+          }else if(!k){ //First Column when are the perdiod legend
+            (<FormArray> auxFormArray).push(new FormGroup({
+              yearNumber: new FormControl(this.Project.full_schema[i].goal[j][k].yearNumber),
+              yearPeriod: new FormControl(this.Project.full_schema[i].goal[j][k].yearPeriod)
+            }));
+          }else{
+            if(this.Project.full_schema[i].antiquity_diff) (<FormArray> auxFormArray).push(new FormGroup({
+              older: new FormControl(this.Project.full_schema[i].goal[j][k].older,Validators.required),
+              newer: new FormControl(this.Project.full_schema[i].goal[j][k].newer,Validators.required)
+            }));
+            else (<FormArray> auxFormArray).push(new FormControl(this.Project.full_schema[i].goal[j][k]));
+          }
         }
-  
+        (<FormArray> goalCtrl).push(auxFormArray);
       }
 
       this.indicatorsSelected.push(indicator);

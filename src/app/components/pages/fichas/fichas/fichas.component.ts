@@ -79,7 +79,7 @@ export class FichasComponent {
                                       }
                                    },error => {
                                      this.store.dispatch(stopLoading());
-                                     this.snackBar.open('Ha ocurriido un error.','ENTENDIDO',{duration: 3000});
+                                     this.snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
                                    });
       
     }

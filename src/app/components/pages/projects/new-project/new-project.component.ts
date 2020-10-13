@@ -509,7 +509,7 @@ export class NewProjectComponent{
       project.indicators.push(this.indicatorsSelected[i].id);
     }
     for(let i = 0; i < this.organizationsSelected.length; i++){
-      project.organizations.push(this.organizationsSelected[i].id);
+      project.organizations.push(this.organizationsSelected[i]._id);
     }
     this.projectsService.createProject(project).subscribe(projectResponse =>
       this.uploadBeneficiariesList(projectResponse.project._id).subscribe(docResponse => {
@@ -521,11 +521,11 @@ export class NewProjectComponent{
         this.organizationsService.getOrganizations(true);
       },error =>{
         this.store.dispatch(stopLoading());
-        this.snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
+        this.snackBar.open('Ha ocurrido un error.'+error.error,'ENTENDIDO',{duration: 3000});
       }),
     error => {
       this.store.dispatch(stopLoading());
-      this.snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
+      this.snackBar.open('Ha ocurrido un error.'+error.error,'ENTENDIDO',{duration: 3000});
     });
   }
 
