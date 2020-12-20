@@ -5,45 +5,36 @@
 <div class="page-content-without-padding">
     
     <div class="p-4">
-        <mat-card class="margin-bottom-50">
-            <mat-card-title class="font-weight-lighter">Generar Reporte:</mat-card-title>
-            <mat-divider></mat-divider>
-            <mat-card-content>
-                <div class="row pt-3">
-                    <div class="col-sm-4">
-                        <mat-form-field class="full-width">
-                            <mat-label>Proyectos</mat-label>
-                            <mat-select [(ngModel)]="this.selectedProject" matNativeControl (valueChange)="onProjectSelected($event)">
-                                <mat-option *ngFor="let project of this.Projects" [value]="project._id">{{project.name}}</mat-option>
-                            </mat-select>
-                        </mat-form-field>
-                    </div>
-                    <div class="col-sm-4" *ngIf="this.selectedProject">
-                        <mat-form-field class="full-width">
-                            <mat-label>Indicadores</mat-label>
-                            <mat-select [disabled]="!this.selectedProject" [(ngModel)]="this.selectedIndicator" (valueChange)="onIndicatorSelected($event)" matNativeControl>
-                                <mat-option *ngFor="let indicator of this.Project.indicators" [value]="indicator._id">{{indicator.name}}</mat-option>
-                            </mat-select>
-                        </mat-form-field>
-                    </div>
-                    <div class="col-sm-4" *ngIf="this.selectedProject && this.selectedIndicator">
-                        <mat-form-field class="full-width">
-                            <mat-label>Período</mat-label>
-                            <mat-select [disabled]="!this.PeriodSelectAvailable" [(ngModel)]="this.selectedPeriod" (valueChange)="onPeriodSelected($event)" matNativeControl>
-                                <mat-option *ngIf="this.AvailablePeriods && !this.AvailablePeriods.length" value="none">No existen registros</mat-option>
-                                <mat-option *ngFor="let periodo of this.AvailablePeriods" [value]="periodo.period">{{periodo.date.from | date : 'MMMM yyyy'}} - {{periodo.date.to | date : 'MMMM yyyy'}}</mat-option>
-                            </mat-select>
-                        </mat-form-field>
-                    </div>
+        <div class="margin-bottom-50">
+            <div class="row">
+                <div class="col-sm-6">
+                    <mat-form-field class="full-width">
+                        <mat-label>Proyectos</mat-label>
+                        <mat-select [(ngModel)]="this.selectedProject" matNativeControl>
+                            <mat-option [value]="">Selecciona un proyecto</mat-option>
+                            <mat-option *ngFor="let project of this.Projects" [value]="project._id">{{project.name}}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
                 </div>
-                <div class="flex mt-3">
+                <div class="col-sm-6">
+                    <mat-form-field class="full-width">
+                        <mat-label>Indicadores</mat-label>
+                        <mat-select [(ngModel)]="this.selectedIndicator" matNativeControl>
+                            <mat-option value="all">Todos los Indicadores</mat-option>
+                            <mat-option *ngFor="let indicator of this.Indicators" [value]="indicator._id">{{indicator.name}}</mat-option> 
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12 flex">
                     <span class="fill-remaining-space"></span>
-                    <button mat-raised-button color="primary"(click)="generateReport()" [disabled]="!this.selectedProject || !this.selectedIndicator || !this.selectedPeriod">Generar Reporte</button>
+                    <button mat-raised-button color="primary"(click)="generateReport()" [disabled]="!this.selectedProject">Generar Reporte</button>
                 </div>
-            </mat-card-content>
-        </mat-card> 
-
-        <mat-card class="mt-4" *ngIf="this.Status == 'loading'">
+            </div>
+        </div> 
+        
+        <mat-card class="mt-4" *ngIf="this.Loading">
             <div class="loading-box">
                 <div>
                     <img src="{{this.assetsUrl}}/images/logo-sisi-only.svg" alt="">
@@ -52,6 +43,103 @@
             </div>
         </mat-card>
         
+        <mat-card class="mt-4" *ngIf="this.Status == 'error'">
+            <div class="loading-box">
+                <div>
+                    <img src="{{this.assetsUrl}}/images/logo-sisi-only.svg" alt="">
+                    <h4 class="font-weight-lighter text-center">Ups! Ha ocurrido un error...</h4>
+                </div>
+            </div>
+        </mat-card>
+        
+        <mat-card class="mt-4" *ngIf="this.Status == 'ready'">
+            <mat-card-content>
+                <div class="row mb-2">
+                    <div class="col-sm-4">
+                        <mat-form-field class="full-width">
+                            <mat-label>Periodo</mat-label>
+                            <mat-select [(ngModel)]="this.Period.selection" (valueChange)="this.makeChart({period: $event})" matNativeControl>
+                                <mat-option value="allTime">Siempre</mat-option>
+                                <mat-option *ngFor="let period of this.Period.periods; let i = index" [value]="period"><span *ngIf="!i">Último reporte</span><span *ngIf="i">Desde el {{period}}</span></mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-sm-4">
+                        <mat-form-field class="full-width">
+                            <mat-label>Organizaciones</mat-label>
+                            <mat-select [(ngModel)]="this.Organizations.selection" (valueChange)="this.makeChart({organization: $event})" matNativeControl>
+                                <mat-option value="average">Promedio</mat-option>
+                                <mat-option value="all">Agrupar por:</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-sm-4">
+                        <mat-form-field class="full-width" *ngIf="this.Organizations.selection == 'all'">
+                            <mat-label>Criterio de Agrupación</mat-label>
+                            <mat-select [(ngModel)]="this.Organizations.agrupation" (valueChange)="this.makeChart({agrupation: $event})" matNativeControl>
+                                <mat-option value="type">Tipo de Organización</mat-option>
+                                <mat-option value="sector">Sector de actividad</mat-option>
+                                <mat-option value="partners">Género mayoritario entre socios</mat-option>
+                                <mat-option value="with_business">Con/Sin Negocio</mat-option>
+                                <mat-option value="legalized">Es/No es legalizada</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                </div>
+                <mat-divider></mat-divider>
+                <div class="mt-3 mb-3">
+                    <google-chart #chart class="full-width"
+                        [type]="graphicSettings.type"
+                        [data]="graphicSettings.data"
+                        [options]="graphicSettings.options"
+                        [height]="graphicSettings.height"
+                        [columns]="this.graphicSettings.columnNames"
+                        
+                        width="100%">
+                    </google-chart>
+                </div>
+                <mat-divider class="mb-3"></mat-divider>
+
+                <div class="pt-3 mb-3">
+                    <h2>Tabla de Valores</h2>
+                    <!--Tablas Promedios-->
+                    <table class="tablas-reporte" *ngIf="this.Organizations.selection == 'average'">
+                        <thead>
+                            <tr>
+                                <th>Fecha de Reporte</th>
+                                <th>{{this.Indicator.name}} (Promedio)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let fila of this.graphicSettings.data">
+                                <td>{{fila[0] | date : 'MMMM yyyy' | uppercase}}</td>
+                                <td>{{fila[1]}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!--Tablas uno por uno-->
+                    <table class="tablas-reporte" *ngIf="this.Organizations.selection == 'all'">
+                        <thead>
+                            <tr>
+                                <th>Organizaciones</th>
+                                <!--th>{{this.Indicator.name}} (Promedio)</th-->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!--tr *ngFor="let fila of this.Ficha.report.length; let i of index">
+                                <td>{{fila[0]}}</td>
+                                <td>{{fila[1]}}</td>
+                            </tr-->
+                        </tbody>
+                    </table>
+
+                    
+                </div>
+
+            </mat-card-content>
+
+        </mat-card>
 
     </div>
 

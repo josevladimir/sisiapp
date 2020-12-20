@@ -82,6 +82,7 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
+
 //NgRx
 import { reducers } from './reducers/index';
 import { AppEffects } from './app.effects';
@@ -94,6 +95,8 @@ import { ForFundersPipe } from './pipes/for-funders.pipe';
 
 
 import localeEsEc from '@angular/common/locales/es-EC';
+import { GraphQLModule } from './graphql.module';
+import { GoogleChartsModule } from 'angular-google-charts';
 
 
 registerLocaleData(localeEsEc, 'es-EC');
@@ -174,6 +177,7 @@ registerLocaleData(localeEsEc, 'es-EC');
     MatSnackBarModule,
     MatGridListModule,
     MatPaginatorModule,
+    GoogleChartsModule,
     MatDatepickerModule,
     MatNativeDateModule,
     ReactiveFormsModule,
@@ -183,7 +187,8 @@ registerLocaleData(localeEsEc, 'es-EC');
     EffectsModule.forRoot([AppEffects]),
     StorageModule.forRoot({ IDBNoWrap: true }),
     StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: true }),
-    StoreRouterConnectingModule.forRoot()
+    StoreRouterConnectingModule.forRoot(),
+    GraphQLModule
   ],
   entryComponents: [
     NewPasswordComponent,

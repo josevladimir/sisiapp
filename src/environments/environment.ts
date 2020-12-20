@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  baseUrl: 'https://handsoftcorp.com',
+  baseUrl: 'http://64.227.8.162:3000',
   assetsUrl: '/src/assets'
 };
 
