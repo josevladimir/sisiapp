@@ -28,7 +28,7 @@ export class FichasComponent {
 
   FichaTable : FormGroup;
 
-  Status : string;
+  Status : any;
 
   daysOfLapse : number;
 
@@ -37,6 +37,15 @@ export class FichasComponent {
   userOrganizations : any;
 
   Schema : any;
+
+  Search : any = {
+    working: false,
+    error: false,
+    empty: false,
+    editMode: false,
+    EditForm: null,
+    fichas: []
+  };
 
   constructor(private projectService : ProjectsServiceService,
               private store : Store<State>,
@@ -58,7 +67,6 @@ export class FichasComponent {
   }
   
   save(){
-    console.log(this.FichaTable.value);
     if(confirm('\n¿Seguro que ya desea guardar la ficha?')){
       this.store.dispatch(initLoading({message: 'Guardando Ficha...'}));
       if(!this.Schema)return this.fichaService.saveFicha(this.FichaTable.value)
@@ -70,6 +78,17 @@ export class FichasComponent {
                                                             this.store.dispatch(stopLoading());
                                                             this.snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
                                                           });
+      else if(this.Search.EditForm) return this.fichaService.updateFicha(this.Search.ficha._id,this.Search.EditForm.value)
+                                        .subscribe(result => {
+                                           if(result.message == 'OK') {
+                                             this.Status = 'none';
+                                             this.store.dispatch(stopLoading());
+                                             this.snackBar.open('Ficha guardada exitosamente.','ENTENDIDO',{duration: 3000});
+                                           }
+                                        },error => {
+                                          this.store.dispatch(stopLoading());
+                                          this.snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000});
+                                        });
       else return this.fichaService.updateFicha(this.Schema._id,this.FichaTable.value)
                                    .subscribe(result => {
                                       if(result.message == 'OK') {
@@ -176,7 +195,7 @@ export class FichasComponent {
 
     let fueraDeTiempo : boolean = moment(new Date()).isAfter(moment(fechaLimite));
 
-    this.comprobarDisponibilidad(fueraDeTiempo);
+    this.comprobarDisponibilidad(fueraDeTiempo); 
 
   }
 
@@ -317,24 +336,77 @@ export class FichasComponent {
             if(ficha.exist) this.Status = 'fueraDeTiempo';
             else this.Status = 'noSeHizoNada'
           }else this.makeSchemaForm(ficha.exist);
-
-          console.log(this.Status);
-
-          /*if(ficha.exist){
-            console.log('existe');
-            this._store.select(getUserData).subscribe(user => {
-              this.Schema = ficha.ficha;
-              this.User = {organizations: user.organizations ? user.organizations : null,role: user.role};
-              this.makeSchemaForm(ficha.exist);
-            }); *
-          }else{
-            console.log('no existe');
-            /this._store.select(getUserData).subscribe(user => {
-              this.User = {organizations: user.organizations ? user.organizations : null,role: user.role};
-              this.makeSchemaForm(ficha.exist);
-            });
-          }*/
         });
+  }
+
+  searchFichas(){
+    this.Search.working = true;
+    this.Search.error = false;
+    this.Search.empty = false;
+    this.fichaService.search(this.ProjectSelected._id,this.IndicatorSelected._id).subscribe(
+      result => {
+        console.log(result);
+        if(result.message == 'OK'){
+          this.Search.working = false;
+          let sorted = this.sortFichas(result.fichas);
+          this.Search.fichas = sorted;
+        }else{
+          console.log(this.Search.empty, 'aqui');
+          this.Search.working = false;
+          this.Search.empty = true;
+        }
+      },error => {
+        this.Search.working = false;
+        console.log(error);
+        this.Search.error = true;
+      }
+    );
+  }
+
+  sortFichas(fichas):any[]{
+    let indicador = false;
+    let auxiliar = fichas;
+    do {
+      indicador = false;
+      for(let i = 1; i < auxiliar.length; i++){
+        let Ant = auxiliar[i-1].period.split('º')[0];
+        let Sig = auxiliar[i].period.split('º')[0];
+  
+        if(parseInt(Sig) < parseInt(Ant)){
+          let aux = auxiliar[i];
+          auxiliar[i] = auxiliar[i-1];
+          auxiliar[i-1] = aux;
+          indicador = true;
+        }
+      }
+    } while (indicador);
+    return auxiliar;
+  }
+  
+  setEditMode(){
+
+    this.Search.EditForm = new FormGroup({
+      lapse: new FormGroup({
+        to: new FormControl(this.Search.ficha.lapse.to),
+        from: new FormControl(this.Search.ficha.lapse.from)
+      }),
+      indicator: new FormControl(this.Search.ficha.indicator),
+      of_project: new FormControl(this.Search.ficha.of_project),
+      period: new FormControl(this.Search.ficha.period),
+      rows: new FormArray([])
+    });
+    for(let i = 0; i < this.Search.ficha.rows.length; i++){
+      let row = new FormArray([]);
+      for(let j = 0; j < this.Search.ficha.rows[i].length; j++){
+        (<FormArray> row).push(new FormControl(this.Search.ficha.rows[i][j]));
+      }
+      (<FormArray> this.Search.EditForm.get('rows')).push(row);
+    }
+
+    this.Search.editMode = true;
+
+    console.log(this.Search.EditForm.value);
   }
   
 }
+

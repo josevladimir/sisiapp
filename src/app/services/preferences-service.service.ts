@@ -32,7 +32,7 @@ export class PreferencesServiceService {
             notifications: response.preferences.Notifications,
             fichas: response.preferences.Fichas
           }
-          //this.store.dispatch(setLapseToRecord({numberOfDays: response.preferences.Fichas.maxTimeToUpload}))
+          this.store.dispatch(setLapseToRecord({numberOfDays: response.preferences.Fichas.maxTimeToUpload}));
           this.storage.set('preferences',preferencias).subscribe(() => {
             if(!NoNotify) this.snackBar.open('Se han obtenido las preferencias de Usuario.','ENTENDIDO',{duration: 3000})
           });
@@ -50,6 +50,15 @@ export class PreferencesServiceService {
           this.sockets.emit('preferencesWasUpdated', {});
           this.updatePreferencesOnStorage();
         },error => this.snackBar.open('Ha ocurrido un error.','ENTENDIDO',{duration: 3000}));
+  }
+
+  updatePreferencesSettings (settings) : void {
+    this.http
+        .put(`${environment.baseUrl}/Preferences/`,settings,{headers: this.headersGenerator.generateJsonHeader()})
+        .subscribe((response : any) => {
+          this.sockets.emit('preferencesWasUpdated', {});
+          this.updatePreferencesOnStorage();
+        },error => {console.log(error);this.snackBar.open('Ha ocurrido un error.'+error,'ENTENDIDO',{duration: 3000})});
   }
 
   updatePreferencesOnStorage ( out? : boolean) {

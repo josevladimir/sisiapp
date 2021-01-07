@@ -16,6 +16,7 @@ import { StorageMap } from '@ngx-pwa/local-storage';
 import { stopLoading, initLoading } from '../reducers/actions/loading.actions';
 import { Router } from '@angular/router';
 import { logout, User } from '../reducers/actions/session.actions';
+import { setLapseToRecord } from '../reducers/actions/general.actions';
 
 @Injectable({
   providedIn: 'root'

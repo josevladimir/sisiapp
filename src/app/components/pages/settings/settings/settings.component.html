@@ -4,77 +4,81 @@
 
 <div class="page-content">
 
-    <mat-card [formGroup]="this.FichasGroup">
-        <mat-card-title class="font-weight-lighter">Fichas</mat-card-title>
-        <mat-card-content>
-            <div class="row">
-                <div class="col-sm-6">
-                    <mat-form-field class="full-width">
-                        <input matInput type="number" formControlName="maxTimeToUpload" placeholder="Tiempo máximo (en días)">
-                    </mat-form-field>
-                </div>
-            </div>
-        </mat-card-content>
-    </mat-card>
-
-    <mat-card class="mt-4" [formGroup]="this.NotificationsGroup">
-        <mat-card-title class="font-weight-lighter">Notificaciones por Email</mat-card-title>
-        <mat-card-content>
-            <div class="row">
-                <div class="col-sm-6">
-                    <mat-form-field class="full-width">
-                        <mat-label>Notificar cuando esté disponible una ficha:</mat-label>
-                        <mat-select formControlName="availableFicha">
-                            <mat-option value="Activado">Activado</mat-option>
-                            <mat-option value="Desactivado">Desactivado</mat-option>
-                        </mat-select>
-                    </mat-form-field>
-                </div>
-                <div class="col-sm-6">
-                    <mat-form-field class="full-width">
-                        <mat-label>Notificar cuando esté por cerrarse una ficha:</mat-label>
-                        <mat-select formControlName="forCloseFicha">
-                            <mat-option value="Activado">Activado</mat-option>
-                            <mat-option value="Desactivado">Desactivado</mat-option>
-                        </mat-select>
-                    </mat-form-field>
-                </div>
-            </div>
-        </mat-card-content>
-    </mat-card>
-
-    <mat-card class="mt-4" [formGroup]="this.OrganizationsGroup">
-        <mat-card-title class="font-weight-lighter">Sectores y Tipos de Organizaciones</mat-card-title>
-        <mat-card-content>
-            <div class="row">
-                <div class="col-sm-6">
-                    <div class="project-list-title">
-                        Sectores
+    <div [formGroup]="this.SettingsGroup">
+        <mat-card formGroupName="Fichas">
+            <mat-card-title class="font-weight-lighter">Fichas</mat-card-title>
+            <mat-card-content>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <mat-form-field class="full-width">
+                            <input matInput type="number" formControlName="maxTimeToUpload" placeholder="Tiempo máximo (en días)">
+                        </mat-form-field>
                     </div>
-                    <mat-selection-list class="projects-selection-list" #SectoresList>
-                        <mat-list-option class="font-weight-lighter flex" *ngFor="let organization of this.Sectors" [value]="organization" (click)="OnOrganizationsListChange(organization._id,OrganizationsList)">
-                            {{organization}}
-                        </mat-list-option>
-                    </mat-selection-list>
                 </div>
-                <div class="col-sm-6">
-                    <div class="project-list-title">
-                        Tipos
+            </mat-card-content>
+        </mat-card>
+    
+        <mat-card class="mt-4">
+            <mat-card-title class="font-weight-lighter">Notificaciones por Email</mat-card-title>
+            <mat-card-content>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <mat-form-field class="full-width">
+                            <mat-label>Notificar cuando esté disponible una ficha:</mat-label>
+                            <mat-select formControlName="availableFicha">
+                                <mat-option value="Activado">Activado</mat-option>
+                                <mat-option value="Desactivado">Desactivado</mat-option>
+                            </mat-select>
+                        </mat-form-field>
                     </div>
-                    <mat-selection-list class="projects-selection-list" #TiposList>
-                        <mat-list-option class="font-weight-lighter flex" *ngFor="let organization of this.Types" [value]="organization" (click)="OnOrganizationsListChange(organization._id,OrganizationsList)">
-                            {{organization}}
-                        </mat-list-option>
-                    </mat-selection-list>
+                    <div class="col-sm-6">
+                        <mat-form-field class="full-width">
+                            <mat-label>Notificar cuando esté por cerrarse una ficha:</mat-label>
+                            <mat-select formControlName="forCloseFicha">
+                                <mat-option value="Activado">Activado</mat-option>
+                                <mat-option value="Desactivado">Desactivado</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
                 </div>
-            </div>
-        </mat-card-content>
-    </mat-card>
+            </mat-card-content>
+        </mat-card>
+    
+        <mat-card class="mt-4">
+            <mat-card-title class="font-weight-lighter">Sectores y Tipos de Organizaciones</mat-card-title>
+            <mat-card-content>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="project-list-title">
+                            Sectores
+                        </div>
+                        <mat-selection-list class="projects-selection-list" #SectoresList>
+                            <mat-list-option class="font-weight-lighter flex" *ngFor="let organization of this.Sectors" [value]="organization">
+                                {{organization}}
+                            </mat-list-option>
+                        </mat-selection-list>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="project-list-title">
+                            Tipos
+                        </div>
+                        <mat-selection-list class="projects-selection-list" #TiposList>
+                            <mat-list-option class="font-weight-lighter flex" *ngFor="let organization of this.Types" [value]="organization">
+                                {{organization}}
+                            </mat-list-option>
+                        </mat-selection-list>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
 
-    <div class="flex mt-4">
-        <span class="fill-remaining-space"></span>
-        <button type="button" mat-button>CANCELAR</button>
-        <button type="submit" mat-raised-button color="primary" [disabled]="false">GUARDAR</button>
+        <div class="flex mt-4">
+            <span class="fill-remaining-space"></span>
+            <button type="button" class="mr-3" mat-button (click)="cancel()" >CANCELAR</button>
+            <button type="submit" mat-raised-button color="primary" (click)="save()" [disabled]="this.SettingsGroup.pristine">GUARDAR</button>
+        </div>
+
     </div>
+
 
 </div>

@@ -97,6 +97,7 @@ import { ForFundersPipe } from './pipes/for-funders.pipe';
 import localeEsEc from '@angular/common/locales/es-EC';
 import { GraphQLModule } from './graphql.module';
 import { GoogleChartsModule } from 'angular-google-charts';
+import { NgxChartsModule } from '@swimlane/ngx-charts';
 
 
 registerLocaleData(localeEsEc, 'es-EC');
@@ -163,6 +164,7 @@ registerLocaleData(localeEsEc, 'es-EC');
     MatTableModule,
     MatInputModule,
     MatRadioModule,
+    NgxChartsModule,
     MatButtonModule,
     MatDialogModule,
     MatSelectModule,

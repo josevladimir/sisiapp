@@ -10,7 +10,7 @@
                 <div class="col-sm-6">
                     <mat-form-field class="full-width">
                         <mat-label>Proyectos</mat-label>
-                        <mat-select [(ngModel)]="this.selectedProject" matNativeControl>
+                        <mat-select [(ngModel)]="this.selectedProject" (valueChange)="this.Status = 'reset'" matNativeControl>
                             <mat-option [value]="">Selecciona un proyecto</mat-option>
                             <mat-option *ngFor="let project of this.Projects" [value]="project._id">{{project.name}}</mat-option>
                         </mat-select>
@@ -19,7 +19,7 @@
                 <div class="col-sm-6">
                     <mat-form-field class="full-width">
                         <mat-label>Indicadores</mat-label>
-                        <mat-select [(ngModel)]="this.selectedIndicator" matNativeControl>
+                        <mat-select [(ngModel)]="this.selectedIndicator" (valueChange)="this.Status = 'reset'" matNativeControl>
                             <mat-option value="all">Todos los Indicadores</mat-option>
                             <mat-option *ngFor="let indicator of this.Indicators" [value]="indicator._id">{{indicator.name}}</mat-option> 
                         </mat-select>
@@ -51,10 +51,30 @@
                 </div>
             </div>
         </mat-card>
+
+
+        <!--Tarjeta Vacía-->
+        <mat-card class="mt-4" *ngIf="this.Status == 'no hay'">
+            <div class="empty-box">
+                <div class="pt-5 pb-5">
+                    <h2 class="font-weight-lighter text-center"><i class="fas fa-folder-open"></i></h2>
+                    <h4 class="font-weight-lighter text-center">No se ha encontrado datos de este indicador</h4>
+                </div>
+            </div>
+        </mat-card>
+        <!--Tarjeta Error-->
+        <mat-card class="mt-4" *ngIf="this.Status == 'error'">
+            <div class="error-box">
+                <div class="pt-5 pb-5">
+                    <h2 class="font-weight-lighter text-center"><i class="fas fa-exclamation-triangle"></i></h2>
+                    <h4 class="font-weight-lighter text-center">Algo ha salido mal, por favor, inténtelo nuevamente...</h4>
+                </div>
+            </div>
+        </mat-card>
         
         <mat-card class="mt-4" *ngIf="this.Status == 'ready'">
             <mat-card-content>
-                <div class="row mb-2">
+                <div class="row mb-2" *ngIf="this.selectedIndicator != 'all'">
                     <div class="col-sm-4">
                         <mat-form-field class="full-width">
                             <mat-label>Periodo</mat-label>
@@ -69,13 +89,26 @@
                             <mat-label>Organizaciones</mat-label>
                             <mat-select [(ngModel)]="this.Organizations.selection" (valueChange)="this.makeChart({organization: $event})" matNativeControl>
                                 <mat-option value="average">Promedio</mat-option>
-                                <mat-option value="all">Agrupar por:</mat-option>
+                                <mat-option value="group">Agrupar por:</mat-option>
+                                <mat-option value="only">Discriminar por:</mat-option>
                             </mat-select>
                         </mat-form-field>
                     </div>
-                    <div class="col-sm-4">
-                        <mat-form-field class="full-width" *ngIf="this.Organizations.selection == 'all'">
+                    <div class="col-sm-4" *ngIf="this.Status == 'ready'">
+                        <!--Agrupar por Organizaciones-->
+                        <mat-form-field class="full-width" *ngIf="this.Organizations.selection == 'group'">
                             <mat-label>Criterio de Agrupación</mat-label>
+                            <mat-select [(ngModel)]="this.Organizations.agrupation" (valueChange)="this.makeChart({agrupation: $event})" matNativeControl>
+                                <mat-option value="type">Tipo de Organización</mat-option>
+                                <mat-option value="sector">Sector de actividad</mat-option>
+                                <mat-option value="partners">Género mayoritario entre socios</mat-option>
+                                <mat-option value="with_business">Con/Sin Negocio</mat-option>
+                                <mat-option value="legalized">Es/No es legalizada</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        <!--Discrimar por Criterio-->
+                        <mat-form-field class="full-width" *ngIf="this.Organizations.selection == 'only'">
+                            <mat-label>Criterio de Discriminación</mat-label>
                             <mat-select [(ngModel)]="this.Organizations.agrupation" (valueChange)="this.makeChart({agrupation: $event})" matNativeControl>
                                 <mat-option value="type">Tipo de Organización</mat-option>
                                 <mat-option value="sector">Sector de actividad</mat-option>
@@ -100,39 +133,69 @@
                 </div>
                 <mat-divider class="mb-3"></mat-divider>
 
-                <div class="pt-3 mb-3">
-                    <h2>Tabla de Valores</h2>
+                <div class="pt-3 mb-3" *ngIf="this.Status == 'ready'">
+                    <h4 *ngIf="this.selectedIndicator != 'all'" class="font-weight-lighter">Tabla de Valores - <span class="font-weight-lighter">{{this.Indicator.name}}</span></h4>
+                    <h4 *ngIf="this.selectedIndicator == 'all'" class="font-weight-lighter">Tabla de Valores</h4>
                     <!--Tablas Promedios-->
-                    <table class="tablas-reporte" *ngIf="this.Organizations.selection == 'average'">
-                        <thead>
-                            <tr>
-                                <th>Fecha de Reporte</th>
-                                <th>{{this.Indicator.name}} (Promedio)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let fila of this.graphicSettings.data">
-                                <td>{{fila[0] | date : 'MMMM yyyy' | uppercase}}</td>
-                                <td>{{fila[1]}}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-container full-width">
+                        
+                        <table class="baseline-table full-width" *ngIf="this.Organizations.selection == 'average' && this.selectedIndicator != 'all'">
+                            <tbody *ngFor="let fila of this.graphicSettings.dataForTable; let i = index">
+                                <tr *ngIf="!i">
+                                    <th [ngClass]="{'sticky': !j}" class="main-row" *ngFor="let columna of fila; let j = index">
+                                        <span *ngIf="!j">{{columna}}</span>
+                                        <span *ngIf="j">{{columna[0]}}<br/>{{columna[1] | date: 'MMMM yyyy' | titlecase}}</span>
+                                    </th>
+                                </tr>
+                                <tr *ngIf="i && i != (this.graphicSettings.dataForTable.length - 1)">
+                                    <td [ngClass]="{'sticky': !j, 'main-col': !j}" *ngFor="let columna of fila; let j = index">
+                                        <span>{{columna}}</span>
+                                    </td>
+                                </tr>
+                                <tr *ngIf="i && i == (this.graphicSettings.dataForTable.length - 1)">
+                                    <td [ngClass]="{'sticky': !j}" class="main-row" *ngFor="let columna of fila; let j = index">
+                                        <span>{{columna}}</span>
+                                    </td>
+                                </tr>
+                            </tbody>
 
-                    <!--Tablas uno por uno-->
-                    <table class="tablas-reporte" *ngIf="this.Organizations.selection == 'all'">
-                        <thead>
-                            <tr>
-                                <th>Organizaciones</th>
-                                <!--th>{{this.Indicator.name}} (Promedio)</th-->
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!--tr *ngFor="let fila of this.Ficha.report.length; let i of index">
-                                <td>{{fila[0]}}</td>
-                                <td>{{fila[1]}}</td>
-                            </tr-->
-                        </tbody>
-                    </table>
+                        </table>
+                        
+                        <!--Tablas uno por uno-->
+                        <table class="baseline-table full-width" *ngIf="this.Organizations.selection == 'group' && this.selectedIndicator != 'all'">
+                            <tbody *ngFor="let fila of this.graphicSettings.dataForTable; let i = index">
+                                <tr *ngIf="!i">
+                                    <th [ngClass]="{'sticky': !j}" class="main-row" *ngFor="let columna of fila; let j = index">
+                                        <span>{{columna}}</span>
+                                    </th>
+                                </tr>
+                                <tr *ngIf="i">
+                                    <td [ngClass]="{'sticky': !j, 'main-col': !j}" *ngFor="let columna of fila; let j = index">
+                                        <span *ngIf="!j && i">{{columna[0]}}<br/>{{columna[1] | date: 'MMMM yyyy' | titlecase}}</span>
+                                        <span *ngIf="(!j && !i) || j">{{columna}}</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!--Tablas Todos los Indicadores-->
+                        <table class="baseline-table full-width" *ngIf="this.selectedIndicator == 'all'">
+                            <tbody *ngFor="let fila of this.graphicSettings.dataForTable; let i = index">
+                                <tr *ngIf="!i">
+                                    <th [ngClass]="{'sticky': !j}" class="main-row" *ngFor="let columna of fila; let j = index">
+                                        <span>{{columna}}</span>
+                                    </th>
+                                </tr>
+                                <tr *ngIf="i">
+                                    <td [ngClass]="{'sticky': !j, 'main-col': !j}" *ngFor="let columna of fila; let j = index">
+                                        <span *ngIf="!j && i">{{columna | date: 'MMMM yyyy' | titlecase}}</span>
+                                        <span *ngIf="(!j && !i) || j">{{columna}}</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    
+                    </div>
 
                     
                 </div>

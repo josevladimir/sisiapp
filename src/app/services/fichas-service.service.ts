@@ -25,6 +25,10 @@ export class FichasServiceService {
     return this.http.get(`${environment.baseUrl}/Ficha/if/${project}/${indicator}/${period}`,{headers: this.headersGenerator.generateAuthHeader()});
   }
 
+  search(project : string, indicator : string) : Observable<any>{
+    return this.http.get(`${environment.baseUrl}/Ficha/search/${project}/${indicator}`,{headers: this.headersGenerator.generateAuthHeader()});
+  }
+
   saveFicha(body : any) : Observable<any>{
     return this.http.post(`${environment.baseUrl}/Ficha`,body,{headers: this.headersGenerator.generateJsonHeader()});
   }

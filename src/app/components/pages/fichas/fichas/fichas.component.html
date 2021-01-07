@@ -2,171 +2,326 @@
     title="Fichas">
 </app-sub-toolbar>
 
-<div class="page-content">
-    <!--Selector de Proyectos e Indicadores-->
-    <mat-card>
-        <mat-card-title class="font-weight-lighter">Generar Ficha:</mat-card-title>
-        <mat-divider></mat-divider>
-        <mat-card-content>
-            <div class="row pt-3">
-                <div class="col-sm-4">
-                    <mat-form-field class="full-width">
-                        <mat-label>Seleccione un proyecto</mat-label>
-                        <mat-select (valueChange)="onProjectSelect($event)">
-                          <mat-option *ngFor="let project of this.Projects" [value]="project._id">
-                            {{project.name}}
-                          </mat-option>
-                        </mat-select>
-                    </mat-form-field>
-                </div>
-                <div class="col-sm-4" *ngIf="this.ProjectSelected">
-                    <mat-form-field class="full-width">
-                        <mat-label>Seleccione un indicador</mat-label>
-                        <mat-select (valueChange)="onIndicatorSelect($event)">
-                          <mat-option *ngFor="let indicator of this.ProjectSelected.indicators" [value]="indicator._id">
-                            {{indicator.name}}
-                          </mat-option>
-                        </mat-select>
-                    </mat-form-field>
-                </div>
-                <div class="col-sm-4" *ngIf="this.ProjectSelected && this.IndicatorSelected">
-                    <button mat-raised-button color="primary" type="button" [disabled]="!this.IndicatorSelected" (click)="generateSchema()">GENERAR</button>
-                </div>
-            </div>
-        </mat-card-content>
-    </mat-card>
+<div class="page-content-without-padding">
+    <mat-tab-group mat-stretch-tabs class="full-height"> 
+        <mat-tab label="Generar Fichas">
+            <div class="container pb-4 pt-3 border-box">
 
-    <div class="mt-4">
-        <!--Tarjeta de Cargando-->
-        <mat-card *ngIf="this.Status == 'loading'">
-            <div class="loading-box">
-                <div>
-                    <img src="{{this.assetsUrl}}/images/logo-sisi-only.svg" alt="">
-                    <h4 class="font-weight-lighter text-center">Cargando...</h4>
-                </div>
-            </div>
-        </mat-card>
-
-        <!--Tarjeta de Fuera de Tiempo-->
-        <mat-card *ngIf="this.Status == 'noPeriod'">
-            <div>
-                <div class="p-4">
-                    <h3 class="text-center font-weight-lighter">Esta ficha se llena {{this.IndicatorSelected.frequency}}mente</h3>
-                    <p class="text-center font-weight-lighter">La ficha estará disponible cuando sea la fecha adecuada y se le notificará por e-mail.</p>
-                </div>
-            </div>
-        </mat-card>
-        
-        <!--Formulario para Ficha-->
-        <mat-card *ngIf="this.Status == 'ready'">
-            <mat-card-title class="font-weight-lighter">Ficha</mat-card-title>
-            <mat-divider></mat-divider>
-            <mat-card-content>
-                <div>
-                    <div class="pt-3 mb-3">
-                        <p>Proyecto: <span class="font-weight-lighter">{{this.ProjectSelected.name}}</span></p>
-                        <p>Indicador: <span class="font-weight-lighter">{{this.IndicatorSelected.name}}</span></p>
-                        <p>Periodo: <span class="font-weight-lighter">{{this.FichaTable.get('lapse').get('from').value | date : 'dd MMMM yyyy'}} - {{this.FichaTable.get('lapse').get('to').value | date : 'dd MMMM yyyy'}} ({{this.FichaTable.get('period').value}})</span></p>
-                        <div *ngIf="this.Status == 'already-filled'">
-                            <p *ngFor="let technic of this.Schema.created_by">Técnico Responsable: <span class="font-weight-lighter">{{technic.name}} {{technic.last_names}} - {{technic.position}}</span></p>
+                <mat-card>
+                    <mat-card-title class="font-weight-lighter">Generar Ficha:</mat-card-title>
+                    <mat-divider></mat-divider>
+                    <mat-card-content>
+                        <div class="row pt-3">
+                            <div class="col-sm-4">
+                                <mat-form-field class="full-width">
+                                    <mat-label>Seleccione un proyecto</mat-label>
+                                    <mat-select (valueChange)="onProjectSelect($event)">
+                                      <mat-option *ngFor="let project of this.Projects" [value]="project._id">
+                                        {{project.name}}
+                                      </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                            </div>
+                            <div class="col-sm-4" *ngIf="this.ProjectSelected">
+                                <mat-form-field class="full-width">
+                                    <mat-label>Seleccione un indicador</mat-label>
+                                    <mat-select (valueChange)="onIndicatorSelect($event)">
+                                      <mat-option *ngFor="let indicator of this.ProjectSelected.indicators" [value]="indicator._id">
+                                        {{indicator.name}}
+                                      </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                            </div>
+                            <div class="col-sm-4" *ngIf="this.ProjectSelected && this.IndicatorSelected">
+                                <button mat-raised-button color="primary" type="button" [disabled]="!this.IndicatorSelected" (click)="generateSchema()">GENERAR</button>
+                            </div>
                         </div>
-                    </div>
-                    <form [formGroup]="this.FichaTable">
-                        <div class="table-container full-width">
-                            <table formArrayName="rows" class="baseline-table full-width">
-                                <tbody *ngFor="let row of this.FichaTable.get('rows')['controls']; let i = index">
-                                    <tr *ngIf="!i" [formGroupName]="i">
-                                        <th [ngClass]="{'sticky': !j, 'gone': j == 1}" class="main-row" *ngFor="let column of row['controls']; let j = index">
-                                            {{column.value}}
-                                        </th>
-                                    </tr>
-                                    <tr *ngIf="i && this.isMyOrganization(row['controls'][1].value)" [formGroupName]="i">
-                                        <td [ngClass]="{'sticky': !j, 'main-col': !j, 'gone': j == 1}" *ngFor="let column of row['controls']; let j = index">
-                                            <div *ngIf="!j">{{column.value}}</div>
-                                            <div *ngIf="j">
-                                                <input type="text" class="full-width schema-input" placeholder="Ingrese aquí el dato" [formControlName]="j">
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                                <!--tbody formArrayName="rows" *ngFor="let row of this.SchemaForm.get('rows')['controls']; let i = index">
-                                    <tr [formGroupName]="i" *ngIf="verifyOrganization(row.get('organization').value)">
-                                        <td class="sticky main-col font-weight-lighter">{{row.get('name').value}}</td>
-                                        <td formArrayName="fields" class="main-col" *ngFor="let field of this.fieldsSchema; let j = index">
-                                            <div [formGroupName]="j">
-                                                <input *ngIf="this.Indicator.parameters_schema[j].unit != 'Cualitativo'" type="number" formControlName="value" class="full-width font-weight-lighter" placeholder="Ingrese un valor">
-                                                <select *ngIf="this.Indicator.parameters_schema[j].unit == 'Cualitativo'" formControlName="value" class="full-width font-weight-lighter">
-                                                    <option [matTooltip]="level.description" *ngFor="let level of this.Indicator.parameters_schema[j].cualitative_levels" [value]="level.name">{{level.name}}</option>    
-                                                </select>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody-->
+                    </mat-card-content>
+                </mat-card>
+            
+                <div class="mt-4">
+                    <!--Tarjeta de Cargando-->
+                    <mat-card *ngIf="this.Status == 'loading'">
+                        <div class="loading-box">
+                            <div>
+                                <img src="{{this.assetsUrl}}/images/logo-sisi-only.svg" alt="">
+                                <h4 class="font-weight-lighter text-center">Cargando...</h4>
+                            </div>
                         </div>
-                    </form>
+                    </mat-card>
+            
+                    <!--Tarjeta de Fuera de Tiempo-->
+                    <mat-card *ngIf="this.Status == 'noPeriod'">
+                        <div>
+                            <div class="p-4">
+                                <h3 class="text-center font-weight-lighter">Esta ficha se llena {{this.IndicatorSelected.frequency}}mente</h3>
+                                <p class="text-center font-weight-lighter">La ficha estará disponible cuando sea la fecha adecuada y se le notificará por e-mail.</p>
+                            </div>
+                        </div>
+                    </mat-card>
+                    
+                    <!--Formulario para Ficha-->
+                    <mat-card *ngIf="this.Status == 'ready'">
+                        <mat-card-title class="font-weight-lighter">Ficha</mat-card-title>
+                        <mat-divider></mat-divider>
+                        <mat-card-content>
+                            <div>
+                                <div class="pt-3 mb-3">
+                                    <p>Proyecto: <span class="font-weight-lighter">{{this.ProjectSelected.name}}</span></p>
+                                    <p>Indicador: <span class="font-weight-lighter">{{this.IndicatorSelected.name}}</span></p>
+                                    <p>Periodo: <span class="font-weight-lighter">{{this.FichaTable.get('lapse').get('from').value | date : 'dd MMMM yyyy'}} - {{this.FichaTable.get('lapse').get('to').value | date : 'dd MMMM yyyy'}} ({{this.FichaTable.get('period').value}})</span></p>
+                                    <div *ngIf="this.Status == 'already-filled'">
+                                        <p *ngFor="let technic of this.Schema.created_by">Técnico Responsable: <span class="font-weight-lighter">{{technic.name}} {{technic.last_names}} - {{technic.position}}</span></p>
+                                    </div>
+                                </div>
+                                <form [formGroup]="this.FichaTable">
+                                    <div class="table-container full-width">
+                                        <table formArrayName="rows" class="baseline-table full-width">
+                                            <tbody *ngFor="let row of this.FichaTable.get('rows')['controls']; let i = index">
+                                                <tr *ngIf="!i" [formGroupName]="i">
+                                                    <th [ngClass]="{'sticky': !j, 'gone': j == 1}" class="main-row" *ngFor="let column of row['controls']; let j = index">
+                                                        {{column.value}}
+                                                    </th>
+                                                </tr>
+                                                <tr *ngIf="i && this.isMyOrganization(row['controls'][1].value)" [formGroupName]="i">
+                                                    <td [ngClass]="{'sticky': !j, 'main-col': !j, 'gone': j == 1}" *ngFor="let column of row['controls']; let j = index">
+                                                        <div *ngIf="!j">{{column.value}}</div>
+                                                        <div *ngIf="j">
+                                                            <input type="text" class="full-width schema-input" placeholder="Ingrese aquí el dato" [formControlName]="j">
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </form>
+                            </div>
+                        </mat-card-content>
+                        <mat-divider></mat-divider>
+                        <mat-card-actions>
+                            <div class="flex">
+                                <span class="fill-remaining-space"></span>
+                                <button mat-button type="button" (click)="this.cancel()">CANCELAR</button>
+                                <button mat-raised-button color="primary" type="button" (click)="this.save()">GUARDAR</button>
+                            </div>
+                        </mat-card-actions>
+                    </mat-card>
+                    
+                    <!--Tarjeta Ficha Llena Fuera de Tiempo-->
+                    <mat-card *ngIf="this.Status == 'fueraDeTiempo'">
+                        <mat-card-title class="font-weight-lighter">Ya terminó el tiempo de llenado de esta ficha</mat-card-title>
+                        <mat-divider></mat-divider>
+                        <mat-card-content>
+                            <div>
+                                <div class="pt-3 mb-3">
+                                    <p>Proyecto: <span class="font-weight-lighter">{{this.ProjectSelected.name}}</span></p>
+                                    <p>Indicador: <span class="font-weight-lighter">{{this.IndicatorSelected.name}}</span></p>
+                                    <!--p>Periodo: <span class="font-weight-lighter">{{this.Period.date.from | date : 'dd MMMM yyyy'}} - {{this.Period.date.to |date : 'dd MMMM yyyy'}} ({{this.Period.period}})</span></p>
+                                    <p>Técnico Responsable: <span class="font-weight-lighter">{{this.Schema.created_by.name}} {{this.Schema.created_by.last_names}} - {{this.Schema.created_by.position}}</span></p-->
+                                </div>
+                                <!--div class="table-container full-width">
+                                    <table class="baseline-table full-width">
+                                        <tr>
+                                            <th class="sticky main-row">ORGANIZACIÓN</th>
+                                            <th class="main-row" *ngFor="let field of this.Schema.rows[0].fields">{{field.name}}</th>
+                                        </tr>
+                                        <tr *ngFor="let organization of this.Project.organizations; let i = index">
+                                            <td class="sticky main-col font-weight-lighter text-center">{{organization.name}}</td>
+                                            <td class="main-col" *ngFor="let field of this.Schema.rows[i].fields; let j = index">
+                                                <div class="full-width font-weight-lighter text-center">{{field.value}}</div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div-->
+                            </div>
+                        </mat-card-content>
+                    </mat-card>
+                    
+                    <!--Tarjeta Ficha Fuera de Periodo-->
+                    <mat-card *ngIf="this.Status == 'outDateProject'">
+                        <div>
+                            <div class="p-4">
+                                <h3 class="text-center font-weight-lighter">Este proyecto ya ha finalizado</h3>
+                                <p class="text-center font-weight-lighter">El proyecto inició en {{this.ProjectSelected.start_date | date : "MMMM, d \'del\' yyyy"}} con una duración de {{this.ProjectSelected.duration}} meses.</p>
+                            </div>
+                        </div>
+                    </mat-card>
+            
+                    <!--Tarjeta No Se Hizo Nada-->
+                    <mat-card *ngIf="this.Status == 'noSeHizoNada'">
+                        <div>
+                            <div class="p-4">
+                                <h3 class="text-center font-weight-lighter">Ya pasó el tiempo para subir esta Ficha</h3>
+                                <p class="text-center font-weight-lighter">No se encontró que se haya subido ninguna ficha correspondiente a este período.</p>
+                            </div>
+                        </div>
+                    </mat-card>
+                
                 </div>
-            </mat-card-content>
-            <mat-divider></mat-divider>
-            <mat-card-actions>
-                <div class="flex">
-                    <span class="fill-remaining-space"></span>
-                    <button mat-button type="button" (click)="this.cancel()">CANCELAR</button>
-                    <button mat-raised-button color="primary" type="button" (click)="this.save()">GUARDAR</button>
-                </div>
-            </mat-card-actions>
-        </mat-card>
-        
-        <!--Tarjeta Ficha Llena Fuera de Tiempo-->
-        <mat-card *ngIf="this.Status == 'fueraDeTiempo'">
-            <mat-card-title class="font-weight-lighter">Ya terminó el tiempo de llenado de esta ficha</mat-card-title>
-            <mat-divider></mat-divider>
-            <mat-card-content>
-                <div>
-                    <div class="pt-3 mb-3">
-                        <p>Proyecto: <span class="font-weight-lighter">{{this.ProjectSelected.name}}</span></p>
-                        <p>Indicador: <span class="font-weight-lighter">{{this.IndicatorSelected.name}}</span></p>
-                        <!--p>Periodo: <span class="font-weight-lighter">{{this.Period.date.from | date : 'dd MMMM yyyy'}} - {{this.Period.date.to |date : 'dd MMMM yyyy'}} ({{this.Period.period}})</span></p>
-                        <p>Técnico Responsable: <span class="font-weight-lighter">{{this.Schema.created_by.name}} {{this.Schema.created_by.last_names}} - {{this.Schema.created_by.position}}</span></p-->
-                    </div>
-                    <!--div class="table-container full-width">
-                        <table class="baseline-table full-width">
-                            <tr>
-                                <th class="sticky main-row">ORGANIZACIÓN</th>
-                                <th class="main-row" *ngFor="let field of this.Schema.rows[0].fields">{{field.name}}</th>
-                            </tr>
-                            <tr *ngFor="let organization of this.Project.organizations; let i = index">
-                                <td class="sticky main-col font-weight-lighter text-center">{{organization.name}}</td>
-                                <td class="main-col" *ngFor="let field of this.Schema.rows[i].fields; let j = index">
-                                    <div class="full-width font-weight-lighter text-center">{{field.value}}</div>
-                                </td>
-                            </tr>
-                        </table>
-                    </div-->
-                </div>
-            </mat-card-content>
-        </mat-card>
-        
-        <!--Tarjeta Ficha Fuera de Periodo-->
-        <mat-card *ngIf="this.Status == 'outDateProject'">
-            <div>
-                <div class="p-4">
-                    <h3 class="text-center font-weight-lighter">Este proyecto ya ha finalizado</h3>
-                    <p class="text-center font-weight-lighter">El proyecto inició en {{this.ProjectSelected.start_date | date : "MMMM, d \'del\' yyyy"}} con una duración de {{this.ProjectSelected.duration}} meses.</p>
+
+            </div>
+        </mat-tab>
+        <mat-tab label="Administrar Fichas">
+            <div class="container pb-4 pt-3 border-box">
+                <mat-card>
+                    <mat-card-title class="font-weight-lighter">Buscar Fichas:</mat-card-title>
+                    <mat-divider></mat-divider>
+                    <mat-card-content>
+                        <div class="row pt-3">
+                            <div class="col-sm-4">
+                                <mat-form-field class="full-width">
+                                    <mat-label>Seleccione un proyecto</mat-label>
+                                    <mat-select (valueChange)="onProjectSelect($event)">
+                                      <mat-option *ngFor="let project of this.Projects" [value]="project._id">
+                                        {{project.name}}
+                                      </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                            </div>
+                            <div class="col-sm-4" *ngIf="this.ProjectSelected">
+                                <mat-form-field class="full-width">
+                                    <mat-label>Seleccione un indicador</mat-label>
+                                    <mat-select (valueChange)="onIndicatorSelect($event)">
+                                      <mat-option *ngFor="let indicator of this.ProjectSelected.indicators" [value]="indicator._id">
+                                        {{indicator.name}}
+                                      </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                            </div>
+                            <div class="col-sm-4" *ngIf="this.ProjectSelected && this.IndicatorSelected">
+                                <button mat-raised-button color="primary" type="button" [disabled]="!this.IndicatorSelected" (click)="searchFichas()">BUSCAR</button>
+                            </div>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+                <div class="mt-4">
+                    <!--Tarjeta de Cargando-->
+                    <mat-card *ngIf="this.Search.working">
+                        <div class="loading-box">
+                            <div>
+                                <img src="{{this.assetsUrl}}/images/logo-sisi-only.svg" alt="">
+                                <h4 class="font-weight-lighter text-center">Buscando...</h4>
+                            </div>
+                        </div>
+                    </mat-card>
+                    <!--Tarjeta Tabla Resultados-->
+                    <mat-card *ngIf="this.Search.fichas.length && !this.Search.ficha">
+                        <div class="empty-box">
+                            <div>
+                                <h2 class="font-weight-lighter">Resultados de la Búsqueda</h2>
+                                <table class="tablas-reporte">
+                                    <thead>
+                                        <tr>
+                                            <th>Nº</th>
+                                            <th>Periodo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let ficha of this.Search.fichas" class="clickable-row" (click)="this.Search.ficha = ficha">
+                                            <td>{{ficha.period}}</td>
+                                            <td>{{ficha.lapse.from | date: 'MMMM yyyy' |titlecase}} - {{ficha.lapse.to | date: 'MMMM yyyy'|titlecase}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </mat-card>
+                    <!--Tarjeta Ficha-->
+                    <mat-card *ngIf="this.Search.ficha">
+                        <mat-card-title class="font-weight-lighter flex">
+                            <button mat-icon-button color="primary" (click)="this.Search.ficha = null">
+                                <mat-icon>arrow_back</mat-icon>
+                            </button>
+                            <span>Detalles de la Ficha</span>
+                            <span class="fill-remaining-space"></span>
+                            <!--button mat-raised-button color="primary" (click)="setEditMode()"><mat-icon>edit</mat-icon> Editar Ficha</button-->
+                        </mat-card-title>
+                        <mat-divider></mat-divider>
+                        <mat-card-content>
+                            <div>
+                                <div class="pt-3 mb-3">
+                                    <p>Proyecto: <span class="font-weight-lighter">{{this.ProjectSelected.name}}</span></p>
+                                    <p>Indicador: <span class="font-weight-lighter">{{this.IndicatorSelected.name}}</span></p>
+                                    <p>Periodo: <span class="font-weight-lighter">{{this.Search.ficha.lapse.from | date : 'dd MMMM yyyy'}} - {{this.Search.ficha.lapse.to |date : 'dd MMMM yyyy'}} ({{this.Search.ficha.period}})</span></p>
+                                    <!--p>Información Ingresada por: <br/> 
+                                        <span class="font-weight-lighter" *ngFor="let user of this.Search.ficha.created_by">{{user.name}} {{user.last_names}} - {{this.Schema.created_by.position}}<br/></span></p-->
+                                </div>
+
+                                <div *ngIf="!this.Search.editMode" class="table-container full-width">
+                                    <table class="baseline-table full-width">
+                                        <tbody *ngFor="let row of this.Search.ficha.rows; let i = index">
+                                            <tr *ngIf="!i">
+                                                <th [ngClass]="{'sticky': !j, 'gone': j == 1}" class="main-row" *ngFor="let column of row; let j = index">
+                                                    {{column}}
+                                                </th>
+                                            </tr>
+                                            <tr *ngIf="i && this.isMyOrganization(row[1])">
+                                                <td [ngClass]="{'sticky': !j, 'main-col': !j, 'gone': j == 1}" *ngFor="let column of row; let j = index">
+                                                    <div *ngIf="!j">{{column}}</div>
+                                                    <div *ngIf="j" class="full-height">
+                                                        <div class="full-width full-height schema-llena schema-input" *ngIf="column!= ''">{{column}}</div>
+                                                        <div class="full-width full-height schema-llena schema-input" *ngIf="column== ''">N/A</div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!--Formulario edición-->
+                                <form *ngIf="this.Search.editMode" [formGroup]="this.Search.EditForm">
+                                    <div class="table-container full-width">
+                                        <table formArrayName="rows" class="baseline-table full-width">
+                                            <tbody *ngFor="let row of this.Search.EditForm.get('rows')['controls']; let i = index">
+                                                <tr *ngIf="!i" [formGroupName]="i">
+                                                    <th [ngClass]="{'sticky': !j, 'gone': j == 1}" class="main-row" *ngFor="let column of row['controls']; let j = index">
+                                                        {{column.value}}
+                                                    </th>
+                                                </tr>
+                                                <tr *ngIf="i" [formGroupName]="i">
+                                                    <td [ngClass]="{'sticky': !j, 'main-col': !j, 'gone': j == 1}" *ngFor="let column of row['controls']; let j = index">
+                                                        <div *ngIf="!j">{{column.value}}</div>
+                                                        <div *ngIf="j">
+                                                            <input type="text" class="full-width schema-input" placeholder="Ingrese aquí el dato" [formControlName]="j">
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </form>
+                            </div>
+
+                        <mat-divider *ngIf="this.Search.editMode"></mat-divider>
+                        <mat-card-actions *ngIf="this.Search.editMode">
+                            <div class="flex">
+                                <span class="fill-remaining-space"></span>
+                                <button mat-button type="button" (click)="this.cancel()">CANCELAR</button>
+                                <button mat-raised-button color="primary" type="button" (click)="this.save()">GUARDAR</button>
+                            </div>
+                        </mat-card-actions>
+                        </mat-card-content>
+                    </mat-card>
+                    <!--Tarjeta Vacía-->
+                    <mat-card *ngIf="this.Search.empty">
+                        <div class="empty-box">
+                            <div class="pt-5 pb-5">
+                                <h2 class="font-weight-lighter text-center"><i class="fas fa-folder-open"></i></h2>
+                                <h4 class="font-weight-lighter text-center">No se han encontrado fichas</h4>
+                            </div>
+                        </div>
+                    </mat-card>
+                    <!--Tarjeta Error-->
+                    <mat-card *ngIf="this.Search.error">
+                        <div class="error-box">
+                            <div class="pt-5 pb-5">
+                                <h2 class="font-weight-lighter text-center"><i class="fas fa-exclamation-triangle"></i></h2>
+                                <h4 class="font-weight-lighter text-center">Algo ha salido mal, por favor, inténtelo nuevamente...</h4>
+                            </div>
+                        </div>
+                    </mat-card>
                 </div>
             </div>
-        </mat-card>
-
-        <!--Tarjeta No Se Hizo Nada-->
-        <mat-card *ngIf="this.Status == 'noSeHizoNada'">
-            <div>
-                <div class="p-4">
-                    <h3 class="text-center font-weight-lighter">Ya pasó el tiempo para subir esta Ficha</h3>
-                    <p class="text-center font-weight-lighter">No se encontró que se haya subido ninguna ficha correspondiente a este período.</p>
-                </div>
-            </div>
-        </mat-card>
-    
-    </div>
-
+        </mat-tab>
+    </mat-tab-group>
 </div>
