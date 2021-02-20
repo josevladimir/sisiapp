@@ -1,5 +1,6 @@
 import { StorageModule } from '@ngx-pwa/local-storage';
 import { BrowserModule } from '@angular/platform-browser';
+import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { HttpClientModule } from '@angular/common/http';
 import { registerLocaleData } from '@angular/common';
 import { LOCALE_ID, NgModule } from '@angular/core';
@@ -97,8 +98,9 @@ import { ForFundersPipe } from './pipes/for-funders.pipe';
 import localeEsEc from '@angular/common/locales/es-EC';
 import { GraphQLModule } from './graphql.module';
 import { GoogleChartsModule } from 'angular-google-charts';
-import { NgxChartsModule } from '@swimlane/ngx-charts';
-
+import { NewManualComponent } from './components/pages/fichas/new-manual/new-manual.component';
+import { LineSISIComponent } from './components/charts/line-sisi/line-sisi.component';
+import { RelojSISIComponent } from './components/charts/reloj-sisi/reloj-sisi.component';
 
 registerLocaleData(localeEsEc, 'es-EC');
 
@@ -148,7 +150,10 @@ registerLocaleData(localeEsEc, 'es-EC');
     CalificationCircleComponent,
     NewOrganizationPreferenceComponent,
     ForProjectsPipe,
-    ForFundersPipe
+    ForFundersPipe,
+    NewManualComponent,
+    LineSISIComponent,
+    RelojSISIComponent
   ],
   imports: [
     FormsModule,
@@ -190,7 +195,8 @@ registerLocaleData(localeEsEc, 'es-EC');
     StorageModule.forRoot({ IDBNoWrap: true }),
     StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: true }),
     StoreRouterConnectingModule.forRoot(),
-    GraphQLModule
+    GraphQLModule,
+    NgxChartsModule
   ],
   entryComponents: [
     NewPasswordComponent,

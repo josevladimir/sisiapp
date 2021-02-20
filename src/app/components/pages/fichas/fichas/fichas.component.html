@@ -196,7 +196,7 @@
                 </mat-card>
                 <div class="mt-4">
                     <!--Tarjeta de Cargando-->
-                    <mat-card *ngIf="this.Search.working">
+                    <mat-card *ngIf="this.Search.working && !this.Search.new">
                         <div class="loading-box">
                             <div>
                                 <img src="{{this.assetsUrl}}/images/logo-sisi-only.svg" alt="">
@@ -207,8 +207,14 @@
                     <!--Tarjeta Tabla Resultados-->
                     <mat-card *ngIf="this.Search.fichas.length && !this.Search.ficha">
                         <div class="empty-box">
-                            <div>
-                                <h2 class="font-weight-lighter">Resultados de la Búsqueda</h2>
+                            <div *ngIf="!this.Search.new">
+                                <div class="flex mb-2">
+                                    <h2 class="font-weight-lighter">Resultados de la Búsqueda</h2>
+                                    <span class="fill-remaining-space"></span>
+                                    <div>
+                                        <button mat-raised-button color="primary" (click)="NewManualFicha()"><mat-icon>add</mat-icon> Nueva Ficha</button>
+                                    </div>
+                                </div>
                                 <table class="tablas-reporte">
                                     <thead>
                                         <tr>
@@ -224,17 +230,18 @@
                                     </tbody>
                                 </table>
                             </div>
+                            <app-new-manual *ngIf="this.Search.new" [project]="this.ProjectSelected" [indicator]="this.IndicatorSelected" (onBack)="back()"></app-new-manual>
                         </div>
                     </mat-card>
                     <!--Tarjeta Ficha-->
-                    <mat-card *ngIf="this.Search.ficha">
+                    <mat-card *ngIf="this.Search.ficha && !this.Search.new">
                         <mat-card-title class="font-weight-lighter flex">
-                            <button mat-icon-button color="primary" (click)="this.Search.ficha = null">
+                            <button mat-icon-button color="primary" (click)="back(!this.Search.editForm)">
                                 <mat-icon>arrow_back</mat-icon>
                             </button>
                             <span>Detalles de la Ficha</span>
                             <span class="fill-remaining-space"></span>
-                            <!--button mat-raised-button color="primary" (click)="setEditMode()"><mat-icon>edit</mat-icon> Editar Ficha</button-->
+                            <button mat-raised-button color="primary" *ngIf="!this.Search.editMode" (click)="setEditMode()"><mat-icon>edit</mat-icon> Editar Ficha</button>
                         </mat-card-title>
                         <mat-divider></mat-divider>
                         <mat-card-content>
@@ -269,8 +276,9 @@
                                 </div>
 
                                 <!--Formulario edición-->
-                                <form *ngIf="this.Search.editMode" [formGroup]="this.Search.EditForm">
-                                    <div class="table-container full-width">
+                                <div *ngIf="this.Search.editMode">
+                                    <app-new-manual [ficha]="this.Search.ficha" (onBack)="back($event)" [indicator]="this.IndicatorSelected" [project]="this.ProjectSelected"></app-new-manual>
+                                    <!--div class="table-container full-width">
                                         <table formArrayName="rows" class="baseline-table full-width">
                                             <tbody *ngFor="let row of this.Search.EditForm.get('rows')['controls']; let i = index">
                                                 <tr *ngIf="!i" [formGroupName]="i">
@@ -288,31 +296,35 @@
                                                 </tr>
                                             </tbody>
                                         </table>
-                                    </div>
-                                </form>
+                                    </div-->
+                                </div>
                             </div>
 
-                        <mat-divider *ngIf="this.Search.editMode"></mat-divider>
+                        <!--mat-divider *ngIf="this.Search.editMode"></mat-divider>
                         <mat-card-actions *ngIf="this.Search.editMode">
                             <div class="flex">
                                 <span class="fill-remaining-space"></span>
                                 <button mat-button type="button" (click)="this.cancel()">CANCELAR</button>
                                 <button mat-raised-button color="primary" type="button" (click)="this.save()">GUARDAR</button>
                             </div>
-                        </mat-card-actions>
+                        </mat-card-actions-->
                         </mat-card-content>
                     </mat-card>
                     <!--Tarjeta Vacía-->
                     <mat-card *ngIf="this.Search.empty">
                         <div class="empty-box">
-                            <div class="pt-5 pb-5">
+                            <div class="pt-5 pb-5" *ngIf="!this.Search.new">
                                 <h2 class="font-weight-lighter text-center"><i class="fas fa-folder-open"></i></h2>
                                 <h4 class="font-weight-lighter text-center">No se han encontrado fichas</h4>
+                                <div class="flex flex-center">
+                                    <button mat-raised-button color="primary" (click)="NewManualFicha()"><mat-icon>add</mat-icon> Nueva Ficha</button>
+                                </div>
                             </div>
+                            <app-new-manual *ngIf="this.Search.new" [project]="this.ProjectSelected" [indicator]="this.IndicatorSelected" (onBack)="back()"></app-new-manual>
                         </div>
                     </mat-card>
                     <!--Tarjeta Error-->
-                    <mat-card *ngIf="this.Search.error">
+                    <mat-card *ngIf="this.Search.error && !this.Search.new">
                         <div class="error-box">
                             <div class="pt-5 pb-5">
                                 <h2 class="font-weight-lighter text-center"><i class="fas fa-exclamation-triangle"></i></h2>

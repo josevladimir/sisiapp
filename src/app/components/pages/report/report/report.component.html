@@ -19,7 +19,7 @@
                 <div class="col-sm-6">
                     <mat-form-field class="full-width">
                         <mat-label>Indicadores</mat-label>
-                        <mat-select [(ngModel)]="this.selectedIndicator" (valueChange)="this.Status = 'reset'" matNativeControl>
+                        <mat-select [(ngModel)]="this.selectedIndicator" (valueChange)="reset()" matNativeControl>
                             <mat-option value="all">Todos los Indicadores</mat-option>
                             <mat-option *ngFor="let indicator of this.Indicators" [value]="indicator._id">{{indicator.name}}</mat-option> 
                         </mat-select>
@@ -73,7 +73,7 @@
         </mat-card>
         
         <mat-card class="mt-4" *ngIf="this.Status == 'ready'">
-            <mat-card-content>
+            <mat-card-content *ngIf="this.Indicator.organizations_diff_by != 'CEFODI'">
                 <div class="row mb-2" *ngIf="this.selectedIndicator != 'all'">
                     <div class="col-sm-4">
                         <mat-form-field class="full-width">
@@ -109,7 +109,7 @@
                         <!--Discrimar por Criterio-->
                         <mat-form-field class="full-width" *ngIf="this.Organizations.selection == 'only'">
                             <mat-label>Criterio de Discriminación</mat-label>
-                            <mat-select [(ngModel)]="this.Organizations.agrupation" (valueChange)="this.makeChart({agrupation: $event})" matNativeControl>
+                            <mat-select [(ngModel)]="this.Organizations.agrupation" (valueChange)="this.makeChart({agrupation: $event},true)" matNativeControl>
                                 <mat-option value="type">Tipo de Organización</mat-option>
                                 <mat-option value="sector">Sector de actividad</mat-option>
                                 <mat-option value="partners">Género mayoritario entre socios</mat-option>
@@ -119,17 +119,41 @@
                         </mat-form-field>
                     </div>
                 </div>
+
                 <mat-divider></mat-divider>
+
+                <!--Selección de discriminación-->
+                <div *ngIf="this.Organizations.selection == 'only'" class="pt-2">
+                    <div class="row">
+                        <div class="col-sm-12 mb-2"><h5 class="no-margin font-weight-lighter">Mostrar solo las siguientes organizaciones:</h5><small>Seleccione al menos una opción para generar la gráfica y tabla</small></div>
+                        <div class="col-sm-3" *ngFor="let item of this.Organizations.items">
+                            <mat-checkbox (click)="addOrRemoveOrgs(item.value)"> {{item.display}}</mat-checkbox>
+                        </div>
+                    </div>
+                    <mat-divider></mat-divider>
+                </div>
+
+                <!--Google Chart-->
                 <div class="mt-3 mb-3">
-                    <google-chart #chart class="full-width"
-                        [type]="graphicSettings.type"
-                        [data]="graphicSettings.data"
-                        [options]="graphicSettings.options"
-                        [height]="graphicSettings.height"
-                        [columns]="this.graphicSettings.columnNames"
-                        
-                        width="100%">
-                    </google-chart>
+                    <div *ngIf="this.graphicSettings.status == 'ready' && this.graphicSettings.data.length">
+                        <!--google-chart #chart class="full-width"
+                            type="LineChart"
+                            [data]="graphicSettings.data"
+                            [options]="chartOptions"
+                            [height]="graphicSettings.height"
+                            [columns]="this.graphicSettings.columnNames"
+                            width="100%">
+                        </google-chart-->
+                        <app-line-sisi
+                            [data]="graphicSettings.data"
+                            [yTitle]="graphicSettings.yTitle"
+                            [title]="graphicSettings.title"
+                            [format]="graphicSettings.format"
+                            [min]="graphicSettings.min"
+                            [max]="graphicSettings.max"
+                        ></app-line-sisi>
+                    </div>
+                    <h3 class="font-weight-lighter" *ngIf="!this.graphicSettings.data.length">No hay datos que mostrar</h3>
                 </div>
                 <mat-divider class="mb-3"></mat-divider>
 
@@ -149,12 +173,14 @@
                                 </tr>
                                 <tr *ngIf="i && i != (this.graphicSettings.dataForTable.length - 1)">
                                     <td [ngClass]="{'sticky': !j, 'main-col': !j}" *ngFor="let columna of fila; let j = index">
-                                        <span>{{columna}}</span>
+                                        <span *ngIf="columna == 'NaN'">----</span>
+                                        <span *ngIf="columna != 'NaN'">{{columna}}</span>
                                     </td>
                                 </tr>
                                 <tr *ngIf="i && i == (this.graphicSettings.dataForTable.length - 1)">
                                     <td [ngClass]="{'sticky': !j}" class="main-row" *ngFor="let columna of fila; let j = index">
-                                        <span>{{columna}}</span>
+                                        <span *ngIf="columna == 'NaN'">----</span>
+                                        <span *ngIf="columna != 'NaN'">{{columna}}</span>
                                     </td>
                                 </tr>
                             </tbody>
@@ -162,7 +188,7 @@
                         </table>
                         
                         <!--Tablas uno por uno-->
-                        <table class="baseline-table full-width" *ngIf="this.Organizations.selection == 'group' && this.selectedIndicator != 'all'">
+                        <table class="baseline-table full-width" *ngIf="(this.Organizations.selection == 'only' || this.Organizations.selection == 'group') && this.selectedIndicator != 'all'">
                             <tbody *ngFor="let fila of this.graphicSettings.dataForTable; let i = index">
                                 <tr *ngIf="!i">
                                     <th [ngClass]="{'sticky': !j}" class="main-row" *ngFor="let columna of fila; let j = index">
@@ -172,7 +198,9 @@
                                 <tr *ngIf="i">
                                     <td [ngClass]="{'sticky': !j, 'main-col': !j}" *ngFor="let columna of fila; let j = index">
                                         <span *ngIf="!j && i">{{columna[0]}}<br/>{{columna[1] | date: 'MMMM yyyy' | titlecase}}</span>
-                                        <span *ngIf="(!j && !i) || j">{{columna}}</span>
+                                        <span *ngIf="((!j && !i) || j) && columna != 'NaN' && this.graphicSettings.format == 'percent'">{{columna }}</span>
+                                        <span *ngIf="((!j && !i) || j) && columna != 'NaN' && this.graphicSettings.format != 'percent'">{{columna }}</span>
+                                        <span *ngIf="((!j && !i) || j) && columna == 'NaN'">----</span>                
                                     </td>
                                 </tr>
                             </tbody>
@@ -189,7 +217,8 @@
                                 <tr *ngIf="i">
                                     <td [ngClass]="{'sticky': !j, 'main-col': !j}" *ngFor="let columna of fila; let j = index">
                                         <span *ngIf="!j && i">{{columna | date: 'MMMM yyyy' | titlecase}}</span>
-                                        <span *ngIf="(!j && !i) || j">{{columna}}</span>
+                                        <span *ngIf="((!j && !i) || j) && columna != 'NaN'">{{columna}}</span>
+                                        <span *ngIf="((!j && !i) || j) && columna == 'NaN'">----</span>
                                     </td>
                                 </tr>
                             </tbody>
@@ -199,6 +228,37 @@
 
                     
                 </div>
+
+            </mat-card-content>
+
+            <mat-card-content *ngIf="this.Indicator.organizations_diff_by == 'CEFODI'">
+                <h2 class="font-weight-lighter text-center">Gráficas Indicador: {{this.Indicator.name}}</h2>
+                <mat-divider></mat-divider>
+                <app-reloj-sisi
+                    [data]="graphicSettings.data"
+                    [levels]="graphicSettings.levels"
+                ></app-reloj-sisi>
+
+                <mat-divider></mat-divider>
+
+                <h2 class="mt-4">Tabla de Reporte</h2>
+                <table class="baseline-table full-width mt-2">
+                    <tbody *ngFor="let fila of this.graphicSettings.dataForTable; let i = index">
+                        <tr *ngIf="!i">
+                            <th [ngClass]="{'sticky': !j}" class="main-row" *ngFor="let columna of fila; let j = index">
+                                <span>{{columna}}</span>
+                            </th>
+                        </tr>
+                        <tr *ngIf="i">
+                            <td [ngClass]="{'sticky': !j, 'main-col': !j}" *ngFor="let columna of fila; let j = index">
+                                <span *ngIf="!j && i">{{columna[0]}}<br/>{{columna[1] | date: 'MMMM yyyy' | titlecase}}</span>
+                                <span *ngIf="((!j && !i) || j) && columna != 'NaN' && j == 1">{{columna | percent}}</span>
+                                <span *ngIf="((!j && !i) || j) && columna != 'NaN' && j != 1">{{columna }}</span>
+                                <span *ngIf="((!j && !i) || j) && columna == 'NaN'">----</span>                
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
 
             </mat-card-content>
 

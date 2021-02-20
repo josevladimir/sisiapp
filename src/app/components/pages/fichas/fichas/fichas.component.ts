@@ -69,7 +69,7 @@ export class FichasComponent {
   save(){
     if(confirm('\n¿Seguro que ya desea guardar la ficha?')){
       this.store.dispatch(initLoading({message: 'Guardando Ficha...'}));
-      if(!this.Schema)return this.fichaService.saveFicha(this.FichaTable.value)
+      if(!this.Schema && !this.Search.EditForm)return this.fichaService.saveFicha(this.FichaTable.value)
                                               .subscribe(result => {
                                                             this.Status = 'none';
                                                             this.store.dispatch(stopLoading());
@@ -232,7 +232,7 @@ export class FichasComponent {
 
     }
     if(this.IndicatorSelected.organizations_diff && this.IndicatorSelected.organizations_diff_by == 'CEFODI'){
-      this.addRowInTable(0,exist);
+      this.addRowInTable('CEFODI',exist);
     }
     console.log(this.FichaTable.value);
     return this.Status = 'ready';
@@ -240,14 +240,14 @@ export class FichasComponent {
   
   addRowInTable(i,exist){
     let fila : FormArray = new FormArray([]);
-    if(this.IndicatorSelected.type != 'Compuesto'){
-      if(!this.indicadorTable){
-        (<FormArray> fila).push(new FormArray([]));
-        (<FormArray> (<FormArray> fila).at(0)).push(new FormControl('Organización'));
-        (<FormArray> (<FormArray> fila).at(0)).push(new FormControl('id'));
-        (<FormArray> fila).push(new FormArray([]));
-        (<FormArray> (<FormArray> fila).at(1)).push(new FormControl(this.ProjectSelected.organizations[i].name));
-        (<FormArray> (<FormArray> fila).at(1)).push(new FormControl(this.ProjectSelected.organizations[i]._id));
+    if(i == 'CEFODI'){
+      (<FormArray> fila).push(new FormArray([]));
+      (<FormArray> (<FormArray> fila).at(0)).push(new FormControl('Organización'));
+      (<FormArray> (<FormArray> fila).at(0)).push(new FormControl('id'));
+      (<FormArray> fila).push(new FormArray([]));
+      (<FormArray> (<FormArray> fila).at(1)).push(new FormControl('CEFODI'));
+      (<FormArray> (<FormArray> fila).at(1)).push(new FormControl(''));
+      if(this.IndicatorSelected.type != 'Compuesto'){
         for(let j = 0; j < this.IndicatorSelected.parameters_schema.length; j++){
           if(this.IndicatorSelected.parameters_schema[j].haveCualitativeSchema || this.IndicatorSelected.parameters_schema[j].haveSchema){
             for(let k = 0; k < this.IndicatorSelected.parameters_schema[j].record_schema.length; k++){
@@ -260,44 +260,75 @@ export class FichasComponent {
           }
         }
       }else{
-        (<FormArray> fila).push(new FormArray([]));
-        (<FormArray> (<FormArray> fila).at(0)).push(new FormControl(this.ProjectSelected.organizations[i].name));
-        (<FormArray> (<FormArray> fila).at(0)).push(new FormControl(this.ProjectSelected.organizations[i]._id));
-        for(let j = 0; j < this.IndicatorSelected.parameters_schema.length; j++){
-          if(this.IndicatorSelected.parameters_schema[j].haveSchema){
-            for(let k = 0; k < this.IndicatorSelected.parameters_schema[j].record_schema.length; k++){
-              (<FormArray> (<FormArray> fila).at(0)).push(new FormControl((exist ? this.Schema.rows[this.indicadorTable+1][k+2] : ''),Validators.required));
-            }
-          }else{
-            (<FormArray> (<FormArray> fila).at(0)).push(new FormControl((exist ? this.Schema.rows[this.indicadorTable+1][j+2] : ''),Validators.required));
-          }
-        }
-      }
-    }else{
-      if(!this.indicadorTable){
-        (<FormArray> fila).push(new FormArray([]));
-        (<FormArray> (<FormArray> fila).at(0)).push(new FormControl('Organización'));
-        (<FormArray> (<FormArray> fila).at(0)).push(new FormControl('id'));
-        (<FormArray> fila).push(new FormArray([]));
-        (<FormArray> (<FormArray> fila).at(1)).push(new FormControl(this.ProjectSelected.organizations[i].name));
-        (<FormArray> (<FormArray> fila).at(1)).push(new FormControl(this.ProjectSelected.organizations[i]._id));
         for(let j = 0; j < this.IndicatorSelected.record_schema.length; j++){
           (<FormArray> (<FormArray> fila).at(0)).push(new FormControl(this.IndicatorSelected.record_schema[j].name));
           (<FormArray> (<FormArray> fila).at(1)).push(new FormControl((exist ? this.Schema.rows[this.indicadorTable+1][j] : ''),Validators.required));
         }
+      }
+      for(let j = 0; j < (<FormArray> fila).length; j++){
+        (<FormArray> this.FichaTable.get('rows')).push((<FormArray> fila).at(j));
+      }
+    
+    }else{
+      if(this.IndicatorSelected.type != 'Compuesto'){
+        if(!this.indicadorTable){
+          (<FormArray> fila).push(new FormArray([]));
+          (<FormArray> (<FormArray> fila).at(0)).push(new FormControl('Organización'));
+          (<FormArray> (<FormArray> fila).at(0)).push(new FormControl('id'));
+          (<FormArray> fila).push(new FormArray([]));
+          (<FormArray> (<FormArray> fila).at(1)).push(new FormControl(this.ProjectSelected.organizations[i].name));
+          (<FormArray> (<FormArray> fila).at(1)).push(new FormControl(this.ProjectSelected.organizations[i]._id));
+          for(let j = 0; j < this.IndicatorSelected.parameters_schema.length; j++){
+            if(this.IndicatorSelected.parameters_schema[j].haveCualitativeSchema || this.IndicatorSelected.parameters_schema[j].haveSchema){
+              for(let k = 0; k < this.IndicatorSelected.parameters_schema[j].record_schema.length; k++){
+                (<FormArray> (<FormArray> fila).at(0)).push(new FormControl(this.IndicatorSelected.parameters_schema[j].record_schema[k].name));
+                (<FormArray> (<FormArray> fila).at(1)).push(new FormControl((exist ? this.Schema.rows[this.indicadorTable+1][k+2] : ''),Validators.required));
+              }
+            }else{
+              (<FormArray> (<FormArray> fila).at(0)).push(new FormControl(this.IndicatorSelected.parameters_schema[j].name));
+              (<FormArray> (<FormArray> fila).at(1)).push(new FormControl((exist ? this.Schema.rows[this.indicadorTable+1][j+2] : ''),Validators.required));
+            }
+          }
+        }else{
+          (<FormArray> fila).push(new FormArray([]));
+          (<FormArray> (<FormArray> fila).at(0)).push(new FormControl(this.ProjectSelected.organizations[i].name));
+          (<FormArray> (<FormArray> fila).at(0)).push(new FormControl(this.ProjectSelected.organizations[i]._id));
+          for(let j = 0; j < this.IndicatorSelected.parameters_schema.length; j++){
+            if(this.IndicatorSelected.parameters_schema[j].haveSchema){
+              for(let k = 0; k < this.IndicatorSelected.parameters_schema[j].record_schema.length; k++){
+                (<FormArray> (<FormArray> fila).at(0)).push(new FormControl((exist ? this.Schema.rows[this.indicadorTable+1][k+2] : ''),Validators.required));
+              }
+            }else{
+              (<FormArray> (<FormArray> fila).at(0)).push(new FormControl((exist ? this.Schema.rows[this.indicadorTable+1][j+2] : ''),Validators.required));
+            }
+          }
+        }
       }else{
-        (<FormArray> fila).push(new FormArray([]));
-        (<FormArray> (<FormArray> fila).at(0)).push(new FormControl(this.ProjectSelected.organizations[i].name));
-        (<FormArray> (<FormArray> fila).at(0)).push(new FormControl(this.ProjectSelected.organizations[i]._id));
-        for(let j = 0; j < this.IndicatorSelected.record_schema.length; j++){
-          (<FormArray> (<FormArray> fila).at(0)).push(new FormControl((exist ? this.Schema.rows[this.indicadorTable+1][j] : ''),Validators.required));
+        if(!this.indicadorTable){
+          (<FormArray> fila).push(new FormArray([]));
+          (<FormArray> (<FormArray> fila).at(0)).push(new FormControl('Organización'));
+          (<FormArray> (<FormArray> fila).at(0)).push(new FormControl('id'));
+          (<FormArray> fila).push(new FormArray([]));
+          (<FormArray> (<FormArray> fila).at(1)).push(new FormControl(this.ProjectSelected.organizations[i].name));
+          (<FormArray> (<FormArray> fila).at(1)).push(new FormControl(this.ProjectSelected.organizations[i]._id));
+          for(let j = 0; j < this.IndicatorSelected.record_schema.length; j++){
+            (<FormArray> (<FormArray> fila).at(0)).push(new FormControl(this.IndicatorSelected.record_schema[j].name));
+            (<FormArray> (<FormArray> fila).at(1)).push(new FormControl((exist ? this.Schema.rows[this.indicadorTable+1][j] : ''),Validators.required));
+          }
+        }else{
+          (<FormArray> fila).push(new FormArray([]));
+          (<FormArray> (<FormArray> fila).at(0)).push(new FormControl(this.ProjectSelected.organizations[i].name));
+          (<FormArray> (<FormArray> fila).at(0)).push(new FormControl(this.ProjectSelected.organizations[i]._id));
+          for(let j = 0; j < this.IndicatorSelected.record_schema.length; j++){
+            (<FormArray> (<FormArray> fila).at(0)).push(new FormControl((exist ? this.Schema.rows[this.indicadorTable+1][j] : ''),Validators.required));
+          }
         }
       }
+      for(let j = 0; j < (<FormArray> fila).length; j++){
+        (<FormArray> this.FichaTable.get('rows')).push((<FormArray> fila).at(j));
+      }
+      this.indicadorTable += 1;
     }
-    for(let j = 0; j < (<FormArray> fila).length; j++){
-      (<FormArray> this.FichaTable.get('rows')).push((<FormArray> fila).at(j));
-    }
-    this.indicadorTable += 1;
   }
 
   /*Utilities*/
@@ -339,10 +370,23 @@ export class FichasComponent {
         });
   }
 
+  /*
+  Search : any = {
+    working: false,
+    error: false,
+    empty: false,
+    editMode: false,
+    EditForm: null,
+    fichas: []
+  };*/
+
   searchFichas(){
     this.Search.working = true;
     this.Search.error = false;
     this.Search.empty = false;
+    this.Search.editMode = false;
+    this.Search.EditForm = null;
+    this.Search.fichas = [];
     this.fichaService.search(this.ProjectSelected._id,this.IndicatorSelected._id).subscribe(
       result => {
         console.log(result);
@@ -385,7 +429,7 @@ export class FichasComponent {
   
   setEditMode(){
 
-    this.Search.EditForm = new FormGroup({
+    /*this.Search.EditForm = new FormGroup({
       lapse: new FormGroup({
         to: new FormControl(this.Search.ficha.lapse.to),
         from: new FormControl(this.Search.ficha.lapse.from)
@@ -401,11 +445,32 @@ export class FichasComponent {
         (<FormArray> row).push(new FormControl(this.Search.ficha.rows[i][j]));
       }
       (<FormArray> this.Search.EditForm.get('rows')).push(row);
-    }
+    }*/
 
     this.Search.editMode = true;
 
-    console.log(this.Search.EditForm.value);
+  }
+
+  /**
+   * Nueva Ficha Manual
+   */
+  NewManualFicha(){
+    this.Search.new = true;
+  }
+
+  back(noConfirm?){
+    if(!noConfirm){
+      if(confirm('Los cambios no guardados se perderán.\n\n¿Está seguro que desea salir?')){
+        this.Search.new = false;
+        this.Search.editMode = false;
+        this.Search.ficha = null;
+      }
+    }else{
+      this.Search.new = false;
+      this.Search.editMode = false;
+      this.Search.ficha = null;
+    }
+    this.searchFichas();
   }
   
 }

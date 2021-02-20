@@ -55,7 +55,7 @@
                     <small class="label">Discriminar por:</small>
                     <div>{{this.Indicator.organizations_diff_by}}</div>
                 </div>
-                <div class="col-sm-6">
+                <div class="col-sm-6" *ngIf="this.Indicator.organizations_diff_by != 'CEFODI'">
                     <small class="label" *ngIf="this.Indicator.organizations_diff_by == 'sector'">Seleccionar por Sector</small>
                     <small class="label" *ngIf="this.Indicator.organizations_diff_by == 'type'">Seleccionar por Tipo</small>
                     <small class="label" *ngIf="this.Indicator.organizations_diff_by == 'characteristic'">Seleccionar por Característica</small>
@@ -348,22 +348,23 @@
                             </mat-select>
                         </mat-form-field>
                     </div>
-                    <div class="col-sm-6">
+                    <div class="col-sm-6" *ngIf="this.IndicatorForm.get('organizations_diff_by').value != 'CEFODI'">
                         <div *ngIf="this.IndicatorForm.get('organizations_diff_by').value == 'sector'">
                             <div>Seleccione los Sectores</div>
                             <mat-selection-list class="full-width max-height" #TypeList>
-                                <mat-list-option (click)="this.OnOrganizationsChange(type,TypeList)" *ngFor="let type of (this.preferencias | async).types">{{type}}</mat-list-option>
+                                <mat-list-option (click)="this.OnOrganizationsChange(type,TypeList)" *ngFor="let type of (this.preferencias | async).sectores">{{type}}</mat-list-option>
                             </mat-selection-list>
                         </div>
                         <div *ngIf="this.IndicatorForm.get('organizations_diff_by').value == 'type'">
                             <div>Seleccione los Tipos</div>
                             <mat-selection-list class="full-width max-height" #TypeList>
-                                <mat-list-option (click)="this.OnOrganizationsChange(type,TypeList)" *ngFor="let type of (this.preferencias | async).types">{{type}}</mat-list-option>
+                                <mat-list-option (click)="this.OnOrganizationsChange(type,TypeList)" [selected]="isTypeSelected(type)" *ngFor="let type of (this.preferencias | async)?.types">{{type}}</mat-list-option>
                             </mat-selection-list>
                         </div>
                         <div *ngIf="this.IndicatorForm.get('organizations_diff_by').value == 'characteristic'">
                             <mat-form-field class="full-width">
                                 <mat-label>Seleccione la Característica</mat-label>
+                                <!--mat-select (valueChange)="this.selectOrganizations($event)" [value]="this.IndicatorForm.get('organizations').at(0).value"-->
                                 <mat-select (valueChange)="this.selectOrganizations($event)">
                                     <mat-option value="Con Negocios">Con Negocios</mat-option>
                                     <mat-option value="Sin Negocios">Sin Negocios</mat-option>

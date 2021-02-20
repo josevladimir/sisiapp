@@ -178,6 +178,7 @@ export class ProjectViewComponent {
     for(let i = 0; i < this.Project.full_schema.length; i++){
       
       let indicator = this.Indicators.filter(indicador => indicador._id == this.Project.full_schema[i].id)[0];
+      console.log(indicator);
       
       let baselineCtrl : FormArray = new FormArray([]);
       for(let j = 0; j < this.Project.full_schema[i].baseline.length; j++){
@@ -193,7 +194,7 @@ export class ProjectViewComponent {
         let auxFormArray : FormArray = new FormArray([]);
         for(let k = 0; k < this.Project.full_schema[i].goal[j].length; k++){
           if(!j){ //First row whit the table's legend
-            (<FormArray> auxFormArray).push(new FormControl(this.Project.full_schema[i].goal[j][k].yearNumber));
+            (<FormArray> auxFormArray).push(new FormControl(this.Project.full_schema[i].goal[j][k]));
           }else if(!k){ //First Column when are the perdiod legend
             (<FormArray> auxFormArray).push(new FormGroup({
               yearNumber: new FormControl(this.Project.full_schema[i].goal[j][k].yearNumber),
@@ -227,7 +228,7 @@ export class ProjectViewComponent {
       (<FormArray> this.SchemaFormGroup.get('full_schema')).push(schemaCtrl);
     }
 
-    console.log(this.SchemaFormGroup);
+    console.log(this.SchemaFormGroup.value);
 
   }
 

@@ -1,0 +1,65 @@
+
+    <mat-card-title *ngIf="!this.ficha" class="font-weight-lighter flex flex-align-vertical"><button mat-icon-button (click)="back()"><mat-icon>arrow_back</mat-icon></button> Ficha</mat-card-title>
+    <mat-divider *ngIf="!this.ficha"></mat-divider>
+    <mat-card-content>
+        <div>
+            <form [formGroup]="this.FichaTable">
+                <div *ngIf="!this.ficha" class="pt-3 mb-3">
+                    <p>Proyecto: <span class="font-weight-lighter">{{this.project.name}}</span></p>
+                    <p>Indicador: <span class="font-weight-lighter">{{this.indicator.name}}</span></p>
+                    <p>Periodo:</p>
+                    <div class="row">
+                        <div class="col-md-4" formGroupName="lapse">
+                            <mat-form-field class="full-width">
+                                <mat-label>Desde:</mat-label>
+                                <input matInput [matDatepicker]="picker1" formControlName="from">
+                                <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
+                                <mat-datepicker #picker1></mat-datepicker>
+                            </mat-form-field>
+                        </div>
+                        <div class="col-md-4" formGroupName="lapse">
+                            <mat-form-field class="full-width">
+                                <mat-label>Hasta:</mat-label>
+                                <input matInput [matDatepicker]="picker2" formControlName="to">
+                                <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
+                                <mat-datepicker #picker2></mat-datepicker>
+                            </mat-form-field>
+                        </div>
+                        <div class="col-md-4">
+                            <mat-form-field class="full-width">
+                                <mat-label>A qué {{period}} corresponde esta fecha</mat-label>
+                                <input type="number" matInput placeholder="Ingrese un número" formControlName="period">
+                            </mat-form-field>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-container full-width">
+                    <table formArrayName="rows" class="baseline-table full-width">
+                        <tbody *ngFor="let row of this.FichaTable.get('rows')['controls']; let i = index">
+                            <tr *ngIf="!i" [formGroupName]="i">
+                                <th [ngClass]="{'sticky': !j, 'gone': j == 1}" class="main-row" *ngFor="let column of row['controls']; let j = index">
+                                    {{column.value}}
+                                </th>
+                            </tr>
+                            <tr *ngIf="i && this.isMyOrganization(row['controls'][1].value)" [formGroupName]="i">
+                                <td [ngClass]="{'sticky': !j, 'main-col': !j, 'gone': j == 1}" *ngFor="let column of row['controls']; let j = index">
+                                    <div *ngIf="!j">{{column.value}}</div>
+                                    <div *ngIf="j">
+                                        <input type="text" class="full-width schema-input" placeholder="Ingrese aquí el dato" [formControlName]="j">
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        </div>
+    </mat-card-content>
+    <mat-divider></mat-divider>
+    <mat-card-actions>
+        <div class="flex">
+            <span class="fill-remaining-space"></span>
+            <button mat-button type="button" (click)="this.back()">CANCELAR</button>
+            <button mat-raised-button color="primary" [disabled]="!this.FichaTable.valid" type="button" (click)="save()">GUARDAR</button>
+        </div>
+    </mat-card-actions>

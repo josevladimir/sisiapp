@@ -215,7 +215,7 @@
                 
                     <div id="graphic">
                         <div class="flex justify-content-center">
-                            <!--ngx-charts-line-chart *ngIf="this.multi"
+                            <ngx-charts-line-chart *ngIf="this.multi"
                                 [view]="view"
                                 [scheme]="colorScheme"
                                 [legend]="legend"
@@ -230,7 +230,7 @@
                                 (select)="onSelect($event)"
                                 (activate)="onActivate($event)"
                                 (deactivate)="onDeactivate($event)">
-                            </ngx-charts-line-chart-->
+                            </ngx-charts-line-chart>
                         </div>
                     </div>
 
@@ -255,7 +255,7 @@
                 </ng-template>
             </div>
         </mat-tab>
-        <!--Pestaña Financiadores-->
+        <!--Pestaña Financiadores--> 
         <mat-tab label="Financiadores" id="financiadores-box" class="full-height">
             <div class="container pb-3 pt-3 border-box full-height">
                 <div class="row full-height" *ngIf="this.Project.funders.length; else NoFunders">
@@ -386,7 +386,7 @@
                                                         <div *ngIf="j && k && !indicadorGroup.get('antiquity_diff').value && this.indicatorsSelected[i].parameters_schema[k-1].unit != 'Cualitativo'">
                                                             <input type="text" class="full-width font-weight-lighter" [formControlName]="k" placeholder="Meta">
                                                         </div>
-                                                        <div *ngIf="j && k && this.indicatorsSelected[i].parameters_schema[k-1].unit == 'Cualitativo'">
+                                                        <div *ngIf="j && k && !indicadorGroup.get('antiquity_diff').value && this.indicatorsSelected[i].parameters_schema[k-1].unit == 'Cualitativo'">
                                                             <mat-select class="full-width schema-input font-weight-lighter" [formControlName]="k">
                                                                 <mat-option *ngFor="let level of this.indicatorsSelected[i].parameters_schema[k-1].cualitative_levels" [value]="level.name">{{level.name}}</mat-option>
                                                             </mat-select>

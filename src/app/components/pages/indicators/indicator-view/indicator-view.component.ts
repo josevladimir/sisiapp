@@ -74,6 +74,10 @@ export class IndicatorViewComponent{
       }));
     }
 
+    for(let i = 0; i < this.Indicator.organizations.length; i++){
+      (<FormArray> this.IndicatorForm.get('organizations')).push(new FormControl(this.Indicator.organizations[i]));
+    }
+
     for(let i = 0; i < this.Indicator.parameters_schema.length; i++){
       let weight : any = {};
       
@@ -173,6 +177,18 @@ export class IndicatorViewComponent{
         }
       }
     }
+  }
+
+  isTypeSelected(tipo){
+    let isSelected = false;
+    for(let i = 0; i < (<FormArray>this.IndicatorForm.get('organizations')).length; i++){
+      console.log(this.Indicator.organizations[i]);
+      if(tipo == (<FormArray> this.IndicatorForm.get('organizations')).at(i).value){
+        isSelected = true;
+        break;
+      }
+    }
+    return isSelected;
   }
 
   addParameter () {
